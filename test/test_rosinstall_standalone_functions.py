@@ -30,15 +30,13 @@
 # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-import roslib; roslib.load_manifest('test_rosinstall')
+
 
 import os
 import stat
 import struct
 import sys
 import unittest
-import roslib
-import rostest
 
 import rosinstall.helpers
 
@@ -56,15 +54,15 @@ class ConditionalAbspath(unittest.TestCase):
         self.assertEqual(os.path.normpath(os.path.join(os.getcwd(), path)), rosinstall.helpers.conditional_abspath(path))
         
     def test_is_path_stack(self):
-        self.assertTrue(rosinstall.helpers.is_path_stack(roslib.stacks.get_stack_dir("ros")))
-        self.assertFalse(rosinstall.helpers.is_path_stack(roslib.packages.get_pkg_dir("roscpp")))
+        self.assertTrue(rosinstall.helpers.is_path_stack(os.path.join("test", "example_dirs", "ros")))
+        self.assertFalse(rosinstall.helpers.is_path_stack(os.path.join("test", "example_dirs", "roscpp")))
 
     def test_is_path_ros(self):
-        self.assertTrue(rosinstall.helpers.is_path_stack(roslib.stacks.get_stack_dir("ros")))
-        self.assertFalse(rosinstall.helpers.is_path_stack(roslib.packages.get_pkg_dir("roscpp")))
+        self.assertTrue(rosinstall.helpers.is_path_stack((os.path.join("test", "example_dirs", "ros"))))
+        self.assertFalse(rosinstall.helpers.is_path_stack((os.path.join("test", "example_dirs", "roscpp"))))
 
     def test_get_yaml_from_uri_from_file(self):
-        file = os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "test", "example.yaml")
+        file = os.path.join("test", "example.yaml")
         y = rosinstall.helpers.get_yaml_from_uri(file)
         
         self.assertTrue("text" in y)

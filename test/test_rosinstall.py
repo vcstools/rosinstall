@@ -73,7 +73,7 @@ class RosinstallCommandlineTest(unittest.TestCase):
         shutil.rmtree(directory)
         self.directories.pop("ros")
 
-    def DISABLED_test_Rosinstall_ros_stack(self):
+    def DISABLED_Rosinstall_ros_stack(self):
         directory = tempfile.mkdtemp()
         self.directories["stack"] = directory
         cmd = self.rosinstall_fn
@@ -82,7 +82,7 @@ class RosinstallCommandlineTest(unittest.TestCase):
         shutil.rmtree(directory)
         self.directories.pop("stack")
 
-    def DISABLED_test_Rosinstall_ros_variant(self):
+    def DISABLED_Rosinstall_ros_variant(self):
         directory = tempfile.mkdtemp()
         self.directories["variant"] = directory
         cmd = self.rosinstall_fn
@@ -96,7 +96,7 @@ class RosinstallCommandlineOverlays(unittest.TestCase):
 
     def setUp(self):
         self.rosinstall_tempfile = tempfile.NamedTemporaryFile(mode='a+b')
-        self.rosinstall_fn = ["rosrun", "rosinstall", "rosinstall"]
+        self.rosinstall_fn = ["./scripts/rosinstall"]
         #self.rosinstall_fn = "/tmp/test_rosinstall_temp_version"
         #urllib.urlretrieve("https://code.ros.org/svn/ros/installers/trunk/rosinstall/rosinstall", self.rosinstall_fn)
         #os.chmod(self.rosinstall_fn, stat.S_IRWXU)
@@ -129,7 +129,6 @@ class RosinstallCommandlineOverlays(unittest.TestCase):
             
 
     def test_Rosinstall_common_msgs_as_explicit_overlay(self):
-        self.assertEqual(self.rosinstall_fn, ["rosrun", "rosinstall", "rosinstall"])
         directory = tempfile.mkdtemp()
         with tempfile.NamedTemporaryFile() as ri_file:
             file_text = """
@@ -170,7 +169,7 @@ class RosinstallOptionsTest(unittest.TestCase):
 
     def setUp(self):
         #self.rosinstall_tempfile = tempfile.NamedTemporaryFile(mode='a+b')
-        self.rosinstall_fn = ["rosrun", "rosinstall", "rosinstall"]
+        self.rosinstall_fn = ["scripts/rosinstall"]
         #urllib.urlretrieve("https://code.ros.org/svn/ros/installers/trunk/rosinstall/rosinstall2", self.rosinstall_fn)
         #os.chmod(self.rosinstall_fn, stat.S_IRWXU)
         self.directories = {}
