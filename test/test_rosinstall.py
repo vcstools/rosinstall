@@ -30,7 +30,6 @@
 # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-import roslib; roslib.load_manifest('test_rosinstall')
 
 import os
 import stat
@@ -41,8 +40,6 @@ import subprocess
 import tempfile
 import urllib
 import shutil
-import roslib
-import rostest
 
 import rosinstall
 import rosinstall.helpers
