@@ -1,0 +1,193 @@
+#!/usr/bin/env python
+# Software License Agreement (BSD License)
+#
+# Copyright (c) 2010, Willow Garage, Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of Willow Garage, Inc. nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
+# Author: kwc
+
+"""
+Library for locating ROS packages and stacks using the centralized
+index at ROS.org.
+"""
+
+NAME='roslocate'
+
+import os
+import sys
+try:
+    from os import EX_OK, EX_DATAERR, EX_USAGE
+except:
+    EX_OK, EX_DATAERR, EX_USAGE = 0, 1, 2
+
+from rosinstall.locate import get_rosdoc_manifest, \
+     get_www, get_repo, get_vcs, get_vcs_uri_for_branch,\
+     get_rosinstall, InvalidData, BRANCH_RELEASE, BRANCH_DEVEL
+
+def options_to_branch(options):
+    # we don't let the user express the full range of options at the
+    # command-line, mainly for (1) simplicity and (2) the distro
+    # branch is not reliable.
+    if options.dev:
+        return BRANCH_DEVEL
+    else:
+        return BRANCH_RELEASE
+    
+def cmd_get_rosinstall(name, data, type_, options=None):
+    branch = options_to_branch(options)
+    prefix = options.prefix if options is not None and options.prefix else ''
+    return get_rosinstall(name, data, type_, branch, prefix)
+
+def get_type(name, data, type_, options=None):
+    return type_
+
+def cmd_get_vcs_uri(name, data, type_, options=None):
+    return get_vcs_uri_for_branch(data, options_to_branch(options))
+
+def cmd_get_vcs(name, data, type_, options=None):
+    return get_vcs(name, data, type_)
+    
+def cmd_get_www(name, data, type_, options=None):
+    return get_www(name, data, type_)
+
+def get_description(name, data, type_, options=None):
+    if type_ == 'package':
+        return """
+Type: package
+Stack: %s
+Description: %s
+URL: %s
+    """%(data.get('stack', 'none'), data.get('description', ''), data.get('url', ''))
+    elif type_ == 'stack':
+        return """
+Type: package
+Stack: %s
+Description: %s
+URL: %s
+    """%(data.get('stack', 'none'), data.get('description', ''), data.get('url', ''))
+    else:
+        return """
+Type: %s
+Description: %s
+URL: %s
+    """%(type_, ", ".join(data.get('packages', [])), data.get('description', ''), data.get('url', ''))
+        
+def cmd_get_repo(name, data, type_, options=None):
+    return get_repo(name, data, type_)
+
+################################################################################
+
+# Bind library to commandline implementation
+
+def _fullusage():
+    sys.stderr.write("""
+%s
+\tinfo\tGet rosinstall info of resource
+\tvcs\tGet name of source control system
+\ttype\tPackage or stack
+\turi\tGet source control URI of resource
+\twww\tGet web page of resource
+\trepo\tGet repository name of resource
+\tdescribe\tGet description of resource
+"""%(NAME))
+    sys.exit(EX_USAGE)
+    
+from operator import getitem
+from functools import partial
+_cmds = {
+    # info/rosinstall are now identical
+    'info': cmd_get_rosinstall,
+    'rosinstall': cmd_get_rosinstall,
+    'vcs': cmd_get_vcs,
+    'type': get_type,
+    'uri': cmd_get_vcs_uri,
+    'repo': cmd_get_repo,
+    'www': cmd_get_www,
+    'describe': get_description,
+    'description': get_description, #alias
+    }
+
+def roslocate_main():
+    from optparse import OptionParser
+    args = sys.argv
+
+    # parse command
+    if len(args) < 2:
+        _fullusage()
+    cmd = args[1]
+    if not cmd in _cmds.keys():
+        _fullusage()
+
+    parser = OptionParser(usage="usage: %%prog %s <resource>"%(cmd), prog=NAME)
+    if cmd in ['info', 'rosinstall']:
+         parser.add_option("--prefix",
+                           dest="prefix", default=False,
+                           metavar="PATH",
+                           help="path prefix for rosinstall")
+        
+    # TODO: distro-specific return values
+    parser.add_option("--distro",
+                      dest="distro", default=None,
+                      help="fetch information for specific ROS distribution release")
+    
+    # In this implementation, we're optimizing for the use case where
+    # the user wishes to do a source-based install of a released
+    # stack.  The user also has an efficient flag for specifying that
+    # they want a development branch instead.  We are not exposing
+    # users to the full range of devel/released/distro branches that
+    # the rosinstall file encodes, mainly because the distro branch is
+    # not reliable with DVCS systems like git.  Thus, rosinstall
+    # abstracts the logic for determining what the correct released
+    # branch to use is.
+    parser.add_option("--dev",
+                      dest="dev", default=False,
+                      action="store_true", 
+                      help="fetch development branch information")
+
+    # noop parse for now.  Will matter once we can pass in --distro
+    options, args = parser.parse_args()
+
+    if len(args) != 2:
+        parser.error("please provide a resource name (package or stack)")
+    name = args[1]
+
+    try:
+        data, type_ = get_rosdoc_manifest(name, options.distro)
+    except IOError:
+        sys.stderr.write('cannot locate information about %s\n'%(name))
+        sys.exit(1)
+
+    try:
+        print _cmds[cmd](name, data, type_, options)
+    except InvalidData as e:
+        sys.stderr.write("%s\n"%e)
+
+if __name__ == '__main__':
+    roslocate_main()

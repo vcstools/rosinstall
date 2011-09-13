@@ -1,0 +1,130 @@
+#!/usr/bin/env python
+# Software License Agreement (BSD License)
+#
+# Copyright (c) 2011, Willow Garage, Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of Willow Garage, Inc. nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
+from __future__ import print_function
+
+import os
+import sys
+import yaml
+from optparse import OptionParser
+
+from rosinstall.simple_checkout import checkout_rosinstall
+
+"""
+# checkout a package/stack, uses same options and roslocate
+rosco foo --distro=unstable
+rosco foo --distro=electric --dev
+
+# checkout all entries in a rosinstall file
+rosco -r foo.rosinstall
+rosco --rosinstall foo.rosinstall
+
+# pipe output from roslocate directly
+roslocate info eigen --distro=unstable | rosco
+"""
+
+def _parse_file_args(parser, options, args):
+    """
+    Parse arg input if options.file is flagged 
+    """
+    if args:
+        parser.error("invalid additional args: "%(args))
+    else:
+        filename = options.file
+        if not os.path.isfile(filename):
+            parser.error("no such file %s"%(filename))
+        with open(filename, 'r') as f:
+            value = f.read()
+    return value
+    
+from rosinstall.locate import get_rosdoc_manifest, get_rosinstall,\
+     BRANCH_DEVEL, BRANCH_RELEASE
+
+def options_to_branch(options):
+    # same logic as roslocate
+    if options.dev:
+        return BRANCH_DEVEL
+    else:
+        return BRANCH_RELEASE
+
+def _parse_args(parser, options, args):
+    if len(args) == 0:
+        parser.error('please specify a stack or package')
+    if len(args) != 1:
+        parser.error('you may only specify one input argument')
+    name = args[0]
+    try:
+        data, type_ = get_rosdoc_manifest(name, options.distro)
+    except IOError:
+        sys.stderr.write('cannot locate information about %s\n'%(name))
+        sys.exit(1)
+    return get_rosinstall(name, data, type_, options_to_branch(options))
+    
+def rosco_main():
+    parser = OptionParser(usage="""
+\trosco [options] <package-or-stack>
+\trosco -r <rosinstall-file>
+
+rosco also accepts piped rosinstall input:
+
+\troslocate info foo | rosco""")
+    parser.add_option("-r", "--rosinstall",
+                      dest="file", default=None,
+                      help="checkout entries in rosinstall file")
+    parser.add_option("--distro",
+                      dest="distro", default=None,
+                      help="fetch information for specific ROS distribution release")
+    parser.add_option("--dev",
+                      dest="dev", default=False,
+                      action="store_true", 
+                      help="fetch development branch information")
+    options, args = parser.parse_args()
+
+    # accept piped input
+    if options.file:
+        value = _parse_file_args(parser, options, args)
+    elif not sys.stdin.isatty():
+        value = sys.stdin.read()
+    else:
+        value = _parse_args(parser, options, args)
+    
+    rosinstall_data = yaml.load(value)
+    if not rosinstall_data or not type(rosinstall_data) == list:
+        print(rosinstall_data)
+        parser.error("input must be a rosinstall snippet")
+
+    checkout_rosinstall(rosinstall_data, verbose=True)
+
+if __name__ == '__main__':
+    rosco_main()
+

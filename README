@@ -1,0 +1,15 @@
+To test in a development environment 
+
+You need to run make to get the vcstools imported into the devel tree.  
+
+source setup.sh so as to add /src to your bashrc
+
+To test on your local machine you can call make install, with checkinstall installed such that it will make a local deb you can then easily remove. 
+
+To release there are release numbers in 3 places, Makefile, setup.py and rosinstall all need to be updated.  The Makefile will check they are correct.  
+
+To upload to pypi make push
+To upload to ppa make upload
+  You will need stdeb available from pip, and 
+
+
