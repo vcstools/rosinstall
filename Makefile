@@ -49,5 +49,5 @@ upload: source_deb
 testsetup:
 	echo "running tests"
 
-run_test: testsetup  # not test so as not to clobber ROS testing once not a ros package rename to test
+test: testsetup
 	nosetests --with-coverage --cover-package=rosinstall
