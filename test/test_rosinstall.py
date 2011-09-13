@@ -48,7 +48,7 @@ class RosinstallCommandlineTest(unittest.TestCase):
 
     def setUp(self):
         #self.rosinstall_tempfile = tempfile.NamedTemporaryFile(mode='a+b')
-        self.rosinstall_fn = ["rosrun", "rosinstall", "rosinstall"]
+        self.rosinstall_fn = ["./scripts/rosinstall"]
         #urllib.urlretrieve("https://code.ros.org/svn/ros/installers/trunk/rosinstall/rosinstall2", self.rosinstall_fn)
         #os.chmod(self.rosinstall_fn, stat.S_IRWXU)
         self.directories = {}
@@ -68,7 +68,7 @@ class RosinstallCommandlineTest(unittest.TestCase):
         directory = tempfile.mkdtemp()
         self.directories["ros"] = directory
         cmd = self.rosinstall_fn
-        cmd.extend([directory, os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "rosinstalls", "ros_w_release.rosinstall")])
+        cmd.extend([directory, os.path.join("test", "rosinstalls", "ros_w_release.rosinstall")])
         self.assertEqual(0,subprocess.call(cmd))
         shutil.rmtree(directory)
         self.directories.pop("ros")
@@ -77,7 +77,7 @@ class RosinstallCommandlineTest(unittest.TestCase):
         directory = tempfile.mkdtemp()
         self.directories["stack"] = directory
         cmd = self.rosinstall_fn
-        cmd.extend([directory, os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "rosinstalls", "distro_stack.rosinstall")])
+        cmd.extend([directory, os.path.join("test", "rosinstalls", "distro_stack.rosinstall")])
         self.assertEqual(0,subprocess.call(cmd))
         shutil.rmtree(directory)
         self.directories.pop("stack")
@@ -86,7 +86,7 @@ class RosinstallCommandlineTest(unittest.TestCase):
         directory = tempfile.mkdtemp()
         self.directories["variant"] = directory
         cmd = self.rosinstall_fn
-        cmd.extend([directory, os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "rosinstalls", "distro_variant.rosinstall")])
+        cmd.extend([directory, os.path.join("test", "rosinstalls", "distro_variant.rosinstall")])
         self.assertEqual(0,subprocess.call(cmd))
         shutil.rmtree(directory)
         self.directories.pop("variant")
@@ -104,7 +104,7 @@ class RosinstallCommandlineOverlays(unittest.TestCase):
         self.base = tempfile.mkdtemp()
         cmd = self.rosinstall_fn[:]
         #cmd.extend([self.base, "http://www.ros.org/rosinstalls/boxturtle_base.rosinstall"])
-        cmd.extend([self.base, os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "rosinstalls", "ros_w_release.rosinstall")])
+        cmd.extend([self.base, os.path.join("test", "rosinstalls", "ros_w_release.rosinstall")])
         self.assertEqual(0,subprocess.call(cmd))
 
 
@@ -158,7 +158,7 @@ class RosinstallCommandlineOverlays(unittest.TestCase):
         directory = tempfile.mkdtemp()
         self.directories["tutorials2"] = directory
         cmd = self.rosinstall_fn[:]
-        cmd.extend([directory, self.base, os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "rosinstalls", "overlay.rosinstall")])
+        cmd.extend([directory, self.base, os.path.join("test", "rosinstalls", "overlay.rosinstall")])
         print "Running command %s"%cmd
         self.assertEqual(0,subprocess.call(cmd))
 
@@ -186,10 +186,10 @@ class RosinstallOptionsTest(unittest.TestCase):
         directory = tempfile.mkdtemp()
         self.directories["delete"] = directory
         cmd = self.rosinstall_fn
-        cmd.extend([directory, os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "rosinstalls", "simple.rosinstall"), "-n"])
+        cmd.extend([directory, os.path.join("test", "rosinstalls", "simple.rosinstall"), "-n"])
         self.assertEqual(0,subprocess.call(cmd))
 
-        cmd.extend([directory, os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "rosinstalls", "simple_changed_uri.rosinstall"), "--delete-changed-uri", "-n"])
+        cmd.extend([directory, os.path.join("test", "rosinstalls", "simple_changed_uri.rosinstall"), "--delete-changed-uri", "-n"])
         self.assertEqual(0,subprocess.call(cmd))
 
         shutil.rmtree(directory)
@@ -199,10 +199,10 @@ class RosinstallOptionsTest(unittest.TestCase):
         directory = tempfile.mkdtemp()
         self.directories["abort"] = directory
         cmd = self.rosinstall_fn
-        cmd.extend([directory, os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "rosinstalls", "simple.rosinstall"), "-n"])
+        cmd.extend([directory, os.path.join("test", "rosinstalls", "simple.rosinstall"), "-n"])
         self.assertEqual(0,subprocess.call(cmd))
 
-        cmd.extend([directory, os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "rosinstalls", "simple_changed_uri.rosinstall"), "--abort-changed-uri", "-n"])
+        cmd.extend([directory, os.path.join("test", "rosinstalls", "simple_changed_uri.rosinstall"), "--abort-changed-uri", "-n"])
         self.assertEqual(1,subprocess.call(cmd))
 
         shutil.rmtree(directory)
@@ -212,12 +212,12 @@ class RosinstallOptionsTest(unittest.TestCase):
         directory = tempfile.mkdtemp()
         self.directories["backup"] = directory
         cmd = self.rosinstall_fn
-        cmd.extend([directory, os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "rosinstalls", "simple.rosinstall"), "-n"])
+        cmd.extend([directory, os.path.join("test", "rosinstalls", "simple.rosinstall"), "-n"])
         self.assertEqual(0,subprocess.call(cmd))
 
         directory1 = tempfile.mkdtemp()
         self.directories["backup1"] = directory1
-        cmd.extend([directory, os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "rosinstalls", "simple_changed_uri.rosinstall"), "--backup-changed-uri=%s"%directory1, "-n"])
+        cmd.extend([directory, os.path.join("test", "rosinstalls", "simple_changed_uri.rosinstall"), "--backup-changed-uri=%s"%directory1, "-n"])
         self.assertEqual(0,subprocess.call(cmd))
 
         self.assertEqual(len(os.listdir(directory1)), 1)
@@ -232,7 +232,7 @@ class RosinstallOptionsTest(unittest.TestCase):
         directory = tempfile.mkdtemp()
         self.directories["invalid_fail"] = directory
         cmd = self.rosinstall_fn
-        cmd.extend([directory, os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "rosinstalls", "broken.rosinstall"), "-n"])
+        cmd.extend([directory, os.path.join("test", "rosinstalls", "broken.rosinstall"), "-n"])
         self.assertEqual(1,subprocess.call(cmd))
 
         shutil.rmtree(directory)
@@ -242,7 +242,7 @@ class RosinstallOptionsTest(unittest.TestCase):
         directory = tempfile.mkdtemp()
         self.directories["invalid_continue"] = directory
         cmd = self.rosinstall_fn
-        cmd.extend([directory, os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "rosinstalls", "broken.rosinstall"), "-n", "--continue-on-error"])
+        cmd.extend([directory, os.path.join("test", "rosinstalls", "broken.rosinstall"), "-n", "--continue-on-error"])
         self.assertEqual(0,subprocess.call(cmd))
 
         shutil.rmtree(directory)
@@ -252,10 +252,10 @@ class RosinstallOptionsTest(unittest.TestCase):
         directory = tempfile.mkdtemp()
         self.directories["change_vcs_type"] = directory
         cmd = self.rosinstall_fn
-        cmd.extend([directory, os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "rosinstalls", "simple.rosinstall"), "-n"])
+        cmd.extend([directory, os.path.join("test", "rosinstalls", "simple.rosinstall"), "-n"])
         self.assertEqual(0,subprocess.call(cmd))
 
-        cmd.extend([directory, os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "rosinstalls", "simple_changed_vcs_type.rosinstall"), "--delete-changed-uri", "-n"])
+        cmd.extend([directory, os.path.join("test", "rosinstalls", "simple_changed_vcs_type.rosinstall"), "--delete-changed-uri", "-n"])
         self.assertEqual(0,subprocess.call(cmd))
 
         shutil.rmtree(directory)

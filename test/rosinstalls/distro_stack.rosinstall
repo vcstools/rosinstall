@@ -1,0 +1,8 @@
+- svn:
+    uri: https://code.ros.org/svn/ros/stacks/ros/tags/boxturtle
+    local-name: ros
+- stack:
+    uri: http://www.ros.org/distros/boxturtle.rosdistro
+    local-name: common_msgs
+    rule: release_svn
+    version: boxturtle
