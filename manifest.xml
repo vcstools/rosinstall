@@ -8,6 +8,10 @@ rosinstall is a tool to check out ROS source code (or any source code, really) f
   <review status="API Cleared" notes=""/>
   <url>http://ros.org/wiki/rosinstall</url>
 
+  <export>
+    <rosdoc config="rosdoc.yaml"/>    
+  </export>
+
 </package>
 
 
