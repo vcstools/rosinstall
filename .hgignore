@@ -5,6 +5,10 @@ syntax: glob
 *.DS_Store
 *~
 *.log
+*.egg-info/*
+.coverage
+*.deb
+*.tgz
 
 syntax: regexp
 (target|build|dist)/.*
