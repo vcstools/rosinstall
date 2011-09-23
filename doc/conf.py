@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'rosinstall'
-copyright = u'2011, Tully Foote, Thibault Kruse, Ken Conley, Brian Gerkey'
+copyright = u'2011, Willow Garage'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -211,8 +211,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'rosinstall', u'rosinstall Documentation',
-     [u'Tully Foote, Thibault Kruse, Ken Conley, Brian Gerkey'], 1)
+    ('man/rosinstall', 'rosinstall', u'rosinstall command',
+     [u'Tully Foote, Thibault Kruse, Morgan Quigley, Ken Conley, Brian Gerkey'], 1)
 ]
 
 
