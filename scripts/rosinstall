@@ -111,6 +111,8 @@ class OtherConfigElement(ConfigElement):
 class VCSConfigElement(ConfigElement):
   def __init__(self, path, uri, version=''):
     self.path = path
+    if uri == None:
+      raise ROSInstallException("Invalid scm entry having no uri attribute for path %s"%path)
     if uri.endswith('/'):  # strip trailing slashes to not be too strict #3061
       self.uri = uri[:-1]
     else:
@@ -190,10 +192,8 @@ class VCSConfigElement(ConfigElement):
 
 class AVCSConfigElement(VCSConfigElement):
   def __init__(self, type, path, uri, version = ''):
+    VCSConfigElement.__init__(self, path, uri, version)
     self.type = type
-    self.path = path
-    self.uri = uri
-    self.version = version
     self.vcsc = VcsClient(self.type, self.path)
 
 
