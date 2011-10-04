@@ -505,7 +505,7 @@ URIs can be web urls to remote .rosinstall files, local .rosinstall files,\n\
 git, svn, bzr, hg URIs, or local directories.\n\
 Later URIs will shadow packages of earlier URIs.\n",
                         epilog="See: http://www.ros.org/wiki/rosinstall for details\n",
-                        version="%prog 0.5.21")
+                        version="%prog 0.5.22")
   parser.add_option("-n", "--nobuild", dest="nobuild", default=False,
                     help="skip the build step for the ROS stack",
                     action="store_true")
