@@ -182,7 +182,20 @@ class ROSWorkspace:
 
         stdout, stderr = p.communicate()
         if p.returncode != 0:
-            raise ROSWorkspaceException('roslocate failed: %s'%(stderr))
+            sys.stderr.write('[rosws] Warning: failed to locate stack "%s" in distro "%s".  Falling back on non-distro-specific search; compatibility problems may ensue.\n'%(stack,distro))
+            # Could be that the stack hasn't been released; try roslocate
+            # again, without specifying the distro.
+            cmd = ['roslocate', 'info', stack]
+            if dev == True:
+                cmd.append('--dev')
+            try:
+                p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+            except OSError as e:
+                raise ROSWorkspaceException('%s\nfailed to execute roslocate; is your ROS environment configured?'%(e))
+    
+            stdout, stderr = p.communicate()
+            if p.returncode != 0:
+                raise ROSWorkspaceException('roslocate failed: %s'%(stderr))
         return yaml.load(stdout)
 
     def _rosversion_to_distro_name(self):
