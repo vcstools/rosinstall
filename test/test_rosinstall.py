@@ -48,7 +48,7 @@ class RosinstallCommandlineTest(unittest.TestCase):
 
     def setUp(self):
         #self.rosinstall_tempfile = tempfile.NamedTemporaryFile(mode='a+b')
-        self.rosinstall_fn = ["./scripts/rosinstall"]
+        self.rosinstall_fn = ["./scripts/rosinstall", "-n"]
         self.new_environ = os.environ
         self.new_environ["PYTHONPATH"] = os.path.join(os.getcwd(), "src")
         #urllib.urlretrieve("https://code.ros.org/svn/ros/installers/trunk/rosinstall/rosinstall2", self.rosinstall_fn)
@@ -98,7 +98,7 @@ class RosinstallCommandlineOverlays(unittest.TestCase):
 
     def setUp(self):
         self.rosinstall_tempfile = tempfile.NamedTemporaryFile(mode='a+b')
-        self.rosinstall_fn = ["./scripts/rosinstall"]
+        self.rosinstall_fn = ["./scripts/rosinstall", "-n"]
         self.new_environ = os.environ
         self.new_environ["PYTHONPATH"] = os.path.join(os.getcwd(), "src")
 
