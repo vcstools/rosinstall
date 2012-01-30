@@ -9,6 +9,8 @@ syntax: glob
 .coverage
 *.deb
 *.tgz
+doc-pak
+description-pak
 
 syntax: regexp
 (target|build|dist)/.*
