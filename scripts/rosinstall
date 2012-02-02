@@ -527,8 +527,8 @@ Later URIs will shadow packages of earlier URIs.\n",
   parser.add_option("-c", "--catkin", dest="catkin", default=False,
                     help="Declare this is a catkin build.",
                     action="store_true")
-  parser.add_option("--catkin-prefix-path", dest="catkinpp", default=None,
-                    help="Where to set the CMAKE_PREFIX_PATH",
+  parser.add_option("--cmake-prefix-path", dest="catkinpp", default=None,
+                    help="Where to set the CMAKE_PREFIX_PATH, implies --catkin",
                     action="store")
   parser.add_option("-n", "--nobuild", dest="nobuild", default=False,
                     help="skip the build step for the ROS stack",
