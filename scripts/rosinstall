@@ -71,7 +71,7 @@ class ConfigElement:
   exceptions.  Also a few shared methods."""
   def __init__(self, path):
     self.path = path
-    self.setup_path = None
+    self.setup_file = None
   def get_path(self):
     return self.path
   def install(self, backup_path, mode, robust):
@@ -269,13 +269,19 @@ class Config:
             for child_t in child_config.trees:
               full_child_path = os.path.join(local_path, child_t.get_path())
               elem = OtherConfigElement(full_child_path)
+              if 'setup-file' in v:
+                elem.setup_file = v['setup-file']
               self.trees.append(elem)
           else:
             elem = OtherConfigElement(local_path)
+            if 'setup-file' in v:
+              elem.setup_file = v['setup-file']
             self.trees.append(elem)
         else:
           try:
             elem = AVCSConfigElement(k, local_path, source_uri, version)
+            if 'setup-file' in v:
+              elem.setup_file = v['setup-file']
             self.trees.append(elem)
           except LookupError as ex:
             raise ROSInstallException("Abstracted VCS Config failed. Exception: %s" % ex)
@@ -361,6 +367,9 @@ class Config:
 # USE THE rosinstall TOOL INSTEAD.
 # see: http://www.ros.org/wiki/rosinstall
 """
+    for t in self.trees:
+      if t.setup_file:
+        text += "source %s\n"%os.path.join(t.path, t.setup_file)
     text += "export ROS_ROOT=%s\n" % ros_root
     text += "export PATH=$ROS_ROOT/bin:$PATH\n" # might include it twice
     text += "export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH\n"
