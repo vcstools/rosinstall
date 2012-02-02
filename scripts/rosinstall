@@ -30,6 +30,36 @@ from vcstools import VcsClient
 
 __REPOTYPES__ = ['svn', 'bzr', 'hg', 'git']
 
+CATKIN_CMAKE_TOPLEVEL="""#
+#  TOPLEVEL cmakelists
+#
+cmake_minimum_required(VERSION 2.8)
+cmake_policy(SET CMP0003 NEW)
+cmake_policy(SET CMP0011 NEW)
+
+set(CMAKE_CXX_FLAGS_INIT "-Wall")
+
+enable_testing()
+
+include(${CMAKE_SOURCE_DIR}/workspace-config.cmake OPTIONAL)
+
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/cmake)
+
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/catkin)
+  message(STATUS "+++ catkin")
+  set(CATKIN_BUILD_PROJECTS "ALL" CACHE STRING
+    "List of projects to build, or ALL for all.  Use to completely exclude certain projects from cmake traversal.")
+  add_subdirectory(catkin)
+else()
+  find_package(catkin)
+endif()
+
+catkin_workspace()
+"""
+
 def usage():
   print __doc__ % vars()
   exit(1)
@@ -494,6 +524,12 @@ git, svn, bzr, hg URIs, or local directories.\n\
 Later URIs will shadow packages of earlier URIs.\n",
                         epilog="See: http://www.ros.org/wiki/rosinstall for details\n",
                         version="%prog 0.5.22")
+  parser.add_option("-c", "--catkin", dest="catkin", default=False,
+                    help="Declare this is a catkin build.",
+                    action="store_true")
+  parser.add_option("--catkin-prefix-path", dest="catkinpp", default=None,
+                    help="Where to set the CMAKE_PREFIX_PATH",
+                    action="store")
   parser.add_option("-n", "--nobuild", dest="nobuild", default=False,
                     help="skip the build step for the ROS stack",
                     action="store_true")
@@ -542,7 +578,10 @@ Later URIs will shadow packages of earlier URIs.\n",
     if mode == 'abort':
       parser.error("abort-changed-uris is mutually exclusive with backup-changed-uris")
     mode = 'backup'
-    
+
+  # Catkin must be enabled if catkinpp is set
+  if options.catkinpp:
+    options.catkin = True
 
   # Get the path to the rosinstall 
   options.path = os.path.abspath(args[0])
@@ -640,21 +679,33 @@ Later URIs will shadow packages of earlier URIs.\n",
   config.write_source()
   ## install or update each element
   install_success = config.execute_install(options.backup_changed, mode, options.robust)
-  ## Generate setup.sh and save
-  config.generate_setup()
   ## bootstrap the build if installing ros
-  if config.ros_path() and not options.nobuild:
-    print "Bootstrapping ROS build"
-    rosdep_yes_insert = ""
-    if options.rosdep_yes:
-      rosdep_yes_insert = " --rosdep-yes"
-    ros_comm_insert = ""
-    if 'ros_comm' in [os.path.basename(tree.path) for tree in config.trees]:
-      print "Detected ros_comm bootstrapping it too."
-      ros_comm_insert = " ros_comm"
-    subprocess.check_call("source %s && rosmake ros%s --rosdep-install%s" % (os.path.join(options.path, 'setup.sh'), ros_comm_insert, rosdep_yes_insert), shell=True, executable='/bin/bash')
-  print "\nrosinstall update complete.\n\nNow, type 'source %s/setup.bash' to set up your environment.\nAdd that to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % options.path
+  if options.catkin:
+    with open(os.path.join(options.path, "CMakeLists.txt"), 'w') as cmake_file:
+      cmake_file.write(CATKIN_CMAKE_TOPLEVEL)
 
+    if options.catkinpp:
+      with open(os.path.join(options.path, "workspace-config.cmake"), 'w') as config_file:
+        config_file.write("set (CMAKE_PREFIX_PATH %s)"%options.catkinpp)
+    
+                
+  else: # DRY install case
+    ## Generate setup.sh and save
+    config.generate_setup()
+
+    if config.ros_path() and not options.nobuild:
+      print "Bootstrapping ROS build"
+      rosdep_yes_insert = ""
+      if options.rosdep_yes:
+        rosdep_yes_insert = " --rosdep-yes"
+      ros_comm_insert = ""
+      if 'ros_comm' in [os.path.basename(tree.path) for tree in config.trees]:
+        print "Detected ros_comm bootstrapping it too."
+        ros_comm_insert = " ros_comm"
+      subprocess.check_call("source %s && rosmake ros%s --rosdep-install%s" % (os.path.join(options.path, 'setup.sh'), ros_comm_insert, rosdep_yes_insert), shell=True, executable='/bin/bash')
+    print "\nrosinstall update complete.\n\nNow, type 'source %s/setup.bash' to set up your environment.\nAdd that to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % options.path
+  
+  
   if not install_success:
      print "Warning: installation encountered errors, but --continue-on-error was requested.  Look above for warnings."
   return True
