@@ -71,6 +71,7 @@ class ConfigElement:
   exceptions.  Also a few shared methods."""
   def __init__(self, path):
     self.path = path
+    self.setup_path = None
   def get_path(self):
     return self.path
   def install(self, backup_path, mode, robust):
@@ -140,7 +141,7 @@ class OtherConfigElement(ConfigElement):
   
 class VCSConfigElement(ConfigElement):
   def __init__(self, path, uri, version=''):
-    self.path = path
+    ConfigElement.__init__(self, path)
     if uri == None:
       raise ROSInstallException("Invalid scm entry having no uri attribute for path %s"%path)
     self.uri = uri.rstrip('/') # strip trailing slashes if defined to not be too strict #3061
