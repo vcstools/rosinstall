@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='rosinstall',
-      version= '0.5.23',
+      version= '0.5.24',
       packages=['rosinstall'],
       package_dir = {'':'src'},
       install_requires=['vcstools'],
