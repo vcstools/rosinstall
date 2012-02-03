@@ -421,8 +421,13 @@ export OLDPWD=$OLDPWDBAK
 
 . $SCRIPT_PATH/setup.sh
 
-if [ -e ${ROS_ROOT}/tools/rosbash/ros%(shell)s ]; then
-  . ${ROS_ROOT}/tools/rosbash/ros%(shell)s
+if rospack help 2> /dev/null; then
+  ROSSHELL_PATH=`rospack find ros%(shell)s`/ros%(shell)s
+  if [ -e $ROSSHELL_PATH ]; then
+    . $ROSSHELL_PATH
+  fi
+else
+  echo "rospack could not be found, you cannot have ros%(shell)s features until you bootstrap ros"
 fi
 """%locals()
     return text
