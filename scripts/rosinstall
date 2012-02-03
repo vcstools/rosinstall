@@ -540,12 +540,10 @@ rosinstall does the following:\n\
   2. Checks out or updates all version controlled URIs\n\
   3. If ros stack is installed from source, calls rosmake after checkout or updates.\n\
   4. Generates/overwrites updated setup files\n\n\
-
-If running with --catkin mode:
+If running with --catkin mode:\
   1. Merges all URIs into new or existing .rosinstall file at PATH\n\
   2. Checks out or updates all version controlled URIs\n\
   4. Generates/overwrites updated setup files and creates CMakeLists.txt at the root.\n\n\
-
 URIs can be web urls to remote .rosinstall files, local .rosinstall files,\n\
 git, svn, bzr, hg URIs, or other (local directories)\n\
 Later URIs will shadow packages of earlier URIs.\n",
