@@ -527,7 +527,8 @@ def rosinstall_main(argv):
 rosinstall does the following:\n\
   1. Merges all URIs into new or existing .rosinstall file at PATH\n\
   2. Checks out or updates all version controlled URIs\n\
-  3. Generates/overwrites updated setup files\n\n\
+  3. Calls rosmake after checkout or updates\n\
+  4. Generates/overwrites updated setup files\n\n\
 URIs can be web urls to remote .rosinstall files, local .rosinstall files,\n\
 git, svn, bzr, hg URIs, or local directories.\n\
 Later URIs will shadow packages of earlier URIs.\n",
@@ -540,10 +541,10 @@ Later URIs will shadow packages of earlier URIs.\n",
                     help="Where to set the CMAKE_PREFIX_PATH, implies --catkin",
                     action="store")
   parser.add_option("-n", "--nobuild", dest="nobuild", default=False,
-                    help="DEPRECATED rosinstall no longer bootstraps, no need to disable it.",
+                    help="skip the build step for the ROS stack",
                     action="store_true")
   parser.add_option("--rosdep-yes", dest="rosdep_yes", default=False,
-                    help="Deprecated rosdep-yes is not longer supported",
+                    help="Pass through --rosdep-yes to rosmake",
                     action="store_true")
   parser.add_option("--continue-on-error", dest="robust", default=False,
                     help="Continue despite checkout errors",
@@ -570,9 +571,6 @@ Later URIs will shadow packages of earlier URIs.\n",
   parser.add_option("--generate-versioned-rosinstall", dest="generate_versioned", default=None,
                     help="generate a versioned rosinstall file", action="store")
   (options, args) = parser.parse_args(args)
-
-  #if options.rosdep_yes:
-  #  pareser.error("rosinstall no longer bootstraps the build, it will not call rosmake or pass it rosdep options") 
 
   if len(args) < 1:
     parser.error("rosinstall requires at least 1 argument")
@@ -705,11 +703,18 @@ Later URIs will shadow packages of earlier URIs.\n",
     ## Generate setup.sh and save
     config.generate_setup()
 
+    if config.ros_path() and not options.nobuild:
+      print "Bootstrapping ROS build"
+      rosdep_yes_insert = ""
+      if options.rosdep_yes:
+        rosdep_yes_insert = " --rosdep-yes"
+      ros_comm_insert = ""
+      if 'ros_comm' in [os.path.basename(tree.path) for tree in config.trees]:
+        print "Detected ros_comm bootstrapping it too."
+        ros_comm_insert = " ros_comm"
+      subprocess.check_call("source %s && rosmake ros%s --rosdep-install%s" % (os.path.join(options.path, 'setup.sh'), ros_comm_insert, rosdep_yes_insert), shell=True, executable='/bin/bash')
     print "\nrosinstall update complete.\n\nNow, type 'source %s/setup.bash' to set up your environment.\nAdd that to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % options.path
-    print "="*80, "\nrosinstall no longer bootstraps your build.\n"
-    print "If you want the old behavior call \"source setup.bash && rosmake --rosdep-install ros\" \n",
-    print "If you are installing ros_comm add it as an argument.  If you called with --rosdep-yes pass that to rosmake as well."
-    print "="*80
+  
   
   if not install_success:
      print "Warning: installation encountered errors, but --continue-on-error was requested.  Look above for warnings."
