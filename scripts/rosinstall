@@ -262,15 +262,16 @@ class Config:
           rosinstall_uri = '' # does not exist
           if os.path.exists(local_path) and os.path.isfile(local_path):
             rosinstall_uri = local_path
-          elif os.path.isdir(local_path):
+          elif os.path.isdir(local_path): # set rosinstall_uri to hiddin file if found
             rosinstall_uri = os.path.join(local_path, ".rosinstall")
+
           if os.path.exists(rosinstall_uri):
             child_config = Config(rosinstall.helpers.get_yaml_from_uri(rosinstall_uri), rosinstall_uri)
             for child_t in child_config.trees:
               full_child_path = os.path.join(local_path, child_t.get_path())
               elem = OtherConfigElement(full_child_path)
-              if 'setup-file' in v:
-                elem.setup_file = v['setup-file']
+              if child_t.setup_file: # Inherit setup_file key from children
+                elem.setup_file = child_t.setup_file
               self.trees.append(elem)
           else:
             elem = OtherConfigElement(local_path)
@@ -485,15 +486,22 @@ def insert_source_yaml(source_yaml, source, observed_paths, aggregate_source_yam
       return ''
 
 def rewrite_included_source(source_yaml, source_path):
+  """ Rewrite the included rosinstall file to only be other type 
+  and strip it down to just the local_path and setup-file. """
   #print "before", source_yaml
   for entry in source_yaml:
     types = ['svn', 'bzr', 'hg', 'git', 'other']
     for t in types:
       if t in entry.keys():
         local_path = os.path.join(source_path, entry[t]['local-name'])
+        setup_file = None
+        if 'setup-file' in entry[t]:
+          setup_file = entry[t]['setup-file']
         del entry[t]
         entry['other'] = {}
         entry['other']['local-name'] = local_path
+        if setup_file:
+          entry['other']['setup-file'] = setup_file
   #print "after", source_yaml
   return source_yaml
 
@@ -651,7 +659,6 @@ Later URIs will shadow packages of earlier URIs.\n",
       source_yaml = rosinstall.helpers.get_yaml_from_uri(config_uri)
       if not source_yaml:
           raise ROSInstallException("Bad remote rosinstall source: %s  This can be caused by empty or malformed remote rosinstall file. "%(a))
-    #print "source yaml", source_yaml
     result = insert_source_yaml(source_yaml, a, observed_paths, aggregate_source_yaml)
     if result != '':
       parser.error(result)
