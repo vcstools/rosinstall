@@ -1,5 +1,11 @@
 from setuptools import setup
 
+try:
+    import yaml
+except:
+    raise SystemExit("rosinstall requires python-yaml. Please install python-yaml. On debian systems sudo apt-get install python-yaml.")
+
+
 setup(name='rosinstall',
       version= '0.5.22',
       packages=['rosinstall'],
