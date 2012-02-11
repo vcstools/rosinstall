@@ -25,6 +25,7 @@ import shutil
 import datetime
 
 import rosinstall.helpers
+from rosinstall.helpers import ROSInstallException
 
 from vcstools import VcsClient
 
@@ -63,8 +64,6 @@ catkin_workspace()
 def usage():
   print __doc__ % vars()
   exit(1)
-
-class ROSInstallException(Exception): pass
 
 class ConfigElement:
   """ Base class for Config provides methods with not implemented
@@ -620,7 +619,7 @@ Later URIs will shadow packages of earlier URIs.\n",
       if os.path.exists(rosinstall_uri):
         source_yaml = rosinstall.helpers.get_yaml_from_uri(rosinstall_uri)
         if not source_yaml:
-          raise ROSInstallException("Bad remote rosinstall source: %s  This can be caused by empty or malformed remote rosinstall file. "%(a))
+          raise ROSInstallException("Bad remote rosinstall folder: %s  This can be caused by empty rosinstall file. "%(a))
         source_yaml = rewrite_included_source(source_yaml, config_uri)
       else:
         # fall back to just a directory
@@ -628,7 +627,7 @@ Later URIs will shadow packages of earlier URIs.\n",
     else:
       source_yaml = rosinstall.helpers.get_yaml_from_uri(config_uri)
       if not source_yaml:
-          raise ROSInstallException("Bad remote rosinstall source: %s  This can be caused by empty or malformed remote rosinstall file. "%(a))
+          raise ROSInstallException("Bad remote rosinstall source: %s  This can be caused by empty rosinstall file. "%(a))
     #print "source yaml", source_yaml
     result = insert_source_yaml(source_yaml, a, observed_paths, aggregate_source_yaml)
     if result != '':

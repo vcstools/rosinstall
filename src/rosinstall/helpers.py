@@ -37,6 +37,8 @@ import yaml
 import subprocess
 import sys
 
+class ROSInstallException(Exception): pass
+
 def conditional_abspath(uri):
   """
   @param uri: The uri to check
@@ -80,22 +82,18 @@ def get_yaml_from_uri(uri):
     try:
       f = open(uri, 'r')
     except IOError as e:
-      sys.stderr.write("error opening file [%s]: %s\n" % (uri, e))
-      return None
+      raise ROSInstallException("error opening file [%s]: %s\n" % (uri, e))
   else:
     try:
       f = urllib2.urlopen(uri)
     except IOError as e:
-      sys.stderr.write("Is not a local file, nor able to download as a URL [%s]: %s\n" % (uri, e))
+      raise ROSInstallException("Is not a local file, nor able to download as a URL [%s]: %s\n" % (uri, e))
     except ValueError as e:
-      sys.stderr.write("Is not a local file, nor a valid URL [%s] : %s\n" % (uri,e))
+      raise ROSInstallException("Is not a local file, nor a valid URL [%s] : %s\n" % (uri,e))
   if not f:
-    sys.stderr.write("couldn't load config uri %s\n" % uri)
-    return None
+    raise ROSInstallException("couldn't load config uri %s\n" % uri)
   try:
     y = yaml.load(f);
   except yaml.YAMLError as e:
-    sys.stderr.write("Invalid rosinstall yaml format in [%s]: %s\n" % (uri, e ))
-    return None
+    raise ROSInstallException("Invalid rosinstall yaml format in [%s]: %s\n" % (uri, e))
   return y
-  

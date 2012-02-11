@@ -39,7 +39,7 @@ import sys
 import unittest
 
 import rosinstall.helpers
-
+from rosinstall.helpers import ROSInstallException
 
 class ConditionalAbspath(unittest.TestCase):
 
@@ -73,8 +73,11 @@ class ConditionalAbspath(unittest.TestCase):
 
     def test_get_yaml_from_uri_from_missing_file(self):
         file = "/asdfasdfasdfasfasdf_does_not_exist"
-        y = rosinstall.helpers.get_yaml_from_uri(file)
-        self.assertEqual(y, None)
+        try:
+            rosinstall.helpers.get_yaml_from_uri(file)
+            self.assertTrue(False, "Expected exception")
+        except ROSInstallException:
+            pass
 
 #TODO Fix this
 #    def test_get_yaml_from_uri_from_non_yaml_file(self):
@@ -97,6 +100,8 @@ class ConditionalAbspath(unittest.TestCase):
 
     def test_get_yaml_from_uri_from_invalid_url(self):
         url = "http://www.ros.org/invalid"
-        y = rosinstall.helpers.get_yaml_from_uri(url)
-        self.assertEqual(y, None)
-
+        try:
+            rosinstall.helpers.get_yaml_from_uri(url)
+            self.assertTrue(False, "Expected exception")
+        except ROSInstallException:
+            pass
