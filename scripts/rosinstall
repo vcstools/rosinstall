@@ -76,7 +76,10 @@ class ConfigElement:
   def install(self, backup_path, mode, robust):
     raise NotImplementedError, "ConfigElement install unimplemented"
   def get_ros_path(self):
-    raise NotImplementedError, "ConfigElement get_ros_path unimplemented"
+    if rosinstall.helpers.is_path_ros(self.get_path()):
+      return self.get_path()
+    else:
+      return None
   def get_yaml(self):
     """yaml with values as specified in file"""
     raise NotImplementedError, "ConfigElement get_versioned_yaml unimplemented"
@@ -125,12 +128,6 @@ def get_backup_path():
 class OtherConfigElement(ConfigElement):
   def install(self, backup_path, mode, robust=False):
     return True
-
-  def get_ros_path(self):
-    if rosinstall.helpers.is_path_ros(self.path):
-      return self.path
-    else:
-      return None
 
   def get_versioned_yaml(self):
     raise ROSInstallException("Cannot generate versioned outputs with non source types")
@@ -190,12 +187,6 @@ class VCSConfigElement(ConfigElement):
           return 
     return
   
-  def get_ros_path(self):
-    if rosinstall.helpers.is_path_ros(self.path):
-      return self.path
-    else:
-      return None
-
   def get_yaml(self):
     "yaml as from source"
     result = {self.vcsc.get_vcs_type_name(): {"local-name": self.path, "uri": self.uri} }
