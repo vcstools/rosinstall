@@ -40,26 +40,6 @@ import rosinstall.helpers
 
 from scm_test_base import AbstractRosinstallCLITest, AbstractRosinstallBaseDirTest
 
-class RosinstallRulesTest(AbstractRosinstallBaseDirTest):
-
-    @classmethod
-    def setUpClass(self):
-        AbstractRosinstallCLITest.setUpClass()
-
-
-    def DISABLED_Rosinstall_ros_stack(self):
-        # experimental code, maybe delete?
-        cmd = self.rosinstall_fn
-        cmd.extend([self.directory, os.path.join("test", "rosinstalls", "distro_stack.rosinstall")])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
-
-    def DISABLED_Rosinstall_ros_variant(self):
-        # experimental code, maybe delete?
-        cmd = self.rosinstall_fn
-        cmd.extend([self.directory, os.path.join("test", "rosinstalls", "distro_variant.rosinstall")])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
-
-
 class RosinstallCommandlineOverlays(AbstractRosinstallBaseDirTest):
 
     """test creating rosinstall env with overlayed stacks"""
