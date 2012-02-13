@@ -38,65 +38,119 @@ import tempfile
 import rosinstall
 import rosinstall.helpers
 
-from scm_test_base import AbstractRosinstallCLITest, AbstractRosinstallBaseDirTest
+from scm_test_base import AbstractRosinstallCLITest, AbstractRosinstallBaseDirTest, _create_fake_ros_dir, _create_yaml_file, _create_config_elt_dict
+
+
+def _create_git_repo(git_path):
+    os.makedirs(git_path)
+    subprocess.check_call(["git", "init"], cwd=git_path)
+    subprocess.check_call(["touch", "gitfixed.txt"], cwd=git_path)
+    subprocess.check_call(["git", "add", "*"], cwd=git_path)
+    subprocess.check_call(["git", "commit", "-m", "initial"], cwd=git_path)
+
+def _create_hg_repo(hg_path):
+    os.makedirs(hg_path)
+    subprocess.check_call(["hg", "init"], cwd=hg_path)
+    subprocess.check_call(["touch", "hgfixed.txt"], cwd=hg_path)
+    subprocess.check_call(["hg", "add", "hgfixed.txt"], cwd=hg_path)
+    subprocess.check_call(["hg", "commit", "-m", "initial"], cwd=hg_path)
+
 
 class RosinstallOptionsTest(AbstractRosinstallBaseDirTest):
     """Test command line option for failure behavior"""
-    
+       
     @classmethod
     def setUpClass(self):
-        AbstractRosinstallCLITest.setUpClass()
+        AbstractRosinstallBaseDirTest.setUpClass()
+        self.test_root_path = tempfile.mkdtemp()
+        _create_fake_ros_dir(self.test_root_path)
+        self.ros_path = os.path.join(self.test_root_path, "ros")
         
+        # create a repo in git
+        self.git_path = os.path.join(self.test_root_path, "gitrepo")
+        _create_git_repo(self.git_path)
+
+        self.git_path2 = os.path.join(self.test_root_path, "gitrepo2")
+        _create_git_repo(self.git_path2)
+        
+        # create a repo in hg
+        self.hg_path = os.path.join(self.test_root_path, "hgrepo")
+        _create_hg_repo(self.hg_path)
+
+        self.simple_rosinstall = os.path.join(self.test_root_path, "simple.rosinstall")
+        self.simple_changed_vcs_rosinstall = os.path.join(self.test_root_path, "simple_changed_vcs.rosinstall")
+        self.simple_changed_uri_rosinstall = os.path.join(self.test_root_path, "simple_changed_uri.rosinstall")
+        self.broken_rosinstall = os.path.join(self.test_root_path, "broken.rosinstall")
+
+        _create_yaml_file([_create_config_elt_dict("other", self.ros_path),
+                           _create_config_elt_dict("git", "gitrepo", self.git_path)],
+                          self.simple_rosinstall)
+
+        # same local name for gitrepo, different uri
+        _create_yaml_file([_create_config_elt_dict("other", self.ros_path),
+                           _create_config_elt_dict("git", "gitrepo", self.git_path2)],
+                          self.simple_changed_uri_rosinstall)
+
+        _create_yaml_file([_create_config_elt_dict("other", self.ros_path),
+                           _create_config_elt_dict("hg", "hgrepo", self.hg_path)],
+                          self.simple_changed_vcs_rosinstall)
+
+        _create_yaml_file([_create_config_elt_dict("other", self.ros_path),
+                           _create_config_elt_dict("hg", "hgrepo", self.hg_path+"invalid")],
+                          self.broken_rosinstall)
+        
+        
+    @classmethod
+    def tearDownClass(self):
+        pass
+        
+    def test_Rosinstall_help(self):
+        cmd = self.rosinstall_fn
+        cmd.append("-h")
+        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
         
     def test_rosinstall_delete_changes(self):
         cmd = self.rosinstall_fn
-        cmd.extend([self.directory, os.path.join("test", "rosinstalls", "simple.rosinstall")])
+        cmd.extend([self.directory, self.simple_rosinstall])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
-
-        cmd.extend([self.directory, os.path.join("test", "rosinstalls", "simple_changed_uri.rosinstall"), "--delete-changed-uri"])
+        cmd.extend([self.directory, self.simple_changed_uri_rosinstall, "--delete-changed-uri"])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
 
 
     def test_rosinstall_abort_changes(self):
         cmd = self.rosinstall_fn
-        cmd.extend([self.directory, os.path.join("test", "rosinstalls", "simple.rosinstall")])
+        cmd.extend([self.directory, self.simple_rosinstall])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
-
-        cmd.extend([self.directory, os.path.join("test", "rosinstalls", "simple_changed_uri.rosinstall"), "--abort-changed-uri", "-n"])
+        cmd.extend([self.directory, self.simple_changed_uri_rosinstall, "--abort-changed-uri", "-n"])
         self.assertEqual(1, subprocess.call(cmd, env=self.new_environ))
 
 
     def test_rosinstall_backup_changes(self):
         cmd = self.rosinstall_fn
-        cmd.extend([self.directory, os.path.join("test", "rosinstalls", "simple.rosinstall")])
+        cmd.extend([self.directory, self.simple_rosinstall])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
-
         directory1 = tempfile.mkdtemp()
         self.directories["backup1"] = directory1
-        cmd.extend([self.directory, os.path.join("test", "rosinstalls", "simple_changed_uri.rosinstall"), "--backup-changed-uri=%s"%directory1])
+        cmd.extend([self.directory, self.simple_changed_uri_rosinstall, "--backup-changed-uri=%s"%directory1])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
         self.assertEqual(len(os.listdir(directory1)), 1)
 
+    def test_rosinstall_change_vcs_type(self):
+        cmd = self.rosinstall_fn
+        cmd.extend([self.directory, self.simple_rosinstall])
+        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        cmd.extend([self.directory, self.simple_changed_vcs_rosinstall, "--delete-changed-uri", "-n"])
+        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
 
     def test_rosinstall_invalid_fail(self):
         cmd = self.rosinstall_fn
-        cmd.extend([self.directory, os.path.join("test", "rosinstalls", "broken.rosinstall")])
+        cmd.extend([self.directory, self.broken_rosinstall])
         self.assertEqual(1, subprocess.call(cmd, env=self.new_environ))
 
     def test_rosinstall_invalid_continue(self):
         cmd = self.rosinstall_fn
-        cmd.extend([self.directory, os.path.join("test", "rosinstalls", "broken.rosinstall"), "--continue-on-error"])
+        cmd.extend([self.directory, self.broken_rosinstall, "--continue-on-error"])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
 
-    def test_rosinstall_change_vcs_type(self):
-        cmd = self.rosinstall_fn
-        cmd.extend([self.directory, os.path.join("test", "rosinstalls", "simple.rosinstall")])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
 
-        cmd.extend([self.directory, os.path.join("test", "rosinstalls", "simple_changed_vcs_type.rosinstall"), "--delete-changed-uri", "-n"])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
 
-    def test_Rosinstall_help(self):
-        cmd = self.rosinstall_fn
-        cmd.append("-h")
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))

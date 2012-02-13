@@ -1,6 +1,0 @@
-- svn:
-    uri: https://code.ros.org/svn/ros/stacks/ros/tags/boxturtle
-    local-name: ros
-- svn:
-    uri: https://code.ros.org/svn/ros-pkg/stacks/common_msgs/tags/common_msgs-1.0.0
-    local-name: stacks/common_msgs

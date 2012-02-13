@@ -52,7 +52,36 @@ def _add_to_file(path, content):
      f.write(content)
      f.close()
 
+def _create_fake_ros_dir(root_path):
+     """setup fake ros root within root_path/ros"""
+     ros_path = os.path.join(root_path, "ros")
+     os.makedirs(ros_path)
+     _add_to_file(os.path.join(ros_path, "stack.xml"), u'<stack></stack>')
+     _add_to_file(os.path.join(ros_path, "setup.sh"), u'export ROS_ROOT=`pwd`')
+
+def _create_yaml_file(config_elements, path):
+     content = ''
+     for elt in list(config_elements):
+          content += "- %s:\n"%elt["type"]
+          if elt["uri"] is not None:
+               content += "    uri: '%s'\n"%elt["uri"]
+          content += "    local-name: '%s'\n"%elt["local-name"]
+          if elt["version"] is not None:
+               content += "    version: '%s'\n"%elt["version"]
+     _add_to_file(path, unicode(content))
+
+def _create_config_elt_dict(scmtype, localname, uri=None, version=None):
+     element = {}
+     element["type"]       = scmtype
+     element["uri"]        = uri
+     element["local-name"] = localname
+     element["version"]    = version
+     return element
+
+               
 ROSINSTALL_CMD = os.path.join(os.getcwd(), 'scripts/rosinstall')
+
+
 
 class AbstractRosinstallCLITest(unittest.TestCase):
 
@@ -61,6 +90,8 @@ class AbstractRosinstallCLITest(unittest.TestCase):
      def setUpClass(self):
           self.new_environ = os.environ
           self.new_environ["PYTHONPATH"] = os.path.join(os.getcwd(), "src")
+
+
 
 class AbstractRosinstallBaseDirTest(AbstractRosinstallCLITest):
      """test class where each test method get its own fresh tempdir named self.directory"""
@@ -75,21 +106,20 @@ class AbstractRosinstallBaseDirTest(AbstractRosinstallCLITest):
         for d in self.directories:
             shutil.rmtree(self.directories[d])
         self.directories = {}
-     
+
+
+
 class AbstractSCMTest(AbstractRosinstallCLITest):
      """Base class for diff tests, setting up a tempdir self.test_root_path for a whole class"""
      @classmethod
      def setUpClass(self):
+          """creates a directory 'ros' mimicking to be a ROS root to rosinstall"""
           AbstractRosinstallCLITest.setUpClass()
           self.test_root_path = tempfile.mkdtemp()
           self.directories = {}
           self.directories["root"] = self.test_root_path
-       
-          # setup fake ros root
-          self.ros_path = os.path.join(self.test_root_path, "ros")
-          os.makedirs(self.ros_path)
-          _add_to_file(os.path.join(self.ros_path, "stack.xml"), u'<stack></stack>')
-          _add_to_file(os.path.join(self.ros_path, "setup.sh"), u'export ROS_ROOT=`pwd`')
+
+          _create_fake_ros_dir(self.test_root_path)
           self.local_path = os.path.join(self.test_root_path, "ws")
           os.makedirs(self.local_path)
 
