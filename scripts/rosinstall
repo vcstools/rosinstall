@@ -158,10 +158,6 @@ class VCSConfigElement(ConfigElement):
         error_message = "Failed to detect %s presence at %s."%(self.vcsc.get_vcs_type_name(), self.path)
       elif not self.vcsc.get_url() or self.vcsc.get_url().rstrip('/') != self.uri:  #strip trailing slashes for #3269
         error_message = "url %s does not match %s requested."%(self.vcsc.get_url(), self.uri)
-      elif (self.vcsc.get_vcs_type_name() == 'git' \
-              and (self.vcsc.get_version() != self.version \
-                     and self.vcsc.get_branch_parent() != self.version)):
-        error_message = "The version %s of repo %s requested to be checked out into %s is not the current branch or commit and cannot be blindly updated in place."%(self.version, self.uri, self.path)
         
       # If robust ala continue-on-error, just error now and it will be continued at a higher level
       if robust and error_message:
