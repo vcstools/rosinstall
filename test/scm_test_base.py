@@ -47,25 +47,44 @@ import rosinstall
 import rosinstall.helpers
 
 def _add_to_file(path, content):
+     """Util function to append to file to get a modification"""
      f = io.open(path, 'a')
      f.write(content)
      f.close()
 
-ROSINSTALL_FN = [os.path.join(os.getcwd(), 'scripts/rosinstall')]
+ROSINSTALL_CMD = os.path.join(os.getcwd(), 'scripts/rosinstall')
 
+class AbstractRosinstallCLITest(unittest.TestCase):
 
-class AbstractSCMTest(unittest.TestCase):
-     """Base class for diff tests"""
+     """Base class for cli tests"""
      @classmethod
      def setUpClass(self):
-
-          self.test_root_path = tempfile.mkdtemp()
-          self.directories = {"root":self.test_root_path}
-
           self.new_environ = os.environ
           self.new_environ["PYTHONPATH"] = os.path.join(os.getcwd(), "src")
 
-        
+class AbstractRosinstallBaseDirTest(AbstractRosinstallCLITest):
+     """test class where each test method get its own fresh tempdir named self.directory"""
+     
+     def setUp(self):
+          self.directories = {}
+          self.directory = tempfile.mkdtemp()
+          self.directories["base"] = self.directory
+          self.rosinstall_fn = [ROSINSTALL_CMD, "-n"]
+
+     def tearDown(self):
+        for d in self.directories:
+            shutil.rmtree(self.directories[d])
+        self.directories = {}
+     
+class AbstractSCMTest(AbstractRosinstallCLITest):
+     """Base class for diff tests, setting up a tempdir self.test_root_path for a whole class"""
+     @classmethod
+     def setUpClass(self):
+          AbstractRosinstallCLITest.setUpClass()
+          self.test_root_path = tempfile.mkdtemp()
+          self.directories = {}
+          self.directories["root"] = self.test_root_path
+       
           # setup fake ros root
           self.ros_path = os.path.join(self.test_root_path, "ros")
           os.makedirs(self.ros_path)

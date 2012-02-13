@@ -32,22 +32,14 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import io
-import copy
-import stat
-import struct
-import sys
-import unittest
 import subprocess
 import tempfile
-import urllib
-import shutil
 
 import rosinstall
 import rosinstall.helpers
 
-import test_diff_functions
-from test_diff_functions import AbstractSCMTest, _add_to_file, ROSINSTALL_FN
+import scm_test_base
+from scm_test_base import AbstractSCMTest, _add_to_file, ROSINSTALL_CMD
 
 class RosinstallDiffGitTest(AbstractSCMTest):
 
@@ -70,8 +62,7 @@ class RosinstallDiffGitTest(AbstractSCMTest):
         # rosinstall the remote repo and fake ros
         _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- git: {local-name: clone, uri: remote}")
 
-        cmd = copy.copy(ROSINSTALL_FN)
-        cmd.extend(["ws", "-n"])
+        cmd = [ROSINSTALL_CMD, "ws", "-n"]
         call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
         output=call.communicate()[0]
 
@@ -93,10 +84,7 @@ class RosinstallDiffGitTest(AbstractSCMTest):
         
     def test_Rosinstall_diff_git_outside(self):
         """Test diff output for git when run outside workspace"""
-        # dir created by make
-        cmd = copy.copy(ROSINSTALL_FN)
-        cmd.extend(["ws", "--diff"])
-        
+        cmd = [ROSINSTALL_CMD, "ws", "--diff"]        
         call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
         output=call.communicate()[0]
         self.check_diff_output(output)
@@ -104,11 +92,8 @@ class RosinstallDiffGitTest(AbstractSCMTest):
 
     def test_Rosinstall_diff_git_inside(self):
         """Test diff output for git when run inside workspace"""
-        # dir created by make
         directory = self.test_root_path + "/ws"
-        cmd = copy.copy(ROSINSTALL_FN)
-        cmd.extend([".", "--diff"])
-        
+        cmd = [ROSINSTALL_CMD, ".", "--diff"]        
         call = subprocess.Popen(cmd, cwd=directory, stdout=subprocess.PIPE)
         output=call.communicate()[0]
 
@@ -116,31 +101,22 @@ class RosinstallDiffGitTest(AbstractSCMTest):
         
     def test_Rosinstall_status_git_inside(self):
         """Test status output for git when run inside workspace"""
-        # dir created by make
         directory = self.test_root_path + "/ws"
-        cmd = copy.copy(ROSINSTALL_FN)
-        cmd.extend([".", "--status"])
-        
+        cmd = [ROSINSTALL_CMD, ".", "--status"]        
         call = subprocess.Popen(cmd, cwd=directory, stdout=subprocess.PIPE)
         output=call.communicate()[0]
         self.assertEqual('A       clone/added.txt\n D      clone/deleted-fs.txt\nD       clone/deleted.txt\n M      clone/modified-fs.txt\nM       clone/modified.txt\n\n', output)
    
     def test_Rosinstall_status_git_outside(self):
         """Test status output for git when run outside workspace"""
-        # dir created by make
-        cmd = copy.copy(ROSINSTALL_FN)
-        cmd.extend(["ws", "--status"])
-        
+        cmd = [ROSINSTALL_CMD, "ws", "--status"]        
         call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
         output=call.communicate()[0]
         self.assertEqual('A       clone/added.txt\n D      clone/deleted-fs.txt\nD       clone/deleted.txt\n M      clone/modified-fs.txt\nM       clone/modified.txt\n\n', output)
 
     def test_Rosinstall_status_git_untracked(self):
         """Test untracked status output for git when run outside workspace"""
-        # dir created by make
-        cmd = copy.copy(ROSINSTALL_FN)
-        cmd.extend(["ws", "--status-untracked"])
-        
+        cmd = [ROSINSTALL_CMD, "ws", "--status-untracked"]        
         call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
         output=call.communicate()[0]
 

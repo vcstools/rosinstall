@@ -32,22 +32,15 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import io
-import copy
-import stat
-import struct
-import sys
 import unittest
 import subprocess
 import tempfile
-import urllib
-import shutil
 
 import rosinstall
 import rosinstall.helpers
 
-import test_diff_functions
-from test_diff_functions import AbstractSCMTest, _add_to_file, ROSINSTALL_FN
+import scm_test_base
+from scm_test_base import AbstractSCMTest, _add_to_file, ROSINSTALL_CMD
 
 class RosinstallDiffHgTest(AbstractSCMTest):
 
@@ -74,8 +67,7 @@ class RosinstallDiffHgTest(AbstractSCMTest):
         # rosinstall the remote repo and fake ros
         _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- hg: {local-name: clone, uri: remote}")
 
-        cmd = copy.copy(ROSINSTALL_FN)
-        cmd.extend(["ws", "-n"])
+        cmd = [ROSINSTALL_CMD, "ws", "-n"]
         call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
         output=call.communicate()[0]
 
@@ -96,9 +88,7 @@ class RosinstallDiffHgTest(AbstractSCMTest):
         
     def test_Rosinstall_diff_hg_outside(self):
         """Test diff output for hg when run outside workspace"""
-        # dir created by make
-        cmd = copy.copy(ROSINSTALL_FN)
-        cmd.extend(["ws", "--diff"])
+        cmd = [ROSINSTALL_CMD, "ws", "--diff"]
         
         call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
         output=call.communicate()[0]
@@ -107,10 +97,8 @@ class RosinstallDiffHgTest(AbstractSCMTest):
 
     def test_Rosinstall_diff_hg_inside(self):
         """Test diff output for hg when run inside workspace"""
-        # dir created by make
         directory = self.test_root_path + "/ws"
-        cmd = copy.copy(ROSINSTALL_FN)
-        cmd.extend([".", "--diff"])
+        cmd = [ROSINSTALL_CMD, ".", "--diff"]
         
         call = subprocess.Popen(cmd, cwd=directory, stdout=subprocess.PIPE)
         output=call.communicate()[0]
@@ -120,10 +108,8 @@ class RosinstallDiffHgTest(AbstractSCMTest):
         
     def test_Rosinstall_status_hg_inside(self):
         """Test status output for hg when run inside workspace"""
-        # dir created by make
         directory = self.test_root_path + "/ws"
-        cmd = copy.copy(ROSINSTALL_FN)
-        cmd.extend([".", "--status"])
+        cmd = [ROSINSTALL_CMD, ".", "--status"]
         
         call = subprocess.Popen(cmd, cwd=directory, stdout=subprocess.PIPE)
         output=call.communicate()[0]
@@ -131,9 +117,7 @@ class RosinstallDiffHgTest(AbstractSCMTest):
    
     def test_Rosinstall_status_hg_outside(self):
         """Test status output for hg when run outside workspace"""
-        # dir created by make
-        cmd = copy.copy(ROSINSTALL_FN)
-        cmd.extend(["ws", "--status"])
+        cmd = [ROSINSTALL_CMD, "ws", "--status"]
         
         call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
         output=call.communicate()[0]
@@ -142,9 +126,7 @@ class RosinstallDiffHgTest(AbstractSCMTest):
 
     def test_Rosinstall_status_hg_untracked(self):
         """Test untracked status output for hg when run outside workspace"""
-        # dir created by make
-        cmd = copy.copy(ROSINSTALL_FN)
-        cmd.extend(["ws", "--status-untracked"])
+        cmd = [ROSINSTALL_CMD, "ws", "--status-untracked"]
         
         call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
         output=call.communicate()[0]
