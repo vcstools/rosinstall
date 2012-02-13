@@ -40,28 +40,21 @@ import rosinstall.helpers
 
 from scm_test_base import AbstractRosinstallCLITest, AbstractRosinstallBaseDirTest
 
-class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
+class RosinstallRulesTest(AbstractRosinstallBaseDirTest):
 
     @classmethod
     def setUpClass(self):
         AbstractRosinstallCLITest.setUpClass()
 
-    def test_Rosinstall_executable(self):
-        cmd = self.rosinstall_fn
-        cmd.append("-h")
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
-
-    def test_Rosinstall_ros(self):
-        cmd = self.rosinstall_fn
-        cmd.extend([self.directory, os.path.join("test", "rosinstalls", "ros_w_release.rosinstall")])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
 
     def DISABLED_Rosinstall_ros_stack(self):
+        # experimental code, maybe delete?
         cmd = self.rosinstall_fn
         cmd.extend([self.directory, os.path.join("test", "rosinstalls", "distro_stack.rosinstall")])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
 
     def DISABLED_Rosinstall_ros_variant(self):
+        # experimental code, maybe delete?
         cmd = self.rosinstall_fn
         cmd.extend([self.directory, os.path.join("test", "rosinstalls", "distro_variant.rosinstall")])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
@@ -69,6 +62,8 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
 
 class RosinstallCommandlineOverlays(AbstractRosinstallBaseDirTest):
 
+    """test creating rosinstall env with overlayed stacks"""
+    
     @classmethod
     def setUpClass(self):
         AbstractRosinstallCLITest.setUpClass()
@@ -122,7 +117,8 @@ class RosinstallCommandlineOverlays(AbstractRosinstallBaseDirTest):
 
 
 class RosinstallOptionsTest(AbstractRosinstallBaseDirTest):
-
+    """Test command line option for failure behavior"""
+    
     @classmethod
     def setUpClass(self):
         AbstractRosinstallCLITest.setUpClass()
@@ -176,4 +172,7 @@ class RosinstallOptionsTest(AbstractRosinstallBaseDirTest):
         cmd.extend([self.directory, os.path.join("test", "rosinstalls", "simple_changed_vcs_type.rosinstall"), "--delete-changed-uri", "-n"])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
 
-
+    def test_Rosinstall_help(self):
+        cmd = self.rosinstall_fn
+        cmd.append("-h")
+        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
