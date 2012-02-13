@@ -34,6 +34,7 @@
 import os
 import subprocess
 import tempfile
+import shutil
 
 import rosinstall
 import rosinstall.helpers
@@ -102,7 +103,7 @@ class RosinstallOptionsTest(AbstractRosinstallBaseDirTest):
         
     @classmethod
     def tearDownClass(self):
-        pass
+        shutil.rmtree(self.test_root_path)
         
     def test_Rosinstall_help(self):
         cmd = self.rosinstall_fn
