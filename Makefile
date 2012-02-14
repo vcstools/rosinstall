@@ -1,6 +1,6 @@
 .PHONY: all setup clean_dist distro clean install dsc source_deb upload
 
-VERSION='0.5.27'
+VERSION='0.5.28'
 
 
 all:

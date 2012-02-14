@@ -7,10 +7,10 @@ except:
 
 
 setup(name='rosinstall',
-      version= '0.5.27',
+      version= '0.5.28',
       packages=['rosinstall'],
       package_dir = {'':'src'},
-      install_requires=['vcstools'],
+      install_requires=['vcstools', 'datetime'],
       scripts = ["scripts/rosinstall", "scripts/roslocate", "scripts/rosws", "scripts/rosco"],
       author = "Tully Foote", 
       author_email = "tfoote@willowgarage.com",
