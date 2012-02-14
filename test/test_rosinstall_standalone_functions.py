@@ -55,11 +55,13 @@ class ConditionalAbspath(unittest.TestCase):
         
     def test_is_path_stack(self):
         self.assertTrue(rosinstall.helpers.is_path_stack(os.path.join("test", "example_dirs", "ros")))
+        self.assertTrue(rosinstall.helpers.is_path_stack(os.path.join("test", "example_dirs", "ros_comm")))
         self.assertFalse(rosinstall.helpers.is_path_stack(os.path.join("test", "example_dirs", "roscpp")))
 
     def test_is_path_ros(self):
-        self.assertTrue(rosinstall.helpers.is_path_stack((os.path.join("test", "example_dirs", "ros"))))
-        self.assertFalse(rosinstall.helpers.is_path_stack((os.path.join("test", "example_dirs", "roscpp"))))
+        self.assertTrue(rosinstall.helpers.is_path_ros((os.path.join("test", "example_dirs", "ros"))))
+        self.assertFalse(rosinstall.helpers.is_path_ros(os.path.join("test", "example_dirs", "ros_comm")))
+        self.assertFalse(rosinstall.helpers.is_path_ros((os.path.join("test", "example_dirs", "roscpp"))))
 
     def test_get_yaml_from_uri_from_file(self):
         file = os.path.join("test", "example.yaml")
