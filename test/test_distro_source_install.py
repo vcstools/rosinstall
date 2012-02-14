@@ -38,20 +38,28 @@ import tempfile
 import rosinstall
 import rosinstall.helpers
 
-from scm_test_base import AbstractRosinstallCLITest, AbstractRosinstallBaseDirTest
+from scm_test_base import AbstractRosinstallBaseDirTest, _create_yaml_file, _create_config_elt_dict
 
 class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
 
     @classmethod
     def setUpClass(self):
-        AbstractRosinstallCLITest.setUpClass()
+        AbstractRosinstallBaseDirTest.setUpClass()
 
     def test_source_boxturtle(self):
+        """install boxturtle into temp dir"""
         cmd = self.rosinstall_fn
-        cmd.extend([self.directory, os.path.join("test", "rosinstalls", "ros_w_release.rosinstall")])
+        self.simple_rosinstall = os.path.join(self.directory, "simple.rosinstall")
+        _create_yaml_file([_create_config_elt_dict("svn", "ros", 'https://code.ros.org/svn/ros/stacks/ros/tags/boxturtle'),
+                           _create_config_elt_dict("svn", "ros_release", 'https://code.ros.org/svn/ros/stacks/ros_release/trunk')],
+                          self.simple_rosinstall)
+        cmd.extend([self.directory, self.simple_rosinstall])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
         generated_rosinstall_filename = os.path.join(self.directory, ".rosinstall")
         self.assertTrue(os.path.exists(generated_rosinstall_filename))
+        self.assertTrue(os.path.exists(os.path.join(self.directory, "ros")))
+        self.assertTrue(os.path.exists(os.path.join(self.directory, "ros_release")))
+        self.assertTrue(os.path.exists(os.path.join(self.directory, "setup.sh")))
         source_yaml = rosinstall.helpers.get_yaml_from_uri(generated_rosinstall_filename)
         self.assertEqual(source_yaml, 
                          [{'svn': { 'uri': 'https://code.ros.org/svn/ros/stacks/ros/tags/boxturtle',
@@ -61,16 +69,10 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
                           ])
         
     # def test_source_cturtle(self):
-    #     cmd = self.rosinstall_fn
-    #     cmd.extend([self.directory, os.path.join("test", "rosinstalls", "ros_w_release.rosinstall")])
-    #     self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
-
+    #     TODO
+        
     # def test_source_boxdiamondback(self):
-    #     cmd = self.rosinstall_fn
-    #     cmd.extend([self.directory, os.path.join("test", "rosinstalls", "ros_w_release.rosinstall")])
-    #     self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
-
+    #     TODO
+        
     # def test_source_boxelectric(self):
-    #     cmd = self.rosinstall_fn
-    #     cmd.extend([self.directory, os.path.join("test", "rosinstalls", "ros_w_release.rosinstall")])
-    #     self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+    #     TODO
