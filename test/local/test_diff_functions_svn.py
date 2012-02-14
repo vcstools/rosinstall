@@ -39,8 +39,8 @@ import tempfile
 import rosinstall
 import rosinstall.helpers
 
-import scm_test_base
-from scm_test_base import AbstractSCMTest, _add_to_file, ROSINSTALL_CMD
+import test.scm_test_base
+from test.scm_test_base import AbstractSCMTest, _add_to_file, ROSINSTALL_CMD
         
 class RosinstallDiffSvnTest(AbstractSCMTest):
 

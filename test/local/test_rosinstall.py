@@ -38,7 +38,7 @@ import tempfile
 import rosinstall
 import rosinstall.helpers
 
-from scm_test_base import AbstractFakeRosBasedTest, _create_yaml_file, _create_config_elt_dict
+from test.scm_test_base import AbstractFakeRosBasedTest, _create_yaml_file, _create_config_elt_dict
 
 class RosinstallCommandlineOverlays(AbstractFakeRosBasedTest):
     """test creating parallel rosinstall env with overlayed stacks"""

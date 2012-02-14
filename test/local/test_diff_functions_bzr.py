@@ -39,10 +39,10 @@ import tempfile
 import rosinstall
 import rosinstall.helpers
 
-import scm_test_base
-from scm_test_base import AbstractSCMTest, _add_to_file, ROSINSTALL_CMD
+import test.scm_test_base
+from test.scm_test_base import AbstractSCMTest, _add_to_file, ROSINSTALL_CMD
 
-class RosinstallDiffHgTest(AbstractSCMTest):
+class RosinstallDiffBzrTest(AbstractSCMTest):
 
     @classmethod
     def setUpClass(self):
@@ -51,84 +51,94 @@ class RosinstallDiffHgTest(AbstractSCMTest):
         os.makedirs(remote_path)
         
         # create a "remote" repo
-        subprocess.check_call(["hg", "init"], cwd=remote_path)
+        subprocess.check_call(["bzr", "init"], cwd=remote_path)
         subprocess.check_call(["touch", "fixed.txt"], cwd=remote_path)
         subprocess.check_call(["touch", "modified.txt"], cwd=remote_path)
         subprocess.check_call(["touch", "modified-fs.txt"], cwd=remote_path)
         subprocess.check_call(["touch", "deleted.txt"], cwd=remote_path)
         subprocess.check_call(["touch", "deleted-fs.txt"], cwd=remote_path)
-        subprocess.check_call(["hg", "add", "fixed.txt"], cwd=remote_path)
-        subprocess.check_call(["hg", "add", "modified.txt"], cwd=remote_path)
-        subprocess.check_call(["hg", "add", "modified-fs.txt"], cwd=remote_path)
-        subprocess.check_call(["hg", "add", "deleted.txt"], cwd=remote_path)
-        subprocess.check_call(["hg", "add", "deleted-fs.txt"], cwd=remote_path)
-        subprocess.check_call(["hg", "commit", "-m", "modified"], cwd=remote_path)
+        subprocess.check_call(["bzr", "add", "fixed.txt"], cwd=remote_path)
+        subprocess.check_call(["bzr", "add", "modified.txt"], cwd=remote_path)
+        subprocess.check_call(["bzr", "add", "modified-fs.txt"], cwd=remote_path)
+        subprocess.check_call(["bzr", "add", "deleted.txt"], cwd=remote_path)
+        subprocess.check_call(["bzr", "add", "deleted-fs.txt"], cwd=remote_path)
+        subprocess.check_call(["bzr", "commit", "-m", "modified"], cwd=remote_path)
 
         # rosinstall the remote repo and fake ros
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- hg: {local-name: clone, uri: remote}")
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- bzr: {local-name: clone, uri: remote}")
 
         cmd = [ROSINSTALL_CMD, "ws", "-n"]
-        call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
+        call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE, env=self.new_environ)
         output=call.communicate()[0]
 
         clone_path = os.path.join(self.local_path, "clone")
         
         # make local modifications
         subprocess.check_call(["rm", "deleted-fs.txt"], cwd=clone_path)
-        subprocess.check_call(["hg", "rm", "deleted.txt"], cwd=clone_path)
+        subprocess.check_call(["bzr", "rm", "deleted.txt"], cwd=clone_path)
         _add_to_file(os.path.join(clone_path, "modified-fs.txt"), u"foo\n")
         _add_to_file(os.path.join(clone_path, "modified.txt"), u"foo\n")
         _add_to_file(os.path.join(clone_path, "added-fs.txt"), u"tada\n")
         _add_to_file(os.path.join(clone_path, "added.txt"), u"flam\n")
-        subprocess.check_call(["hg", "add", "added.txt"], cwd=clone_path)
+        subprocess.check_call(["bzr", "add", "added.txt"], cwd=clone_path)
         
-    def check_diff_output(self, output):
-        # sha ids are always same with hg
-        self.assertEqual('diff --git clone/added.txt clone/added.txt\nnew file mode 100644\n--- /dev/null\n+++ clone/added.txt\n@@ -0,0 +1,1 @@\n+flam\ndiff --git clone/deleted.txt clone/deleted.txt\ndeleted file mode 100644\ndiff --git clone/modified-fs.txt clone/modified-fs.txt\n--- clone/modified-fs.txt\n+++ clone/modified-fs.txt\n@@ -0,0 +1,1 @@\n+foo\ndiff --git clone/modified.txt clone/modified.txt\n--- clone/modified.txt\n+++ clone/modified.txt\n@@ -0,0 +1,1 @@\n+foo\n\n\n', output)
+    def check_diff_output (self, output):
+        # uncomment following line for easiest way to get actual output with escapes
+        # self.assertEqual(None, output);
+
+        # bzr writes date-time of file into diff
+        self.assertTrue(output.startswith("=== added file 'added.txt'\n--- clone/added.txt"), msg=0)
+        self.assertTrue(0 < output.find("+++ clone/added.txt"), msg=1)
+        self.assertTrue(0 < output.find("@@ -0,0 +1,1 @@\n+flam\n\n"), msg=2)
+        self.assertTrue(0 < output.find("=== removed file 'deleted-fs.txt'\n=== removed file 'deleted.txt'\n=== modified file 'modified-fs.txt'\n--- clone/modified-fs.txt"), msg=3 )
+        self.assertTrue(0 < output.find("@@ -0,0 +1,1 @@\n+foo\n\n=== modified file 'modified.txt'\n--- clone/modified.txt"), msg=4)
+
         
-    def test_Rosinstall_diff_hg_outside(self):
-        """Test diff output for hg when run outside workspace"""
+    def test_Rosinstall_diff_bzr_outside(self):
+        """Test diff output for bzr when run outside workspace"""
         cmd = [ROSINSTALL_CMD, "ws", "--diff"]
         
         call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
         output=call.communicate()[0]
-
         self.check_diff_output(output)
 
-    def test_Rosinstall_diff_hg_inside(self):
-        """Test diff output for hg when run inside workspace"""
+
+    def test_Rosinstall_diff_bzr_inside(self):
+        """Test diff output for bzr when run inside workspace"""
         directory = self.test_root_path + "/ws"
         cmd = [ROSINSTALL_CMD, ".", "--diff"]
         
         call = subprocess.Popen(cmd, cwd=directory, stdout=subprocess.PIPE)
         output=call.communicate()[0]
-
         self.check_diff_output(output)
+
         
-        
-    def test_Rosinstall_status_hg_inside(self):
-        """Test status output for hg when run inside workspace"""
+    def test_Rosinstall_status_bzr_inside(self):
+        """Test status output for bzr when run inside workspace"""
         directory = self.test_root_path + "/ws"
         cmd = [ROSINSTALL_CMD, ".", "--status"]
         
         call = subprocess.Popen(cmd, cwd=directory, stdout=subprocess.PIPE)
         output=call.communicate()[0]
-        self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n\n', output)
+        self.assertEqual('+N      clone/added.txt\n D      clone/deleted-fs.txt\n-D      clone/deleted.txt\n M      clone/modified-fs.txt\n M      clone/modified.txt\n\n', output)
    
-    def test_Rosinstall_status_hg_outside(self):
-        """Test status output for hg when run outside workspace"""
+    def test_Rosinstall_status_bzr_outside(self):
+        """Test status output for bzr when run outside workspace"""
         cmd = [ROSINSTALL_CMD, "ws", "--status"]
         
         call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
         output=call.communicate()[0]
 
-        self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n\n', output)
+        self.assertEqual('+N      clone/added.txt\n D      clone/deleted-fs.txt\n-D      clone/deleted.txt\n M      clone/modified-fs.txt\n M      clone/modified.txt\n\n', output)
 
-    def test_Rosinstall_status_hg_untracked(self):
-        """Test untracked status output for hg when run outside workspace"""
+    def test_Rosinstall_status_bzr_untracked(self):
+        """Test status output for bzr when run outside workspace"""
         cmd = [ROSINSTALL_CMD, "ws", "--status-untracked"]
         
         call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
         output=call.communicate()[0]
 
-        self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n?       clone/added-fs.txt\n\n', output)
+        self.assertEqual('?       clone/added-fs.txt\n+N      clone/added.txt\n D      clone/deleted-fs.txt\n-D      clone/deleted.txt\n M      clone/modified-fs.txt\n M      clone/modified.txt\n\n', output)
+
+
+        
