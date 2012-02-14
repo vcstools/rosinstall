@@ -56,8 +56,11 @@ def _create_fake_ros_dir(root_path):
      """setup fake ros root within root_path/ros"""
      ros_path = os.path.join(root_path, "ros")
      os.makedirs(ros_path)
+     subprocess.check_call(["git", "init"], cwd=ros_path)
      _add_to_file(os.path.join(ros_path, "stack.xml"), u'<stack></stack>')
      _add_to_file(os.path.join(ros_path, "setup.sh"), u'export ROS_ROOT=`pwd`')
+     subprocess.check_call(["git", "add", "*"], cwd=ros_path)
+     subprocess.check_call(["git", "commit", "-m", "initial"], cwd=ros_path)
 
 def _create_yaml_file(config_elements, path):
      content = ''
@@ -78,6 +81,19 @@ def _create_config_elt_dict(scmtype, localname, uri=None, version=None):
      element["version"]    = version
      return element
 
+def _create_git_repo(git_path):
+    os.makedirs(git_path)
+    subprocess.check_call(["git", "init"], cwd=git_path)
+    subprocess.check_call(["touch", "gitfixed.txt"], cwd=git_path)
+    subprocess.check_call(["git", "add", "*"], cwd=git_path)
+    subprocess.check_call(["git", "commit", "-m", "initial"], cwd=git_path)
+
+def _create_hg_repo(hg_path):
+    os.makedirs(hg_path)
+    subprocess.check_call(["hg", "init"], cwd=hg_path)
+    subprocess.check_call(["touch", "hgfixed.txt"], cwd=hg_path)
+    subprocess.check_call(["hg", "add", "hgfixed.txt"], cwd=hg_path)
+    subprocess.check_call(["hg", "commit", "-m", "initial"], cwd=hg_path)
                
 ROSINSTALL_CMD = os.path.join(os.getcwd(), 'scripts/rosinstall')
 
@@ -107,8 +123,36 @@ class AbstractRosinstallBaseDirTest(AbstractRosinstallCLITest):
             shutil.rmtree(self.directories[d])
         self.directories = {}
 
+class AbstractFakeRosBasedTest(AbstractRosinstallBaseDirTest):
+     """creates some larger infrastructure for testing locally"""
+     
+     @classmethod
+     def setUpClass(self):
+          AbstractRosinstallBaseDirTest.setUpClass()
+          # create a dir mimicking ros
+          self.test_root_path = tempfile.mkdtemp()
+          _create_fake_ros_dir(self.test_root_path)
+          # create a repo in git
+          self.ros_path = os.path.join(self.test_root_path, "ros")
+          self.git_path = os.path.join(self.test_root_path, "gitrepo")
+          _create_git_repo(self.git_path)
+          # create a repo in hg
+          self.hg_path = os.path.join(self.test_root_path, "hgrepo")
+          _create_hg_repo(self.hg_path)
+          # create custom rosinstall files to use as input
+          self.simple_rosinstall = os.path.join(self.test_root_path, "simple.rosinstall")
+          _create_yaml_file([_create_config_elt_dict("git", "ros", self.ros_path),
+                             _create_config_elt_dict("git", "gitrepo", self.git_path)],
+                            self.simple_rosinstall)
+          self.simple_changed_vcs_rosinstall = os.path.join(self.test_root_path, "simple_changed_vcs.rosinstall")
+          _create_yaml_file([_create_config_elt_dict("git", "ros", self.ros_path),
+                             _create_config_elt_dict("hg", "hgrepo", self.hg_path)],
+                            self.simple_changed_vcs_rosinstall)
 
-
+     @classmethod
+     def tearDownClass(self):
+          shutil.rmtree(self.test_root_path)
+          
 class AbstractSCMTest(AbstractRosinstallCLITest):
      """Base class for diff tests, setting up a tempdir self.test_root_path for a whole class"""
      @classmethod

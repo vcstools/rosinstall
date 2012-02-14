@@ -50,7 +50,16 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
         cmd = self.rosinstall_fn
         cmd.extend([self.directory, os.path.join("test", "rosinstalls", "ros_w_release.rosinstall")])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
-
+        generated_rosinstall_filename = os.path.join(self.directory, ".rosinstall")
+        self.assertTrue(os.path.exists(generated_rosinstall_filename))
+        source_yaml = rosinstall.helpers.get_yaml_from_uri(generated_rosinstall_filename)
+        self.assertEqual(source_yaml, 
+                         [{'svn': { 'uri': 'https://code.ros.org/svn/ros/stacks/ros/tags/boxturtle',
+                                    'local-name': 'ros'} },
+                          {'svn': { 'uri': 'https://code.ros.org/svn/ros/stacks/ros_release/trunk',
+                                    'local-name': 'ros_release'} }
+                          ])
+        
     # def test_source_cturtle(self):
     #     cmd = self.rosinstall_fn
     #     cmd.extend([self.directory, os.path.join("test", "rosinstalls", "ros_w_release.rosinstall")])

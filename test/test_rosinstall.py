@@ -38,61 +38,38 @@ import tempfile
 import rosinstall
 import rosinstall.helpers
 
-from scm_test_base import AbstractRosinstallCLITest, AbstractRosinstallBaseDirTest
+from scm_test_base import AbstractFakeRosBasedTest, _create_yaml_file, _create_config_elt_dict
 
-class RosinstallCommandlineOverlays(AbstractRosinstallBaseDirTest):
-
+class RosinstallCommandlineOverlays(AbstractFakeRosBasedTest):
     """test creating parallel rosinstall env with overlayed stacks"""
-    
-    @classmethod
-    def setUpClass(self):
-        AbstractRosinstallCLITest.setUpClass()
-    
+      
     def setUp(self):
-        AbstractRosinstallBaseDirTest.setUp(self)
+        AbstractFakeRosBasedTest.setUp(self)
+
+        # setup a rosinstall env as base for further tests
         cmd = self.rosinstall_fn
-        cmd.extend([self.directory, os.path.join("test", "rosinstalls", "ros_w_release.rosinstall")])
+        cmd.extend([self.directory, self.simple_rosinstall])
+        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+
+        self.new_directory = tempfile.mkdtemp()
+        self.directories["new_ros_env"] = self.new_directory
+
+    def test_Rosinstall_rosinstall_file_input(self):
+        """uses base ros folders and overlays a stack"""
+        local_rosinstall = os.path.join(self.test_root_path, "local.rosinstall")
+        _create_yaml_file([_create_config_elt_dict("other", os.path.join(self.directory, 'ros')),
+                           _create_config_elt_dict("hg", "hgrepo", self.hg_path)],
+                          local_rosinstall)
+                          
+        cmd = self.rosinstall_fn
+        cmd.extend([self.new_directory, local_rosinstall])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
 
 
-        
-    def test_Rosinstall_rosinstall_file_generation(self):
-        generated_rosinstall_filename = os.path.join(self.directory, ".rosinstall")
-        self.assertTrue(os.path.exists(generated_rosinstall_filename))
-        source_yaml = rosinstall.helpers.get_yaml_from_uri(generated_rosinstall_filename)
-        self.assertEqual(source_yaml, 
-                         [{'svn': { 'uri': 'https://code.ros.org/svn/ros/stacks/ros/tags/boxturtle',
-                                    'local-name': 'ros'} },
-                          {'svn': { 'uri': 'https://code.ros.org/svn/ros/stacks/ros_release/trunk',
-                                    'local-name': 'ros_release'} }
-                          ])
-
-    def test_Rosinstall_common_msgs_as_explicit_overlay(self):
-        directory = tempfile.mkdtemp()
-        with tempfile.NamedTemporaryFile() as ri_file:
-            file_text = """
-- other:
-    local-name: %s/ros_release
-- other:
-    local-name: %s/ros
-- svn:
-    uri: https://code.ros.org/svn/ros-pkg/stacks/common_msgs/tags/boxturtle
-    local-name: stacks/common_msgs
-"""%(self.directory, self.directory)
-            ri_file.write(file_text)
-            ri_file.flush()
-                          
-            self.directories["tutorials"] = directory
-            cmd = self.rosinstall_fn
-            cmd.extend([directory, ri_file.name])
-            self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
-
-
-    def test_Rosinstall_ros_tutorial_as_argument(self):
-        directory = tempfile.mkdtemp()
-        self.directories["tutorials2"] = directory
+    def test_Rosinstall_ros_with_folder(self):
+        """Use a folder as a remote rosinstall location"""
         cmd = self.rosinstall_fn
-        cmd.extend([directory, self.directory, os.path.join("test", "rosinstalls", "overlay.rosinstall")])
+        cmd.extend([self.new_directory, self.directory])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
 
 

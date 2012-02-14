@@ -34,77 +34,35 @@
 import os
 import subprocess
 import tempfile
-import shutil
 
 import rosinstall
 import rosinstall.helpers
 
-from scm_test_base import AbstractRosinstallCLITest, AbstractRosinstallBaseDirTest, _create_fake_ros_dir, _create_yaml_file, _create_config_elt_dict
+from scm_test_base import AbstractFakeRosBasedTest, _create_yaml_file, _create_config_elt_dict, _create_git_repo
 
 
-def _create_git_repo(git_path):
-    os.makedirs(git_path)
-    subprocess.check_call(["git", "init"], cwd=git_path)
-    subprocess.check_call(["touch", "gitfixed.txt"], cwd=git_path)
-    subprocess.check_call(["git", "add", "*"], cwd=git_path)
-    subprocess.check_call(["git", "commit", "-m", "initial"], cwd=git_path)
-
-def _create_hg_repo(hg_path):
-    os.makedirs(hg_path)
-    subprocess.check_call(["hg", "init"], cwd=hg_path)
-    subprocess.check_call(["touch", "hgfixed.txt"], cwd=hg_path)
-    subprocess.check_call(["hg", "add", "hgfixed.txt"], cwd=hg_path)
-    subprocess.check_call(["hg", "commit", "-m", "initial"], cwd=hg_path)
-
-
-class RosinstallOptionsTest(AbstractRosinstallBaseDirTest):
+class RosinstallOptionsTest(AbstractFakeRosBasedTest):
     """Test command line option for failure behavior"""
        
     @classmethod
     def setUpClass(self):
-        AbstractRosinstallBaseDirTest.setUpClass()
-        self.test_root_path = tempfile.mkdtemp()
-        _create_fake_ros_dir(self.test_root_path)
-        self.ros_path = os.path.join(self.test_root_path, "ros")
+        AbstractFakeRosBasedTest.setUpClass()
         
-        # create a repo in git
-        self.git_path = os.path.join(self.test_root_path, "gitrepo")
-        _create_git_repo(self.git_path)
-
+        # create another repo in git
         self.git_path2 = os.path.join(self.test_root_path, "gitrepo2")
         _create_git_repo(self.git_path2)
-        
-        # create a repo in hg
-        self.hg_path = os.path.join(self.test_root_path, "hgrepo")
-        _create_hg_repo(self.hg_path)
-
-        self.simple_rosinstall = os.path.join(self.test_root_path, "simple.rosinstall")
-        self.simple_changed_vcs_rosinstall = os.path.join(self.test_root_path, "simple_changed_vcs.rosinstall")
         self.simple_changed_uri_rosinstall = os.path.join(self.test_root_path, "simple_changed_uri.rosinstall")
-        self.broken_rosinstall = os.path.join(self.test_root_path, "broken.rosinstall")
-
-        _create_yaml_file([_create_config_elt_dict("other", self.ros_path),
-                           _create_config_elt_dict("git", "gitrepo", self.git_path)],
-                          self.simple_rosinstall)
-
         # same local name for gitrepo, different uri
         _create_yaml_file([_create_config_elt_dict("other", self.ros_path),
                            _create_config_elt_dict("git", "gitrepo", self.git_path2)],
                           self.simple_changed_uri_rosinstall)
 
-        _create_yaml_file([_create_config_elt_dict("other", self.ros_path),
-                           _create_config_elt_dict("hg", "hgrepo", self.hg_path)],
-                          self.simple_changed_vcs_rosinstall)
-
+        # create a broken config
+        self.broken_rosinstall = os.path.join(self.test_root_path, "broken.rosinstall")
         _create_yaml_file([_create_config_elt_dict("other", self.ros_path),
                            _create_config_elt_dict("hg", "hgrepo", self.hg_path+"invalid")],
                           self.broken_rosinstall)
-        
-        
-    @classmethod
-    def tearDownClass(self):
-        shutil.rmtree(self.test_root_path)
-        
+
     def test_Rosinstall_help(self):
         cmd = self.rosinstall_fn
         cmd.append("-h")
