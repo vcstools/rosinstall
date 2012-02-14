@@ -257,8 +257,8 @@ class Config:
             for child_t in child_config.trees:
               full_child_path = os.path.join(local_path, child_t.get_path())
               elem = OtherConfigElement(full_child_path)
-              if 'setup-file' in v:
-                elem.setup_file = v['setup-file']
+              if child_t.setup_file: # Inherit setup_file key from children
+                elem.setup_file = child_t.setup_file
               self.trees.append(elem)
           else:
             elem = OtherConfigElement(local_path)
@@ -281,6 +281,16 @@ class Config:
       if ros_path:
         rp = ros_path
     return rp
+
+  def ros_requires_boostrap(self):
+    rp = None
+    for t in self.trees:
+      ros_path = t.get_ros_path()
+      if ros_path:
+        if isinstance(t, AVCSConfigElement):
+          return True
+    return False
+
   
   def write_version_locked_source(self, filename):
     source_aggregate = []
@@ -398,8 +408,13 @@ export OLDPWD=$OLDPWDBAK
 
 . $SCRIPT_PATH/setup.sh
 
-if [ -e ${ROS_ROOT}/tools/rosbash/ros%(shell)s ]; then
-  . ${ROS_ROOT}/tools/rosbash/ros%(shell)s
+if rospack help 2> /dev/null; then
+  ROSSHELL_PATH=`rospack find ros%(shell)s`/ros%(shell)s
+  if [ -e $ROSSHELL_PATH ]; then
+    . $ROSSHELL_PATH
+  fi
+else
+  echo "rospack could not be found, you cannot have ros%(shell)s features until you bootstrap ros"
 fi
 """%locals()
     return text
@@ -457,15 +472,22 @@ def insert_source_yaml(source_yaml, source, observed_paths, aggregate_source_yam
       return ''
 
 def rewrite_included_source(source_yaml, source_path):
+  """ Rewrite the included rosinstall file to only be other type 
+  and strip it down to just the local_path and setup-file. """
   #print "before", source_yaml
   for entry in source_yaml:
     types = ['svn', 'bzr', 'hg', 'git', 'other']
     for t in types:
       if t in entry.keys():
         local_path = os.path.join(source_path, entry[t]['local-name'])
+        setup_file = None
+        if 'setup-file' in entry[t]:
+          setup_file = entry[t]['setup-file']
         del entry[t]
         entry['other'] = {}
         entry['other']['local-name'] = local_path
+        if setup_file:
+          entry['other']['setup-file'] = setup_file
   #print "after", source_yaml
   return source_yaml
 
@@ -515,9 +537,14 @@ def rosinstall_main(argv):
 rosinstall does the following:\n\
   1. Merges all URIs into new or existing .rosinstall file at PATH\n\
   2. Checks out or updates all version controlled URIs\n\
-  3. Generates/overwrites updated setup files\n\n\
+  3. If ros stack is installed from source, calls rosmake after checkout or updates.\n\
+  4. Generates/overwrites updated setup files\n\n\
+If running with --catkin mode:\
+  1. Merges all URIs into new or existing .rosinstall file at PATH\n\
+  2. Checks out or updates all version controlled URIs\n\
+  4. Generates/overwrites updated setup files and creates CMakeLists.txt at the root.\n\n\
 URIs can be web urls to remote .rosinstall files, local .rosinstall files,\n\
-git, svn, bzr, hg URIs, or local directories.\n\
+git, svn, bzr, hg URIs, or other (local directories)\n\
 Later URIs will shadow packages of earlier URIs.\n",
                         epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
   parser.add_option("-c", "--catkin", dest="catkin", default=False,
@@ -530,10 +557,10 @@ Later URIs will shadow packages of earlier URIs.\n",
                     help="display version information",
                     action="store_true")
   parser.add_option("-n", "--nobuild", dest="nobuild", default=False,
-                    help="DEPRECATED rosinstall no longer bootstraps, no need to disable it.",
+                    help="skip the build step for the ROS stack",
                     action="store_true")
   parser.add_option("--rosdep-yes", dest="rosdep_yes", default=False,
-                    help="Deprecated rosdep-yes is not longer supported",
+                    help="Pass through --rosdep-yes to rosmake",
                     action="store_true")
   parser.add_option("--continue-on-error", dest="robust", default=False,
                     help="Continue despite checkout errors",
@@ -568,7 +595,7 @@ Later URIs will shadow packages of earlier URIs.\n",
     def prettyversion(vdict):
       version = vdict.pop("version")
       return "%s; %s"%(version, ",".join(vdict.values()) )
-    print """rosinstall 0.5.22\n
+    print """rosinstall 0.5.26\n
 vcstools:  %s
 SVN:       %s
 Mercurial: %s
@@ -586,7 +613,7 @@ Bzr:       %s
   
   if len(args) < 1:
     parser.error("rosinstall requires at least 1 argument")
-   
+
   mode = 'prompt'
   if options.delete_changed:
     mode = 'delete'
@@ -715,11 +742,18 @@ Bzr:       %s
     ## Generate setup.sh and save
     config.generate_setup()
 
+    if config.ros_requires_boostrap() and not options.nobuild:
+      print "Bootstrapping ROS build"
+      rosdep_yes_insert = ""
+      if options.rosdep_yes:
+        rosdep_yes_insert = " --rosdep-yes"
+      ros_comm_insert = ""
+      if 'ros_comm' in [os.path.basename(tree.path) for tree in config.trees]:
+        print "Detected ros_comm bootstrapping it too."
+        ros_comm_insert = " ros_comm"
+      subprocess.check_call("source %s && rosmake ros%s --rosdep-install%s" % (os.path.join(options.path, 'setup.sh'), ros_comm_insert, rosdep_yes_insert), shell=True, executable='/bin/bash')
     print "\nrosinstall update complete.\n\nNow, type 'source %s/setup.bash' to set up your environment.\nAdd that to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % options.path
-    print "="*80, "\nrosinstall no longer bootstraps your build.\n"
-    print "If you want the old behavior call \"source setup.bash && rosmake --rosdep-install ros\" \n",
-    print "If you are installing ros_comm add it as an argument.  If you called with --rosdep-yes pass that to rosmake as well."
-    print "="*80
+  
   
   if not install_success:
      print "Warning: installation encountered errors, but --continue-on-error was requested.  Look above for warnings."
