@@ -23,10 +23,12 @@ from optparse import OptionParser
 import yaml
 import shutil
 import datetime
+import pkg_resources
 
 import rosinstall.helpers
 from rosinstall.helpers import ROSInstallException
 
+import vcstools
 from vcstools import VcsClient
 
 __REPOTYPES__ = ['svn', 'bzr', 'hg', 'git']
@@ -517,14 +519,16 @@ rosinstall does the following:\n\
 URIs can be web urls to remote .rosinstall files, local .rosinstall files,\n\
 git, svn, bzr, hg URIs, or local directories.\n\
 Later URIs will shadow packages of earlier URIs.\n",
-                        epilog="See: http://www.ros.org/wiki/rosinstall for details\n",
-                        version="%prog 0.5.22")
+                        epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
   parser.add_option("-c", "--catkin", dest="catkin", default=False,
                     help="Declare this is a catkin build.",
                     action="store_true")
   parser.add_option("--cmake-prefix-path", dest="catkinpp", default=None,
                     help="Where to set the CMAKE_PREFIX_PATH, implies --catkin",
                     action="store")
+  parser.add_option("--version", dest="version", default=False,
+                    help="display version information",
+                    action="store_true")
   parser.add_option("-n", "--nobuild", dest="nobuild", default=False,
                     help="DEPRECATED rosinstall no longer bootstraps, no need to disable it.",
                     action="store_true")
@@ -560,9 +564,29 @@ Later URIs will shadow packages of earlier URIs.\n",
   #if options.rosdep_yes:
   #  pareser.error("rosinstall no longer bootstraps the build, it will not call rosmake or pass it rosdep options") 
 
+  if options.version:
+    def prettyversion(vdict):
+      version = vdict.pop("version")
+      return "%s; %s"%(version, ",".join(vdict.values()) )
+    print """rosinstall 0.5.22\n
+vcstools:  %s
+SVN:       %s
+Mercurial: %s
+Git:       %s
+Tar:       %s
+Bzr:       %s
+"""%(pkg_resources.require("vcstools")[0].version,
+     prettyversion(vcstools.SvnClient.get_environment_metadata()),
+     prettyversion(vcstools.HgClient.get_environment_metadata()),
+     prettyversion(vcstools.GitClient.get_environment_metadata()),
+     prettyversion(vcstools.TarClient.get_environment_metadata()),
+     prettyversion(vcstools.BzrClient.get_environment_metadata()))
+    sys.exit(0)
+
+  
   if len(args) < 1:
     parser.error("rosinstall requires at least 1 argument")
-
+   
   mode = 'prompt'
   if options.delete_changed:
     mode = 'delete'
