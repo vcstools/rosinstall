@@ -412,7 +412,7 @@ Bzr:       %s
 
   ## Could not get uri therefore error out
   if len(config_uris) == 0:
-    parser.error( "no source rosinstall file found! looked at arguments and, %s"%(
+    parser.error("no source rosinstall file found! looked at arguments and, %s"%(
         os.path.join(options.path, ".rosinstall")))
 
   #print("source...........................", aggregate_source_yaml)

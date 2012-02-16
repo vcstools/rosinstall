@@ -164,29 +164,27 @@ class Config:
     self.source = yaml_source
     self.trees = [ ]
     self.base_path = install_path
-
-
-    self.load_yaml(self.source, self.source_uri)
+    self.load_yaml(self.source)
     
 
-  def load_yaml(self, y, rosinstall_source_uri):
-    for t in y:
-      for k, v in t.iteritems():
+  def load_yaml(self, yaml):
+    for tree_elt in yaml:
+      for key, values in tree_elt.iteritems():
 
         # Check that local_name exists and record it
-        if not 'local-name' in v:
+        if not 'local-name' in values:
           raise MultiProjectException("local-name is required on all rosinstall elements")
         else:
-          local_name = v['local-name']
+          local_name = values['local-name']
 
         # Get the version and source_uri elements
-        source_uri = v.get('uri', None)
-        version = v.get('version', '')
+        source_uri = values.get('uri', None)
+        version = values.get('version', '')
         
         #compute the local_path for the config element
         local_path = os.path.normpath(os.path.join(self.base_path, local_name))
 
-        if k == 'other':
+        if key == 'other':
           rosinstall_uri = '' # does not exist
           if os.path.exists(local_path) and os.path.isfile(local_path):
             rosinstall_uri = local_path
@@ -202,14 +200,14 @@ class Config:
               self.trees.append(elem)
           else:
             elem = OtherConfigElement(local_path)
-            if 'setup-file' in v:
-              elem.setup_file = v['setup-file']
+            if 'setup-file' in values:
+              elem.setup_file = values['setup-file']
             self.trees.append(elem)
         else:
           try:
-            elem = AVCSConfigElement(k, local_path, source_uri, version)
-            if 'setup-file' in v:
-              elem.setup_file = v['setup-file']
+            elem = AVCSConfigElement(key, local_path, source_uri, version)
+            if 'setup-file' in values:
+              elem.setup_file = values['setup-file']
             self.trees.append(elem)
           except LookupError as ex:
             raise MultiProjectException("Abstracted VCS Config failed. Exception: %s" % ex)
