@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import yaml
 import copy
@@ -11,7 +12,7 @@ class MultiProjectException(Exception): pass
 
 def get_backup_path():
     backup_path = raw_input("Please enter backup pathname: ")
-    print "backing up to %s"%backup_path
+    print("backing up to %s"%backup_path)
     return backup_path
 
 def prompt_del_abort_retry(prompt, allow_skip = False):
@@ -63,7 +64,7 @@ class ConfigElement:
     if not backup_path:
       raise MultiProjectException("Cannot install %s.  backup disabled."%self.path)
     backup_path = os.path.join(backup_path, os.path.basename(self.path)+"_%s"%datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
-    print "Backing up %s to %s"%(self.path, backup_path)
+    print("Backing up %s to %s"%(self.path, backup_path))
     shutil.move(self.path, backup_path)
 
 class OtherConfigElement(ConfigElement):
@@ -89,7 +90,7 @@ class VCSConfigElement(ConfigElement):
     
   def install(self,  backup_path = None,arg_mode = 'abort', robust=False):
     mode = arg_mode
-    print "Installing %s %s to %s"%(self.uri, self.version, self.path)
+    print("Installing %s %s to %s"%(self.uri, self.version, self.path))
 
     # Directory exists see what we need to do
     if self.vcsc.path_exists():
@@ -255,7 +256,7 @@ class Config:
         success = False
         fail_str = "Failed to install tree '%s'\n %s"%(t.get_path(), ex)
         if robust:
-          print "rosinstall Continuing despite %s"%fail_str
+          print("Continuing despite %s"%fail_str)
         else:
           raise MultiProjectException(fail_str)
       else:
