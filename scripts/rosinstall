@@ -26,7 +26,7 @@ import pkg_resources
 import rosinstall.helpers
 from rosinstall.helpers import ROSInstallException
 import rosinstall.config
-from rosinstall.config import Config, MultiProjectException
+from rosinstall.config import Config, MultiProjectException, SetupConfigElement
 
 import vcstools
 from vcstools import VcsClient
@@ -80,6 +80,8 @@ def generate_setup_sh_text(config, ros_root, ros_package_path):
   for t in config.get_config_elements():
     if t.setup_file:
       text += ". %s\n"%os.path.join(t.path, t.setup_file)
+    if isinstance(t, SetupConfigElement):
+      text += ". %s\n"%t.path
   text += "export ROS_ROOT=%s\n" % ros_root
   text += "export PATH=$ROS_ROOT/bin:$PATH\n" # might include it twice
   text += "export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH\n"

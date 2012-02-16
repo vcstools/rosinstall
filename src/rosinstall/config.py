@@ -173,6 +173,7 @@ class VCSConfigElement(ConfigElement):
     return self.vcsc.get_status(basepath, untracked)
   
 
+  
 class AVCSConfigElement(VCSConfigElement):
   
   def __init__(self, type, path, uri, version = ''):
@@ -181,6 +182,19 @@ class AVCSConfigElement(VCSConfigElement):
     self.vcsc = VcsClient(self.type, self.path)
 
 
+    
+class SetupConfigElement(ConfigElement):
+  def install(self, backup_path, mode, robust=False):
+    return True
+
+  def get_versioned_yaml(self):
+    raise MultiProjectException("Cannot generate versioned outputs with non source types")
+
+  def get_yaml(self):
+    return [{"setup-file": {"local-name": self.path} }]
+
+
+  
 class Config:
   def __init__(self, yaml_source, install_path):
     if yaml_source is None:
@@ -229,6 +243,9 @@ class Config:
             if 'setup-file' in values:
               elem.setup_file = values['setup-file']
             self.trees.append(elem)
+        elif key == 'setup-file':
+          elem = SetupConfigElement(local_path)
+          self.trees.append(elem)
         else:
           try:
             elem = AVCSConfigElement(key, local_path, source_uri, version)
