@@ -196,15 +196,16 @@ class SetupConfigElement(ConfigElement):
 
   
 class Config:
-  def __init__(self, yaml_source, install_path):
+  def __init__(self, yaml_source, install_path, config_filename):
     if yaml_source is None:
       raise MultiProjectException("Passes empty source to create config")
     self.source_uri = install_path #TODO Hack so I don't have to fix the usages of this remove!!!
     self.source = yaml_source
     self.trees = [ ]
     self.base_path = install_path
+    self.config_filename = config_filename
     self._load_yaml(self.source)
-    
+
 
   def _load_yaml(self, yaml):
     for tree_elt in yaml:
@@ -228,7 +229,7 @@ class Config:
           if os.path.isfile(local_path):
             config_file_uri = local_path
           elif os.path.isdir(local_path):
-            config_file_uri = os.path.join(local_path, ".rosinstall")
+            config_file_uri = os.path.join(local_path, self.config_filename)
             
           if os.path.exists(config_file_uri):
             child_config = Config(get_yaml_from_uri(config_file_uri), config_file_uri)

@@ -32,6 +32,7 @@ import vcstools
 from vcstools import VcsClient
 
 __REPOTYPES__ = ['svn', 'bzr', 'hg', 'git']
+__ROSINSTALL_FILENAME=".rosinstall"
 
 CATKIN_CMAKE_TOPLEVEL="""#
 #  TOPLEVEL cmakelists
@@ -146,7 +147,7 @@ def generate_setup(config):
   # simplest case first
   ros_root = ros_path(config)
   if not ros_root:
-    raise ROSInstallException("No 'ros' stack detected.  The 'ros' stack is required in all rosinstall directories. Please add a definition of the 'ros' stack either manually in .rosinstall and then call 'rosinstall .' in the directory. Or add one on the command line 'rosinstall . http://www.ros.org/rosinstalls/boxturtle_ros.rosinstall'. Or reference an existing install like in /opt/ros/boxturtle with 'rosinstall . /opt/ros/boxturtle'.  Note: the above suggestions assume you are using boxturtle, if you are using latest or another distro please change the urls." )
+    raise ROSInstallException("No 'ros' stack detected.  The 'ros' stack is required in all rosinstall directories. Please add a definition of the 'ros' stack either manually in %s and then call 'rosinstall .' in the directory. Or add one on the command line 'rosinstall . http://www.ros.org/rosinstalls/boxturtle_ros.rosinstall'. Or reference an existing install like in /opt/ros/boxturtle with 'rosinstall . /opt/ros/boxturtle'.  Note: the above suggestions assume you are using boxturtle, if you are using latest or another distro please change the urls."%__ROSINSTALL_FILENAME )
   rpp = ':'.join(get_ros_package_path(config))
   
   text = generate_setup_sh_text(config, ros_root, rpp)
@@ -377,8 +378,8 @@ Bzr:       %s
   config_uris = []
 
   # Check for existing config in path
-  if os.path.exists(os.path.join(options.path, ".rosinstall")):
-    config_uris.append(os.path.join(options.path, ".rosinstall"))
+  if os.path.exists(os.path.join(options.path, __ROSINSTALL_FILENAME)):
+    config_uris.append(os.path.join(options.path, __ROSINSTALL_FILENAME))
 
   # Add all arguments past the first one
   config_uris.extend(args[1:])
@@ -394,7 +395,7 @@ Bzr:       %s
     #print("argument", a)
     config_uri = rosinstall.helpers.conditional_abspath(a)
     if os.path.isdir(config_uri):
-      rosinstall_uri = os.path.join(config_uri, ".rosinstall")
+      rosinstall_uri = os.path.join(config_uri, __ROSINSTALL_FILENAME)
       #print("processing config_uri %s"%config_uri)
       if os.path.exists(rosinstall_uri):
         source_yaml = rosinstall.config.get_yaml_from_uri(rosinstall_uri)
@@ -416,12 +417,12 @@ Bzr:       %s
   ## Could not get uri therefore error out
   if len(config_uris) == 0:
     parser.error("no source rosinstall file found! looked at arguments and, %s"%(
-        os.path.join(options.path, ".rosinstall")))
+        os.path.join(options.path, __ROSINSTALL_FILENAME)))
 
   #print("source...........................", aggregate_source_yaml)
 
   ## Generate the config class with the uri and path
-  config = Config(aggregate_source_yaml, options.path)
+  config = Config(aggregate_source_yaml, options.path, __ROSINSTALL_FILENAME)
 
   if options.generate_versioned:
     filename = os.path.abspath(options.generate_versioned)
@@ -461,7 +462,7 @@ Bzr:       %s
   print("rosinstall operating on", options.path, "from specifications in rosinstall files ", ", ".join(config_uris))
 
   ## Save .rosinstall 
-  config.write_source(filename = '.rosinstall', header = """# THIS IS A FILE WHICH IS MODIFIED BY rosinstall
+  config.write_source(filename = __ROSINSTALL_FILENAME, header = """# THIS IS A FILE WHICH IS MODIFIED BY rosinstall
 # IT IS UNLIKELY YOU WANT TO EDIT THIS FILE BY HAND
 # IF YOU WANT TO CHANGE THE ROS ENVIRONMENT VARIABLES
 # USE THE rosinstall TOOL INSTEAD.
