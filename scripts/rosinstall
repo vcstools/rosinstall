@@ -136,6 +136,16 @@ class OtherConfigElement(ConfigElement):
 
   def get_yaml(self):
     return [{"other": {"local-name": self.path} }]
+
+class SetupConfigElement(ConfigElement):
+  def install(self, backup_path, mode, robust=False):
+    return True
+
+  def get_versioned_yaml(self):
+    raise ROSInstallException("Cannot generate versioned outputs with non source types")
+
+  def get_yaml(self):
+    return [{"setup-file": {"local-name": self.path} }]
   
 class VCSConfigElement(ConfigElement):
   def __init__(self, path, uri, version=''):
@@ -265,6 +275,9 @@ class Config:
             if 'setup-file' in v:
               elem.setup_file = v['setup-file']
             self.trees.append(elem)
+        elif k == 'setup-file':
+            elem = SetupConfigElement(local_path)
+            self.trees.append(elem)
         else:
           try:
             elem = AVCSConfigElement(k, local_path, source_uri, version)
@@ -368,6 +381,10 @@ class Config:
     for t in self.trees:
       if t.setup_file:
         text += ". %s\n"%os.path.join(t.path, t.setup_file)
+    for t in self.trees:
+      if isinstance(t, SetupConfigElement):
+        text += ". %s\n"%t.path
+
     text += "export ROS_ROOT=%s\n" % ros_root
     text += "export PATH=$ROS_ROOT/bin:$PATH\n" # might include it twice
     text += "export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH\n"
