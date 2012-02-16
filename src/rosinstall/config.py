@@ -158,19 +158,16 @@ class AVCSConfigElement(VCSConfigElement):
 
 class Config:
   def __init__(self, yaml_source, install_path):
+    if yaml_source is None:
+      raise MultiProjectException("Passes empty source to create config")
     self.source_uri = install_path #TODO Hack so I don't have to fix the usages of this remove!!!
     self.source = yaml_source
     self.trees = [ ]
     self.base_path = install_path
 
-    if self.source:
-      self.load_yaml(self.source, self.source_uri)
-      self.valid = True
-    else:
-      self.valid = False
+
+    self.load_yaml(self.source, self.source_uri)
     
-  def is_valid(self):
-    return self.valid
 
   def load_yaml(self, y, rosinstall_source_uri):
     for t in y:

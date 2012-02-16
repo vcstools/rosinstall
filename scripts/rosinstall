@@ -419,8 +419,6 @@ Bzr:       %s
 
   ## Generate the config class with the uri and path
   config = Config(aggregate_source_yaml, options.path)
-  if not config.is_valid():
-    return -1
 
   if options.generate_versioned:
     filename = os.path.abspath(options.generate_versioned)
