@@ -189,10 +189,10 @@ class Config:
     self.source = yaml_source
     self.trees = [ ]
     self.base_path = install_path
-    self.load_yaml(self.source)
+    self._load_yaml(self.source)
     
 
-  def load_yaml(self, yaml):
+  def _load_yaml(self, yaml):
     for tree_elt in yaml:
       for key, values in tree_elt.iteritems():
 
@@ -211,10 +211,11 @@ class Config:
 
         if key == 'other':
           config_file_uri = '' # does not exist
-          if os.path.exists(local_path) and os.path.isfile(local_path):
+          if os.path.isfile(local_path):
             config_file_uri = local_path
           elif os.path.isdir(local_path):
             config_file_uri = os.path.join(local_path, ".rosinstall")
+            
           if os.path.exists(config_file_uri):
             child_config = Config(get_yaml_from_uri(config_file_uri), config_file_uri)
             for child_t in child_config.trees:
