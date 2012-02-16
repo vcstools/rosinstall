@@ -395,7 +395,7 @@ class Config:
 
   def generate_setup_bash_text(self, shell):
     if shell == 'bash':
-      script_path = """#!/usr/bin/env bash
+      script_path = """
 SCRIPT_PATH="${BASH_SOURCE[0]}";
 if([ -h "${SCRIPT_PATH}" ]) then
   while([ -h "${SCRIPT_PATH}" ]) do SCRIPT_PATH=`readlink "${SCRIPT_PATH}"`; done
