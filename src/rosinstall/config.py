@@ -4,11 +4,35 @@ import yaml
 import copy
 import datetime
 import shutil
+import urllib2
 
 import vcstools
 from vcstools import VcsClient
 
 class MultiProjectException(Exception): pass
+
+def get_yaml_from_uri(uri):
+  """reads and parses yaml from a local file or remote uri"""
+  stream = 0
+  if os.path.isfile(uri):
+    try:
+      stream = open(uri, 'r')
+    except IOError as e:
+      raise MultiProjectException("error opening file [%s]: %s\n" % (uri, e))
+  else:
+    try:
+      stream = urllib2.urlopen(uri)
+    except IOError as e:
+      raise MultiProjectException("Is not a local file, nor able to download as a URL [%s]: %s\n" % (uri, e))
+    except ValueError as e:
+      raise MultiProjectException("Is not a local file, nor a valid URL [%s] : %s\n" % (uri,e))
+  if not stream:
+    raise MultiProjectException("couldn't load config uri %s\n" % uri)
+  try:
+    y = yaml.load(stream);
+  except yaml.YAMLError as e:
+    raise MultiProjectException("Invalid multiproject yaml format in [%s]: %s\n" % (uri, e))
+  return y
 
 def get_backup_path():
     backup_path = raw_input("Please enter backup pathname: ")
@@ -150,6 +174,7 @@ class VCSConfigElement(ConfigElement):
   
 
 class AVCSConfigElement(VCSConfigElement):
+  
   def __init__(self, type, path, uri, version = ''):
     VCSConfigElement.__init__(self, path, uri, version)
     self.type = type
@@ -191,7 +216,7 @@ class Config:
           elif os.path.isdir(local_path):
             config_file_uri = os.path.join(local_path, ".rosinstall")
           if os.path.exists(config_file_uri):
-            child_config = Config(rosinstall.helpers.get_yaml_from_uri(config_file_uri), config_file_uri)
+            child_config = Config(get_yaml_from_uri(config_file_uri), config_file_uri)
             for child_t in child_config.trees:
               full_child_path = os.path.join(local_path, child_t.get_path())
               elem = OtherConfigElement(full_child_path)

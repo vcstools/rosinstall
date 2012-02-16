@@ -394,7 +394,7 @@ Bzr:       %s
       rosinstall_uri = os.path.join(config_uri, ".rosinstall")
       #print("processing config_uri %s"%config_uri)
       if os.path.exists(rosinstall_uri):
-        source_yaml = rosinstall.helpers.get_yaml_from_uri(rosinstall_uri)
+        source_yaml = rosinstall.config.get_yaml_from_uri(rosinstall_uri)
         if not source_yaml:
           raise ROSInstallException("Bad remote rosinstall folder: %s  This can be caused by empty rosinstall file. "%(a))
         source_yaml = rewrite_included_source(source_yaml, config_uri)
@@ -402,7 +402,7 @@ Bzr:       %s
         # fall back to just a directory
         source_yaml = [ {'other': {'local-name': '%s'%config_uri} } ]
     else:
-      source_yaml = rosinstall.helpers.get_yaml_from_uri(config_uri)
+      source_yaml = rosinstall.config.get_yaml_from_uri(config_uri)
       if not source_yaml:
           raise ROSInstallException("Bad remote rosinstall source: %s  This can be caused by empty rosinstall file. "%(a))
     #print("source yaml", source_yaml)
