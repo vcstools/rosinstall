@@ -173,7 +173,7 @@ class Config:
 
         # Check that local_name exists and record it
         if not 'local-name' in values:
-          raise MultiProjectException("local-name is required on all rosinstall elements")
+          raise MultiProjectException("local-name is required on all config elements")
         else:
           local_name = values['local-name']
 
@@ -185,13 +185,13 @@ class Config:
         local_path = os.path.normpath(os.path.join(self.base_path, local_name))
 
         if key == 'other':
-          rosinstall_uri = '' # does not exist
+          config_file_uri = '' # does not exist
           if os.path.exists(local_path) and os.path.isfile(local_path):
-            rosinstall_uri = local_path
+            config_file_uri = local_path
           elif os.path.isdir(local_path):
-            rosinstall_uri = os.path.join(local_path, ".rosinstall")
-          if os.path.exists(rosinstall_uri):
-            child_config = Config(rosinstall.helpers.get_yaml_from_uri(rosinstall_uri), rosinstall_uri)
+            config_file_uri = os.path.join(local_path, ".rosinstall")
+          if os.path.exists(config_file_uri):
+            child_config = Config(rosinstall.helpers.get_yaml_from_uri(config_file_uri), config_file_uri)
             for child_t in child_config.trees:
               full_child_path = os.path.join(local_path, child_t.get_path())
               elem = OtherConfigElement(full_child_path)
@@ -223,20 +223,15 @@ class Config:
     with open(filename, 'w') as fh:
       fh.write(yaml.safe_dump(source_aggregate))
       
-  def write_source(self):
+  def write_source(self, filename, header = None):
     """
-    Write .rosinstall into the root of the checkout
+    Write file into the root of the config
     """
     if not os.path.exists(self.base_path):
       os.makedirs(self.base_path)
-    f = open(os.path.join(self.base_path, ".rosinstall"), "w+b")
-    f.write(
-      """# THIS IS A FILE WHICH IS MODIFIED BY rosinstall
-# IT IS UNLIKELY YOU WANT TO EDIT THIS FILE BY HAND
-# IF YOU WANT TO CHANGE THE ROS ENVIRONMENT VARIABLES
-# USE THE rosinstall TOOL INSTEAD.
-# IF YOU CHANGE IT, USE rosinstall FOR THE CHANGES TO TAKE EFFECT
-""")
+    f = open(os.path.join(self.base_path, filename), "w+b")
+    if header is not None:
+      f.write(header)
     f.write(yaml.safe_dump(self.source))
     f.close()
     

@@ -458,7 +458,12 @@ Bzr:       %s
   print("rosinstall operating on", options.path, "from specifications in rosinstall files ", ", ".join(config_uris))
 
   ## Save .rosinstall 
-  config.write_source()
+  config.write_source(filename = '.rosinstall', header = """# THIS IS A FILE WHICH IS MODIFIED BY rosinstall
+# IT IS UNLIKELY YOU WANT TO EDIT THIS FILE BY HAND
+# IF YOU WANT TO CHANGE THE ROS ENVIRONMENT VARIABLES
+# USE THE rosinstall TOOL INSTEAD.
+# IF YOU CHANGE IT, USE rosinstall FOR THE CHANGES TO TAKE EFFECT
+""")
   ## install or update each element
   install_success = config.execute_install(options.backup_changed, mode, options.robust)
   ## bootstrap the build if installing ros
