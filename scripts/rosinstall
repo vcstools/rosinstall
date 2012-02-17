@@ -612,7 +612,7 @@ Later URIs will shadow packages of earlier URIs.\n",
     def prettyversion(vdict):
       version = vdict.pop("version")
       return "%s; %s"%(version, ",".join(vdict.values()) )
-    print """rosinstall 0.5.29\n
+    print """rosinstall 0.5.30\n
 vcstools:  %s
 SVN:       %s
 Mercurial: %s

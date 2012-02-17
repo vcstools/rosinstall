@@ -7,7 +7,7 @@ except:
 
 
 setup(name='rosinstall',
-      version= '0.5.29',
+      version= '0.5.30',
       packages=['rosinstall'],
       package_dir = {'':'src'},
       install_requires = ['vcstools'],
