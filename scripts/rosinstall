@@ -425,7 +425,7 @@ export OLDPWD=$OLDPWDBAK
 
 . $SCRIPT_PATH/setup.sh
 
-if rospack help 2> /dev/null; then
+if rospack help > /dev/null 2>&1; then
   ROSSHELL_PATH=`rospack find rosbash`/ros%(shell)s
   if [ -e $ROSSHELL_PATH ]; then
     . $ROSSHELL_PATH
