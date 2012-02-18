@@ -37,6 +37,7 @@ import tempfile
 
 import rosinstall
 import rosinstall.helpers
+import rosinstall.config
 
 from test.scm_test_base import AbstractRosinstallBaseDirTest, _create_yaml_file, _create_config_elt_dict
 
@@ -60,7 +61,7 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
         self.assertTrue(os.path.exists(os.path.join(self.directory, "ros")))
         self.assertTrue(os.path.exists(os.path.join(self.directory, "ros_release")))
         self.assertTrue(os.path.exists(os.path.join(self.directory, "setup.sh")))
-        source_yaml = rosinstall.helpers.get_yaml_from_uri(generated_rosinstall_filename)
+        source_yaml = rosinstall.config.get_yaml_from_uri(generated_rosinstall_filename)
         self.assertEqual(source_yaml, 
                          [{'svn': { 'uri': 'https://code.ros.org/svn/ros/stacks/ros/tags/boxturtle',
                                     'local-name': 'ros'} },

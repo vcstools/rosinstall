@@ -74,26 +74,19 @@ def is_path_ros(path):
   return False
 
 
-def get_yaml_from_uri(uri):
+def get_ros_stack_path(config):
+  rp = None
+  for t in config.get_config_elements():
+    if is_path_ros(t.get_path()):
+      rp = t.get_path()
+  return rp
 
-  # now that we've got a config uri and a path, let's move out.
-  f = 0
-  if os.path.isfile(uri):
-    try:
-      f = open(uri, 'r')
-    except IOError as e:
-      raise ROSInstallException("error opening file [%s]: %s\n" % (uri, e))
-  else:
-    try:
-      f = urllib2.urlopen(uri)
-    except IOError as e:
-      raise ROSInstallException("Is not a local file, nor able to download as a URL [%s]: %s\n" % (uri, e))
-    except ValueError as e:
-      raise ROSInstallException("Is not a local file, nor a valid URL [%s] : %s\n" % (uri,e))
-  if not f:
-    raise ROSInstallException("couldn't load config uri %s\n" % uri)
-  try:
-    y = yaml.load(f);
-  except yaml.YAMLError as e:
-    raise ROSInstallException("Invalid rosinstall yaml format in [%s]: %s\n" % (uri, e))
-  return y
+
+def get_ros_package_path(config):
+  """ Return the simplifed ROS_PACKAGE_PATH """
+  code_trees = []
+  for t in reversed(config.get_config_elements()):
+    if not is_path_ros(t.get_path()):
+      code_trees.append(t.get_path())
+  return code_trees
+
