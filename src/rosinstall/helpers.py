@@ -74,4 +74,19 @@ def is_path_ros(path):
   return False
 
 
+def get_ros_stack_path(config):
+  rp = None
+  for t in config.get_config_elements():
+    if is_path_ros(t.get_path()):
+      rp = t.get_path()
+  return rp
+
+
+def get_ros_package_path(config):
+  """ Return the simplifed ROS_PACKAGE_PATH """
+  code_trees = []
+  for t in reversed(config.get_config_elements()):
+    if not is_path_ros(t.get_path()):
+      code_trees.append(t.get_path())
+  return code_trees
 
