@@ -4,12 +4,10 @@ import copy
 import datetime
 import shutil
 
-import rosinstall.helpers
-from rosinstall.helpers import ROSInstallException
-
 import vcstools
 from vcstools import VcsClient
 
+class MultiProjectException(Exception): pass
 
 def get_backup_path():
     backup_path = raw_input("Please enter backup pathname: ")
@@ -49,23 +47,21 @@ class ConfigElement:
     return self.path
   def install(self, backup_path, mode, robust):
     raise NotImplementedError, "ConfigElement install unimplemented"
-  def get_ros_path(self):
-    if rosinstall.helpers.is_path_ros(self.get_path()):
-      return self.get_path()
-    else:
-      return None
   def get_yaml(self):
     """yaml with values as specified in file"""
     raise NotImplementedError, "ConfigElement get_versioned_yaml unimplemented"
   def get_versioned_yaml(self):
     raise NotImplementedError, "ConfigElement get_versioned_yaml unimplemented"
+  def is_vcs_element(self):
+    # subclasses to override when appropriate
+    return False
   def get_diff(self, basepath=None):
     raise NotImplementedError, "ConfigElement get_diff unimplemented"
   def get_status(self, basepath=None, untracked=False):
     raise NotImplementedError, "ConfigElement get_status unimplemented"
   def backup(self, backup_path):
     if not backup_path:
-      raise ROSInstallException("Cannot install %s.  backup disabled."%self.path)
+      raise MultiProjectException("Cannot install %s.  backup disabled."%self.path)
     backup_path = os.path.join(backup_path, os.path.basename(self.path)+"_%s"%datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
     print "Backing up %s to %s"%(self.path, backup_path)
     shutil.move(self.path, backup_path)
@@ -75,7 +71,7 @@ class OtherConfigElement(ConfigElement):
     return True
 
   def get_versioned_yaml(self):
-    raise ROSInstallException("Cannot generate versioned outputs with non source types")
+    raise MultiProjectException("Cannot generate versioned outputs with non source types")
 
   def get_yaml(self):
     return [{"other": {"local-name": self.path} }]
@@ -84,10 +80,13 @@ class VCSConfigElement(ConfigElement):
   def __init__(self, path, uri, version=''):
     ConfigElement.__init__(self, path)
     if uri == None:
-      raise ROSInstallException("Invalid scm entry having no uri attribute for path %s"%path)
+      raise MultiProjectException("Invalid scm entry having no uri attribute for path %s"%path)
     self.uri = uri.rstrip('/') # strip trailing slashes if defined to not be too strict #3061
     self.version = version
 
+  def is_vcs_element(self):
+    return True
+    
   def install(self,  backup_path = None,arg_mode = 'abort', robust=False):
     mode = arg_mode
     print "Installing %s %s to %s"%(self.uri, self.version, self.path)
@@ -102,7 +101,7 @@ class VCSConfigElement(ConfigElement):
         
       # If robust ala continue-on-error, just error now and it will be continued at a higher level
       if robust and error_message:
-          raise ROSInstallException(error_message)
+          raise MultiProjectException(error_message)
 
       # prompt the user based on the error code
       if error_message:
@@ -111,7 +110,7 @@ class VCSConfigElement(ConfigElement):
             if mode == 'backup': # you can only backup if in prompt mode
               backup_path = get_backup_path()
         if mode == 'abort':
-          raise ROSInstallException(error_message)
+          raise MultiProjectException(error_message)
         elif mode == 'backup':
           self.backup(backup_path)
         elif mode == 'delete':
@@ -122,12 +121,12 @@ class VCSConfigElement(ConfigElement):
     # If the directory does not exist checkout
     if not self.vcsc.path_exists():
       if not self.vcsc.checkout(self.uri, self.version):
-        raise ROSInstallException("Checkout of %s version %s into %s failed."%(self.uri, self.version, self.path))
+        raise MultiProjectException("Checkout of %s version %s into %s failed."%(self.uri, self.version, self.path))
       else:
         return
     else: # otherwise update
       if not self.vcsc.update(self.version):
-          raise ROSInstallException("Update Failed of %s"%self.path)
+          raise MultiProjectException("Update Failed of %s"%self.path)
       else:
           return 
     return
@@ -178,7 +177,7 @@ class Config:
 
         # Check that local_name exists and record it
         if not 'local-name' in v:
-          raise ROSInstallException("local-name is required on all rosinstall elements")
+          raise MultiProjectException("local-name is required on all rosinstall elements")
         else:
           local_name = v['local-name']
 
@@ -215,29 +214,11 @@ class Config:
               elem.setup_file = v['setup-file']
             self.trees.append(elem)
           except LookupError as ex:
-            raise ROSInstallException("Abstracted VCS Config failed. Exception: %s" % ex)
-
-  def ros_path(self):
-    rp = None
-    for t in self.trees:
-      ros_path = t.get_ros_path()
-      if ros_path:
-        rp = ros_path
-    return rp
+            raise MultiProjectException("Abstracted VCS Config failed. Exception: %s" % ex)
 
   def get_base_path(self):
     return self.base_path
 
-  def ros_requires_boostrap(self):
-    rp = None
-    for t in self.trees:
-      ros_path = t.get_ros_path()
-      if ros_path:
-        if isinstance(t, AVCSConfigElement):
-          return True
-    return False
-
-  
   def write_version_locked_source(self, filename):
     source_aggregate = []
     for t in self.trees:
@@ -270,13 +251,13 @@ class Config:
     for t in self.trees:
       try:
         t.install(os.path.join(self.base_path, backup_path), mode)
-      except ROSInstallException, ex:
+      except MultiProjectException, ex:
         success = False
         fail_str = "Failed to install tree '%s'\n %s"%(t.get_path(), ex)
         if robust:
           print "rosinstall Continuing despite %s"%fail_str
         else:
-          raise ROSInstallException(fail_str)
+          raise MultiProjectException(fail_str)
       else:
           pass
     return success
