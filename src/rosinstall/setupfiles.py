@@ -47,17 +47,27 @@ def generate_setup_sh_text(config, ros_root, ros_package_path):
 # USE THE rosinstall TOOL INSTEAD.
 # see: http://www.ros.org/wiki/rosinstall
 """
-  
+  distro_unset = False
   for t in config.get_config_elements():
     if t.setup_file:
+      if not distro_unset:
+        text += "unset ROS_DISTRO\n"
+        distro_unset = True
       text += ". %s\n"%os.path.join(t.path, t.setup_file)
     if isinstance(t, SetupConfigElement):
+      if not distro_unset:
+        text += "unset ROS_DISTRO\n"
+        distro_unset = True
       text += ". %s\n"%t.path
 
-  text += "export ROS_ROOT=%s\n" % ros_root
-  text += "export PATH=$ROS_ROOT/bin:$PATH\n" # might include it twice
-  text += "export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH\n"
-  text += "if [ ! \"$ROS_MASTER_URI\" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi\n"
+    text += """
+if [ -z "${ROS_DISTRO}" ]; then
+  export ROS_ROOT=%s 
+  export PATH=$ROS_ROOT/bin:$PATH
+  export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH
+  if [ ! \"$ROS_MASTER_URI\" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
+fi"""% ros_root
+
   text += "export ROS_PACKAGE_PATH=%s\n" % ros_package_path
   text += "export ROS_WORKSPACE=%s\n" % config.get_base_path()
   return text

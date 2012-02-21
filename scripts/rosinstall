@@ -24,7 +24,7 @@ import yaml
 import pkg_resources
 
 import rosinstall.helpers
-from rosinstall.helpers import ROSInstallException, get_ros_stack_path, get_ros_package_path
+from rosinstall.helpers import ROSInstallException
 import rosinstall.config
 from rosinstall.config import Config, MultiProjectException, SetupConfigElement
 import rosinstall.setupfiles
