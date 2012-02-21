@@ -88,19 +88,27 @@ export OLDPWD=$OLDPWDBAK
 # USE THE rosinstall TOOL INSTEAD.
 # see: http://www.ros.org/wiki/rosinstall
 
+CATKIN_SHELL=%(shell)s
 
-# Load the path of this particular setup.%(shell)s                                                                                                                  
+# Load the path of this particular setup.%(shell)s
+
 %(script_path)s
+
+# unset _roscmd to check later whether setup.sh has sourced rosbash
+unset -f _roscmd 1> /dev/null 2>&1
 
 . $SCRIPT_PATH/setup.sh
 
-if rospack help > /dev/null 2>&1; then
-  ROSSHELL_PATH=`rospack find rosbash`/ros%(shell)s
-  if [ -e $ROSSHELL_PATH ]; then
-    . $ROSSHELL_PATH
+type _roscmd | grep function 1>/dev/null 2>&1
+if [ ! $? -eq 0 ]; then
+  if rospack help > /dev/null 2>&1; then
+    ROSSHELL_PATH=`rospack find rosbash`/ros%(shell)s
+    if [ -e $ROSSHELL_PATH ]; then
+      . $ROSSHELL_PATH
+    fi
+  else
+    echo "rospack could not be found, you cannot have ros%(shell)s features until you bootstrap ros"
   fi
-else
-  echo "rospack could not be found, you cannot have ros%(shell)s features until you bootstrap ros"
 fi
 """%locals()
   return text
