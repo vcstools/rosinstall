@@ -44,6 +44,20 @@ from rosinstall.config import MultiProjectException
 
 class MockVcsClient():
 
+    def __init__(self,
+                 path_exists = False,
+                 checkout_success = True,
+                 update_success = True,
+                 vcs_presence = True,
+                 url = "mockurl"):
+        self.path_exists_flag = path_exists
+        self.checkout_success = checkout_success
+        self.update_success = update_success
+        self.vcs_presence = vcs_presence
+        self.mockurl = url
+        self.checkedout = vcs_presence
+        self.updated = False
+        
     def get_vcs_type_name(self):
         return "mocktype"
 
@@ -55,7 +69,24 @@ class MockVcsClient():
   
     def get_status(self, basepath=None, untracked=False):
         return "mockstatus%s,%s"%(basepath, untracked)
-  
+
+    def path_exists(self):
+        return self.path_exists_flag
+
+    def checkout(self, uri=None, version=None):
+        self.checkedout = True
+        return self.checkout_success
+
+    def update(self, version):
+        self.updated = True
+        return self.update_success
+
+    def detect_presence(self):
+        return self.vcs_presence
+
+    def get_url(self):
+        return self.mockurl
+    
 class testYamlIO(unittest.TestCase):
 
     def test_get_yaml_from_uri_from_file(self):
@@ -172,3 +203,50 @@ class testYamlIO(unittest.TestCase):
         self.assertEqual("mockstatusNone,False", vcsc.get_status())
         self.assertEqual([{'mocktype': {'local-name': 'some/path', 'version': 'some.version', 'uri': 'some/uri'}}], vcsc.get_yaml())
         self.assertEqual([{'mocktype': {'local-name': 'some/path', 'version': 'mockversionNone', 'uri': 'some/uri', 'revision': 'mockversionsome.version'}}], vcsc.get_versioned_yaml())
+
+    def test_mock_install(self):
+        path = "some/path"
+        localname = "some/local/name"
+        uri = 'some/uri'
+        version='some.version'
+        mockclient = MockVcsClient(url = uri)
+        vcsc = rosinstall.config.VCSConfigElement(path, mockclient, localname, uri, None)
+        vcsc.install()
+        self.assertTrue(mockclient.checkedout)
+        self.assertFalse(mockclient.updated)
+        # checkout failure
+        mockclient = MockVcsClient(url = uri, checkout_success = False )
+        try:
+            vcsc = rosinstall.config.VCSConfigElement(path, mockclient, localname, uri, None)
+            vcsc.install()
+            self.fail("should have raised Exception")
+        except MultiProjectException: pass
+        # path exists no vcs, robust
+        mockclient = MockVcsClient(url = uri, path_exists = True, vcs_presence = False )
+        try:
+            vcsc = rosinstall.config.VCSConfigElement(path, mockclient, localname, uri, None)
+            vcsc.install(robust = True)
+            self.fail("should have raised Exception")
+        except MultiProjectException: pass
+        # uri mismatch, robust
+        mockclient = MockVcsClient(url = uri + "invalid", path_exists = True)
+        try:
+            vcsc = rosinstall.config.VCSConfigElement(path, mockclient, localname, uri, None)
+            vcsc.install(robust = True)
+            self.fail("should have raised Exception")
+        except MultiProjectException: pass
+        # update failure
+        mockclient = MockVcsClient(url = uri, path_exists = True, update_success = False )
+        try:
+            vcsc = rosinstall.config.VCSConfigElement(path, mockclient, localname, uri, None)
+            vcsc.install()
+            self.fail("should have raised Exception")
+        except MultiProjectException: pass
+        # path exists no vcs failure skip
+        mockclient = MockVcsClient(url = uri, path_exists = True, vcs_presence = False )
+        vcsc = rosinstall.config.VCSConfigElement(path, mockclient, localname, uri, None)
+        vcsc.install(arg_mode='skip')
+        # uri mismatch skip
+        mockclient = MockVcsClient(url = uri + "invalid", path_exists = True)
+        vcsc = rosinstall.config.VCSConfigElement(path, mockclient, localname, uri, None)
+        vcsc.install(arg_mode='skip')
