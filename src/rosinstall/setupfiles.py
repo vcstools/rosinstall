@@ -134,7 +134,7 @@ CATKIN_SHELL=%(shell)s
 
 %(script_path)s
 
-# unset _roscmd to check later whether setup.sh has sourced rosbash
+# unset _roscmd to check later whether setup.sh has sourced ros%(shell)s
 unset -f _roscmd 1> /dev/null 2>&1
 
 . $SCRIPT_PATH/setup.sh
