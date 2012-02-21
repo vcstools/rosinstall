@@ -290,10 +290,10 @@ class Config:
     for t in self.trees:
       try:
         t.install(os.path.join(self.base_path, backup_path), mode)
-      except MultiProjectException, ex:
-        success = False
+      except MultiProjectException as ex:
         fail_str = "Failed to install tree '%s'\n %s"%(t.get_path(), ex)
         if robust:
+          success = False
           print("Continuing despite %s"%fail_str)
         else:
           raise MultiProjectException(fail_str)
