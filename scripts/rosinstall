@@ -34,6 +34,8 @@ import vcstools
 from vcstools import VcsClient
 
 __REPOTYPES__ = ['svn', 'bzr', 'hg', 'git']
+__ALLTYPES__ = __REPOTYPES__ + ['other', 'setupfile']
+
 __ROSINSTALL_FILENAME=".rosinstall"
 
 
@@ -73,8 +75,7 @@ def rewrite_included_source(source_yaml, source_path):
   """ Rewrite the included rosinstall file to only be other type 
   and strip it down to just the local_path and setup-file. """
   for entry in source_yaml:
-    types = ['svn', 'bzr', 'hg', 'git', 'other']
-    for t in types:
+    for t in __ALLTYPES__:
       if t in entry.keys():
         local_path = os.path.join(source_path, entry[t]['local-name'])
         setup_file = None
