@@ -15,519 +15,51 @@ initial checkout:   rosinstall ~/ros "http://packages.ros.org/cgi-bin/gen_rosins
 subsequent update:  rosinstall ~/ros
 
 """
-
+from __future__ import print_function
 import os
 import subprocess
 import sys
 from optparse import OptionParser
 import yaml
-import shutil
-import datetime
 import pkg_resources
 
 import rosinstall.helpers
 from rosinstall.helpers import ROSInstallException
+import rosinstall.config
+from rosinstall.config import Config, MultiProjectException, SetupConfigElement
+import rosinstall.setupfiles
+from rosinstall.setupfiles import generate_setup
 
 import vcstools
 from vcstools import VcsClient
 
 __REPOTYPES__ = ['svn', 'bzr', 'hg', 'git']
+__ROSINSTALL_FILENAME=".rosinstall"
 
-CATKIN_CMAKE_TOPLEVEL="""#
-#  TOPLEVEL cmakelists
-#
-cmake_minimum_required(VERSION 2.8)
-cmake_policy(SET CMP0003 NEW)
-cmake_policy(SET CMP0011 NEW)
 
-set(CMAKE_CXX_FLAGS_INIT "-Wall")
-
-enable_testing()
-
-include(${CMAKE_SOURCE_DIR}/workspace-config.cmake OPTIONAL)
-
-list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/cmake)
-
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/catkin)
-  message(STATUS "+++ catkin")
-  set(CATKIN_BUILD_PROJECTS "ALL" CACHE STRING
-    "List of projects to build, or ALL for all.  Use to completely exclude certain projects from cmake traversal.")
-  add_subdirectory(catkin)
-else()
-  find_package(catkin)
-endif()
-
-catkin_workspace()
-"""
 
 def usage():
-  print __doc__ % vars()
+  print(__doc__ % vars())
   exit(1)
 
-class ConfigElement:
-  """ Base class for Config provides methods with not implemented
-  exceptions.  Also a few shared methods."""
-  def __init__(self, path):
-    self.path = path
-    self.setup_file = None
-  def get_path(self):
-    return self.path
-  def install(self, backup_path, mode, robust):
-    raise NotImplementedError, "ConfigElement install unimplemented"
-  def get_ros_path(self):
-    if rosinstall.helpers.is_path_ros(self.get_path()):
-      return self.get_path()
-    else:
-      return None
-  def get_yaml(self):
-    """yaml with values as specified in file"""
-    raise NotImplementedError, "ConfigElement get_versioned_yaml unimplemented"
-  def get_versioned_yaml(self):
-    raise NotImplementedError, "ConfigElement get_versioned_yaml unimplemented"
-  def get_diff(self, basepath=None):
-    raise NotImplementedError, "ConfigElement get_diff unimplemented"
-  def get_status(self, basepath=None, untracked=False):
-    raise NotImplementedError, "ConfigElement get_status unimplemented"
-  def backup(self, backup_path):
-    if not backup_path:
-      raise ROSInstallException("Cannot install %s.  backup disabled."%self.path)
-    backup_path = os.path.join(backup_path, os.path.basename(self.path)+"_%s"%datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
-    print "Backing up %s to %s"%(self.path, backup_path)
-    shutil.move(self.path, backup_path)
-
-
-def prompt_del_abort_retry(prompt, allow_skip = False):
-    if allow_skip:
-        valid_modes = ['(d)elete', '(a)bort', '(b)ackup', '(s)kip']
-    else:
-        valid_modes = ['(d)elete', '(a)bort', '(b)ackup']
-
-    mode = ""
-
-    full_prompt = "%s %s: "%(prompt, ", ".join(valid_modes))
-  
-    while mode == "":
-
-      mode_input = raw_input(full_prompt)
-      if mode_input == 'b' or mode_input == 'backup':
-          mode = 'backup'
-      elif mode_input == 'd' or mode_input =='delete':
-          mode = 'delete'
-      elif mode_input == 'a' or mode_input =='abort':
-          mode = 'abort'
-      elif allow_skip and mode_input == 's' or mode_input =='skip':
-          mode = 'skip'
-    return mode
-
-def get_backup_path():
-    backup_path = raw_input("Please enter backup pathname: ")
-    print "backing up to %s"%backup_path
-    return backup_path
-
-class OtherConfigElement(ConfigElement):
-  def install(self, backup_path, mode, robust=False):
-    return True
-
-  def get_versioned_yaml(self):
-    raise ROSInstallException("Cannot generate versioned outputs with non source types")
-
-  def get_yaml(self):
-    return [{"other": {"local-name": self.path} }]
-
-class SetupConfigElement(ConfigElement):
-  def install(self, backup_path, mode, robust=False):
-    return True
-
-  def get_versioned_yaml(self):
-    raise ROSInstallException("Cannot generate versioned outputs with non source types")
-
-  def get_yaml(self):
-    return [{"setup-file": {"local-name": self.path} }]
-  
-class VCSConfigElement(ConfigElement):
-  def __init__(self, path, uri, version=''):
-    ConfigElement.__init__(self, path)
-    if uri == None:
-      raise ROSInstallException("Invalid scm entry having no uri attribute for path %s"%path)
-    self.uri = uri.rstrip('/') # strip trailing slashes if defined to not be too strict #3061
-    self.version = version
-
-  def install(self,  backup_path = None,arg_mode = 'abort', robust=False):
-    mode = arg_mode
-    print "Installing %s %s to %s"%(self.uri, self.version, self.path)
-
-    # Directory exists see what we need to do
-    if self.vcsc.path_exists():
-      error_message = None
-      if not self.vcsc.detect_presence():
-        error_message = "Failed to detect %s presence at %s."%(self.vcsc.get_vcs_type_name(), self.path)
-      elif not self.vcsc.get_url() or self.vcsc.get_url().rstrip('/') != self.uri:  #strip trailing slashes for #3269
-        error_message = "url %s does not match %s requested."%(self.vcsc.get_url(), self.uri)
-        
-      # If robust ala continue-on-error, just error now and it will be continued at a higher level
-      if robust and error_message:
-          raise ROSInstallException(error_message)
-
-      # prompt the user based on the error code
-      if error_message:
-        if arg_mode == 'prompt':
-            mode = prompt_del_abort_retry(error_message, allow_skip = True)
-            if mode == 'backup': # you can only backup if in prompt mode
-              backup_path = get_backup_path()
-        if mode == 'abort':
-          raise ROSInstallException(error_message)
-        elif mode == 'backup':
-          self.backup(backup_path)
-        elif mode == 'delete':
-          shutil.rmtree(self.path)
-        elif mode == 'skip':
-          return
-      
-    # If the directory does not exist checkout
-    if not self.vcsc.path_exists():
-      if not self.vcsc.checkout(self.uri, self.version):
-        raise ROSInstallException("Checkout of %s version %s into %s failed."%(self.uri, self.version, self.path))
-      else:
-        return
-    else: # otherwise update
-      if not self.vcsc.update(self.version):
-          raise ROSInstallException("Update Failed of %s"%self.path)
-      else:
-          return 
-    return
-  
-  def get_yaml(self):
-    "yaml as from source"
-    result = {self.vcsc.get_vcs_type_name(): {"local-name": self.path, "uri": self.uri} }
-    if self.version != None and self.version != '':
-      result[self.vcsc.get_vcs_type_name()]["version"]=self.version
-    return [result]
-
-  def get_versioned_yaml(self):
-    return [{self.vcsc.get_vcs_type_name(): {"local-name": self.path, "uri": self.uri, "version":self.vcsc.get_version()} }]
-
-  def get_diff(self, basepath=None):
-    return self.vcsc.get_diff(basepath)
-  
-  def get_status(self, basepath=None, untracked=False):
-    return self.vcsc.get_status(basepath, untracked)
-  
-
-class AVCSConfigElement(VCSConfigElement):
-  def __init__(self, type, path, uri, version = ''):
-    VCSConfigElement.__init__(self, path, uri, version)
-    self.type = type
-    self.vcsc = VcsClient(self.type, self.path)
-
-
-class Config:
-  def __init__(self, yaml_source, install_path):
-    self.source_uri = install_path #TODO Hack so I don't have to fix the usages of this remove!!!
-    self.source = yaml_source
-    self.trees = [ ]
-    self.base_path = install_path
-
-    if self.source:
-      self.load_yaml(self.source, self.source_uri)
-      self.valid = True
-    else:
-      self.valid = False
-    
-  def is_valid(self):
-    return self.valid
-
-  def load_yaml(self, y, rosinstall_source_uri):
-    for t in y:
-      for k, v in t.iteritems():
-
-        # Check that local_name exists and record it
-        if not 'local-name' in v:
-          raise ROSInstallException("local-name is required on all rosinstall elements")
-        else:
-          local_name = v['local-name']
-
-        # Get the version and source_uri elements
-        source_uri = v.get('uri', None)
-        version = v.get('version', '')
-        
-        #compute the local_path for the config element
-        local_path = os.path.normpath(os.path.join(self.base_path, local_name))
-
-        if k == 'other':
-          rosinstall_uri = '' # does not exist
-          if os.path.exists(local_path) and os.path.isfile(local_path):
-            rosinstall_uri = local_path
-          elif os.path.isdir(local_path):
-            rosinstall_uri = os.path.join(local_path, ".rosinstall")
-          if os.path.exists(rosinstall_uri):
-            child_config = Config(rosinstall.helpers.get_yaml_from_uri(rosinstall_uri), rosinstall_uri)
-            for child_t in child_config.trees:
-              full_child_path = os.path.join(local_path, child_t.get_path())
-              elem = OtherConfigElement(full_child_path)
-              if child_t.setup_file: # Inherit setup_file key from children
-                elem.setup_file = child_t.setup_file
-              self.trees.append(elem)
-          else:
-            elem = OtherConfigElement(local_path)
-            if 'setup-file' in v:
-              elem.setup_file = v['setup-file']
-            self.trees.append(elem)
-        elif k == 'setup-file':
-            elem = SetupConfigElement(local_path)
-            self.trees.append(elem)
-        else:
-          try:
-            elem = AVCSConfigElement(k, local_path, source_uri, version)
-            if 'setup-file' in v:
-              elem.setup_file = v['setup-file']
-            self.trees.append(elem)
-          except LookupError as ex:
-            raise ROSInstallException("Abstracted VCS Config failed. Exception: %s" % ex)
-
-  def ros_path(self):
-    rp = None
-    for t in self.trees:
-      ros_path = t.get_ros_path()
-      if ros_path:
-        rp = ros_path
-    return rp
-
-  def ros_requires_boostrap(self):
-    rp = None
-    for t in self.trees:
-      ros_path = t.get_ros_path()
-      if ros_path:
-        if isinstance(t, AVCSConfigElement):
-          return True
-    return False
-
-  
-  def write_version_locked_source(self, filename):
-    source_aggregate = []
-    for t in self.trees:
-      source_aggregate.extend(t.get_versioned_yaml())
-
-    with open(filename, 'w') as fh:
-      fh.write(yaml.safe_dump(source_aggregate))
-      
-  def write_source(self):
-    """
-    Write .rosinstall into the root of the checkout
-    """
-    if not os.path.exists(self.base_path):
-      os.makedirs(self.base_path)
-    f = open(os.path.join(self.base_path, ".rosinstall"), "w+b")
-    f.write(
-      """# THIS IS A FILE WHICH IS MODIFIED BY rosinstall
-# IT IS UNLIKELY YOU WANT TO EDIT THIS FILE BY HAND
-# IF YOU WANT TO CHANGE THE ROS ENVIRONMENT VARIABLES
-# USE THE rosinstall TOOL INSTEAD.
-# IF YOU CHANGE IT, USE rosinstall FOR THE CHANGES TO TAKE EFFECT
-""")
-    f.write(yaml.safe_dump(self.source))
-    f.close()
-    
-  def execute_install(self, backup_path, mode, robust = False):
-    success = True
-    if not os.path.exists(self.base_path):
-      os.mkdir(self.base_path)
-    for t in self.trees:
-      try:
-        t.install(os.path.join(self.base_path, backup_path), mode)
-      except ROSInstallException, ex:
-        success = False
-        fail_str = "Failed to install tree '%s'\n %s"%(t.get_path(), ex)
-        if robust:
-          print "rosinstall Continuing despite %s"%fail_str
-        else:
-          raise ROSInstallException(fail_str)
-      else:
-          pass
-    return success
-    # TODO go back and make sure that everything in options.path is described
-    # in the yaml, and offer to delete otherwise? not sure, but it could go here
-
-  def get_config_elements(self):
-    """ Return the simplifed ROS_PACKAGE_PATH """
-    code_trees = []
-    for t in reversed(self.trees):
-      if not rosinstall.helpers.is_path_ros(t.get_path()):
-        code_trees.append(t)
-    return code_trees
-
-
-  def get_ros_package_path(self):
-    """ Return the simplifed ROS_PACKAGE_PATH """
-    code_trees = []
-    for t in reversed(self.trees):
-      if not rosinstall.helpers.is_path_ros(t.get_path()):
-        code_trees.append(t.get_path())
-    rpp = ':'.join(code_trees)
-    return rpp
-    
-  
-  def generate_setup_sh_text(self, ros_root, ros_package_path):
-    # overlay or standard
-    text =  """#!/usr/bin/env sh
-# THIS IS A FILE AUTO-GENERATED BY rosinstall
-# IT IS UNLIKELY YOU WANT TO EDIT THIS FILE BY HAND
-# IF YOU WANT TO CHANGE THE ROS ENVIRONMENT VARIABLES
-# USE THE rosinstall TOOL INSTEAD.
-# see: http://www.ros.org/wiki/rosinstall
-"""
-    distro_unset = False
-    for t in self.trees:
-      if t.setup_file:
-        if not distro_unset:
-          text += "unset ROS_DISTRO\n"
-          distro_unset = True
-        text += ". %s\n"%os.path.join(t.path, t.setup_file)
-      if isinstance(t, SetupConfigElement):
-        if not distro_unset:
-          text += "unset ROS_DISTRO\n"
-          distro_unset = True
-        text += ". %s\n"%t.path
-
-    text += """
-if [ -z "${ROS_DISTRO}" ]; then
-  export ROS_ROOT=%s 
-  export PATH=$ROS_ROOT/bin:$PATH
-  export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH
-  if [ ! \"$ROS_MASTER_URI\" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
-fi
-"""% ros_root
-    
-    text += """
-# python script to read .rosinstall even when rosnistall is not installed
-export _ROS_PACKAGE_PATH_ROSINTALL=`/usr/bin/env python << EOPYTHON
-import sys, os, yaml;
-if not os.path.isfile('.rosinstall'):
-    sys.exit("There is no .rosinstall file at %s"%os.path.abspath('.'))
-with open(".rosinstall", "r") as f:
-  try:
-    v=f.read();
-  except Exception as e:
-    sys.exit("Failed to read .rosinstall file: %s "%str(e))
-try:
-  y = yaml.load(v);
-except Exception as e:
-  sys.exit("Invalid yaml in .rosinstall: %s "%str(e))
-if y is not None:
-  lnames=[x.values()[0]['local-name'] for x in y if x.values() is not None and x.keys()[0] != "setup-file"]
-  if len(lnames) == 0:
-    sys.exit(".rosinstall contains no path elements")
-  print ':'.join(reversed(lnames))
-else:
-  sys.exit(".rosinstall contains no path elements")
-EOPYTHON`
-if [ -z $_ROS_PACKAGE_PATH_ROSINTALL ]; then
-    echo Error: Udate of ROS_PACKAGE_PATH failed
-    return 22
-fi
-export ROS_PACKAGE_PATH=$_ROS_PACKAGE_PATH_ROSINTALL
-unset _ROS_PACKAGE_PATH_ROSINTALL
-"""
-    
-    text += "export ROS_WORKSPACE=%s\n" % self.base_path
-    return text
-
-  def generate_setup_bash_text(self, shell):
-    if shell == 'bash':
-      script_path = """
-SCRIPT_PATH="${BASH_SOURCE[0]}";
-if([ -h "${SCRIPT_PATH}" ]) then
-  while([ -h "${SCRIPT_PATH}" ]) do SCRIPT_PATH=`readlink "${SCRIPT_PATH}"`; done
-fi
-export OLDPWDBAK=$OLDPWD
-pushd . > /dev/null
-cd `dirname ${SCRIPT_PATH}` > /dev/null
-SCRIPT_PATH=`pwd`;
-popd  > /dev/null
-export OLDPWD=$OLDPWDBAK
-"""
-    elif shell == 'zsh':
-      script_path = "SCRIPT_PATH=\"$(dirname $0)\";"
-    else:
-      raise ROSInstallException("%s shell unsupported."%shell);
-
-    text =  """#!/usr/bin/env %(shell)s
-# THIS IS A FILE AUTO-GENERATED BY rosinstall
-# IT IS UNLIKELY YOU WANT TO EDIT THIS FILE BY HAND
-# IF YOU WANT TO CHANGE THE ROS ENVIRONMENT VARIABLES
-# USE THE rosinstall TOOL INSTEAD.
-# see: http://www.ros.org/wiki/rosinstall
-
-CATKIN_SHELL=%(shell)s
-
-# Load the path of this particular setup.%(shell)s
-
-%(script_path)s
-
-# unset _roscmd to check later whether setup.sh has sourced rosbash
-unset -f _roscmd 1> /dev/null 2>&1
-
-. $SCRIPT_PATH/setup.sh
-
-type _roscmd | grep function 1>/dev/null 2>&1
-if [ ! $? -eq 0 ]; then
-  if rospack help > /dev/null 2>&1; then
-    ROSSHELL_PATH=`rospack find rosbash`/ros%(shell)s
-    if [ -e $ROSSHELL_PATH ]; then
-      . $ROSSHELL_PATH
-    fi
-  else
-    echo "rospack could not be found, you cannot have ros%(shell)s features until you bootstrap ros"
-  fi
-fi
-"""%locals()
-    return text
-    
-
-  def generate_setup(self):
-    # simplest case first
-    ros_root = self.ros_path()
-    if not ros_root:
-      raise ROSInstallException("No 'ros' stack detected.  The 'ros' stack is required in all rosinstall directories. Please add a definition of the 'ros' stack either manually in .rosinstall and then call 'rosinstall .' in the directory. Or add one on the command line 'rosinstall . http://www.ros.org/rosinstalls/boxturtle_ros.rosinstall'. Or reference an existing install like in /opt/ros/boxturtle with 'rosinstall . /opt/ros/boxturtle'.  Note: the above suggestions assume you are using boxturtle, if you are using latest or another distro please change the urls." )
-    rpp = self.get_ros_package_path()
-    
-    text = self.generate_setup_sh_text(ros_root, rpp)
-    setup_path = os.path.join(self.base_path, 'setup.sh')
-    with open(setup_path, 'w') as f:
-      f.write(text)
-
-    for shell in ['bash', 'zsh']:
-
-      text = self.generate_setup_bash_text(shell)
-      setup_path = os.path.join(self.base_path, 'setup.%s'%shell)
-      with open(setup_path, 'w') as f:
-        f.write(text)
 
 
 def insert_source_yaml(source_yaml, source, observed_paths, aggregate_source_yaml):
     if source_yaml:
       for element in source_yaml:
-        #print "element", element
         for k in element:
-          #print "element[k]", element[k]
           if not element[k]:
               raise ROSInstallException("Malformed rosinstall source: %s  An \"%s\" entry is present without any information.  This can be caused by improper indentation of fields like 'local-name'. "%(source, k))
           if 'local-name' in element[k]:
             path = element[k]['local-name']
             if path in observed_paths:
-              #print "local-name '%s' redefined, first definition in %s, second definition in %s"%(path, observed_paths[path], source)
               overlapping = []
               for agel in aggregate_source_yaml:
                 for vcs_type in agel:
                   for param in agel[vcs_type]:
-                    #print "param", param
                     if param == "local-name" and agel[vcs_type]['local-name'] == path:
                       overlapping.append(agel)
-              #print "OVERLAPPING", overlapping
               for ol in overlapping:
-                #print "removing: ", ol
                 aggregate_source_yaml.remove(ol)
 
             observed_paths[path] = source
@@ -540,7 +72,6 @@ def insert_source_yaml(source_yaml, source, observed_paths, aggregate_source_yam
 def rewrite_included_source(source_yaml, source_path):
   """ Rewrite the included rosinstall file to only be other type 
   and strip it down to just the local_path and setup-file. """
-  #print "before", source_yaml
   for entry in source_yaml:
     types = ['svn', 'bzr', 'hg', 'git', 'other']
     for t in types:
@@ -554,7 +85,6 @@ def rewrite_included_source(source_yaml, source_path):
         entry['other']['local-name'] = local_path
         if setup_file:
           entry['other']['setup-file'] = setup_file
-  #print "after", source_yaml
   return source_yaml
 
 
@@ -594,6 +124,16 @@ def get_statuses(config, path, untracked = False):
         result.append({'entry':entry, 'status':status})
   return result
 
+def ros_requires_boostrap(config):
+  """Whether we might need to bootstrap ros"""
+  rp = None
+  for t in config.get_config_elements():
+    if rosinstall.helpers.is_path_ros(t.get_path()):
+      # we assume that if any of the elements we installed came
+      # from a VCS source, a bootsrap might be useful
+      if t.is_vcs_element():
+        return True
+  return False
 
 def rosinstall_main(argv):
   if len(argv) < 2:
@@ -661,7 +201,7 @@ Later URIs will shadow packages of earlier URIs.\n",
     def prettyversion(vdict):
       version = vdict.pop("version")
       return "%s; %s"%(version, ",".join(vdict.values()) )
-    print """rosinstall 0.5.30\n
+    print("""rosinstall 0.5.30\n
 vcstools:  %s
 SVN:       %s
 Mercurial: %s
@@ -673,7 +213,7 @@ Bzr:       %s
      prettyversion(vcstools.HgClient.get_environment_metadata()),
      prettyversion(vcstools.GitClient.get_environment_metadata()),
      prettyversion(vcstools.TarClient.get_environment_metadata()),
-     prettyversion(vcstools.BzrClient.get_environment_metadata()))
+     prettyversion(vcstools.BzrClient.get_environment_metadata())))
     sys.exit(0)
 
   
@@ -705,8 +245,8 @@ Bzr:       %s
   config_uris = []
 
   # Check for existing config in path
-  if os.path.exists(os.path.join(options.path, ".rosinstall")):
-    config_uris.append(os.path.join(options.path, ".rosinstall"))
+  if os.path.exists(os.path.join(options.path, __ROSINSTALL_FILENAME)):
+    config_uris.append(os.path.join(options.path, __ROSINSTALL_FILENAME))
 
   # Add all arguments past the first one
   config_uris.extend(args[1:])
@@ -719,13 +259,13 @@ Bzr:       %s
   aggregate_source_yaml = []
 
   for a in config_uris:
-    #print "argument", a
+    #print("argument", a)
     config_uri = rosinstall.helpers.conditional_abspath(a)
     if os.path.isdir(config_uri):
-      rosinstall_uri = os.path.join(config_uri, ".rosinstall")
-      #print "processing config_uri %s"%config_uri
+      rosinstall_uri = os.path.join(config_uri, __ROSINSTALL_FILENAME)
+      #print("processing config_uri %s"%config_uri)
       if os.path.exists(rosinstall_uri):
-        source_yaml = rosinstall.helpers.get_yaml_from_uri(rosinstall_uri)
+        source_yaml = rosinstall.config.get_yaml_from_uri(rosinstall_uri)
         if not source_yaml:
           raise ROSInstallException("Bad remote rosinstall folder: %s  This can be caused by empty rosinstall file. "%(a))
         source_yaml = rewrite_included_source(source_yaml, config_uri)
@@ -733,30 +273,28 @@ Bzr:       %s
         # fall back to just a directory
         source_yaml = [ {'other': {'local-name': '%s'%config_uri} } ]
     else:
-      source_yaml = rosinstall.helpers.get_yaml_from_uri(config_uri)
+      source_yaml = rosinstall.config.get_yaml_from_uri(config_uri)
       if not source_yaml:
           raise ROSInstallException("Bad remote rosinstall source: %s  This can be caused by empty rosinstall file. "%(a))
-    #print "source yaml", source_yaml
+    #print("source yaml", source_yaml)
     result = insert_source_yaml(source_yaml, a, observed_paths, aggregate_source_yaml)
     if result != '':
       parser.error(result)
 
   ## Could not get uri therefore error out
   if len(config_uris) == 0:
-    parser.error( "no source rosinstall file found! looked at arguments and, %s"%(
-        os.path.join(options.path, ".rosinstall")))
+    parser.error("no source rosinstall file found! looked at arguments and, %s"%(
+        os.path.join(options.path, __ROSINSTALL_FILENAME)))
 
-  #print "source...........................", aggregate_source_yaml
+  #print("source...........................", aggregate_source_yaml)
 
   ## Generate the config class with the uri and path
-  config = Config(aggregate_source_yaml, options.path)
-  if not config.is_valid():
-    return -1
+  config = Config(aggregate_source_yaml, options.path, __ROSINSTALL_FILENAME)
 
   if options.generate_versioned:
     filename = os.path.abspath(options.generate_versioned)
     config.write_version_locked_source(filename)
-    print "Saved versioned rosinstall of current directory %s to %s"%(options.path, filename)
+    print("Saved versioned rosinstall of current directory %s to %s"%(options.path, filename))
     return 0
 
   if options.vcs_diff:
@@ -765,7 +303,7 @@ Bzr:       %s
     for entrydiff in difflist:
       if entrydiff['diff'] != None:
         alldiff += entrydiff['diff']
-    print alldiff
+    print(alldiff)
     return True
 
   if options.vcs_status:
@@ -775,7 +313,7 @@ Bzr:       %s
     for entrystatus in statuslist:
       if entrystatus['status'] != None:
         allstatus += entrystatus['status']
-    print allstatus
+    print(allstatus)
     return True
 
   if options.vcs_status_untracked:
@@ -785,13 +323,18 @@ Bzr:       %s
     for entrystatus in statuslist:
       if entrystatus['status'] != None:
         allstatus += entrystatus['status']
-    print allstatus
+    print(allstatus)
     return True
 
-  print "rosinstall operating on", options.path, "from specifications in rosinstall files ", ", ".join(config_uris)
+  print("rosinstall operating on", options.path, "from specifications in rosinstall files ", ", ".join(config_uris))
 
   ## Save .rosinstall 
-  config.write_source()
+  config.write_source(filename = __ROSINSTALL_FILENAME, header = """# THIS IS A FILE WHICH IS MODIFIED BY rosinstall
+# IT IS UNLIKELY YOU WANT TO EDIT THIS FILE BY HAND
+# IF YOU WANT TO CHANGE THE ROS ENVIRONMENT VARIABLES
+# USE THE rosinstall TOOL INSTEAD.
+# IF YOU CHANGE IT, USE rosinstall FOR THE CHANGES TO TAKE EFFECT
+""")
   ## install or update each element
   install_success = config.execute_install(options.backup_changed, mode, options.robust)
   ## bootstrap the build if installing ros
@@ -806,29 +349,31 @@ Bzr:       %s
                 
   else: # DRY install case
     ## Generate setup.sh and save
-    config.generate_setup()
+    generate_setup(config)
 
-    if config.ros_requires_boostrap() and not options.nobuild:
-      print "Bootstrapping ROS build"
+    if ros_requires_boostrap(config) and not options.nobuild:
+      print("Bootstrapping ROS build")
       rosdep_yes_insert = ""
       if options.rosdep_yes:
         rosdep_yes_insert = " --rosdep-yes"
       ros_comm_insert = ""
       if 'ros_comm' in [os.path.basename(tree.path) for tree in config.trees]:
-        print "Detected ros_comm bootstrapping it too."
+        print("Detected ros_comm bootstrapping it too.")
         ros_comm_insert = " ros_comm"
       subprocess.check_call("source %s && rosmake ros%s --rosdep-install%s" % (os.path.join(options.path, 'setup.sh'), ros_comm_insert, rosdep_yes_insert), shell=True, executable='/bin/bash')
-    print "\nrosinstall update complete.\n\nNow, type 'source %s/setup.bash' to set up your environment.\nAdd that to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % options.path
+    print("\nrosinstall update complete.\n\nNow, type 'source %s/setup.bash' to set up your environment.\nAdd that to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % options.path)
   
   
   if not install_success:
-     print "Warning: installation encountered errors, but --continue-on-error was requested.  Look above for warnings."
+     print("Warning: installation encountered errors, but --continue-on-error was requested.  Look above for warnings.")
   return True
 
 if __name__ == "__main__":
   try:
     sys.exit(not rosinstall_main(sys.argv))
   except ROSInstallException as e:
-    print >> sys.stderr, "ERROR: %s"%str(e)
+    sys.stderr.write("ERROR in rosinstall: %s"%str(e))
     sys.exit(1)
-
+  except MultiProjectException as e:
+    sys.stderr.write("ERROR in config: %s"%str(e))
+    sys.exit(1)

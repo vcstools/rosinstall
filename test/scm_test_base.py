@@ -49,7 +49,7 @@ import rosinstall.helpers
 def _add_to_file(path, content):
      """Util function to append to file to get a modification"""
      f = io.open(path, 'a')
-     f.write(content)
+     f.write(unicode(content))
      f.close()
 
 def _create_fake_ros_dir(root_path):
@@ -172,3 +172,66 @@ class AbstractSCMTest(AbstractRosinstallCLITest):
           for d in self.directories:
                shutil.rmtree(self.directories[d])
         
+
+
+class UtilTest(unittest.TestCase):
+     """test to check the methods run by unit test setups"""
+
+     def test_add_to_file(self):
+          self.test_root_path = tempfile.mkdtemp()
+          filepath = os.path.join(self.test_root_path, 'foofile')
+          self.assertFalse(os.path.exists(filepath))
+          _add_to_file(filepath, 'foo')
+          self.assertTrue(os.path.exists(filepath))
+          with open(filepath, 'r') as f:
+               read_data = f.read()
+               self.assertEqual(read_data, 'foo')
+          _add_to_file(filepath, 'bar')
+          with open(filepath, 'r') as f:
+               read_data = f.read()
+               self.assertEqual(read_data, 'foobar')
+          shutil.rmtree(self.test_root_path)
+          
+     def test_create_fake_ros(self):
+          self.test_root_path = tempfile.mkdtemp()
+          rospath = os.path.join(self.test_root_path, 'ros')
+          self.assertFalse(os.path.exists(rospath))
+          _create_fake_ros_dir(self.test_root_path)
+          self.assertTrue(os.path.exists(rospath))
+          self.assertTrue(os.path.exists(os.path.join(rospath, "setup.sh")))
+          self.assertTrue(os.path.exists(os.path.join(rospath, "stack.xml")))
+          self.assertTrue(os.path.exists(os.path.join(rospath, ".git")))
+          shutil.rmtree(self.test_root_path)
+
+     def test_create_config_elt_dict(self):
+          scmtype = 'foo'
+          uri = 'bar'
+          localname = 'pip'
+          version = 'pop'
+          element = _create_config_elt_dict(scmtype, localname, uri, version)
+          self.assertEqual(element["type"], scmtype)
+          self.assertEqual(element["uri"], uri)
+          self.assertEqual(element["local-name"], localname)
+          self.assertEqual(element["version"], version)
+
+     def test_create_yaml_file(self):
+          self.test_root_path = tempfile.mkdtemp()
+          filepath = os.path.join(self.test_root_path, 'foofile')
+          config_elements = [
+               _create_config_elt_dict("other", "foo"),
+               _create_config_elt_dict("git", "foo", "foouri"),
+               _create_config_elt_dict("svn", "bar", "baruri", "barversion")]
+          _create_yaml_file(config_elements, filepath)
+          with open(filepath, 'r') as f:
+               read_data = f.read()
+               self.assertEqual(read_data, """- other:
+    local-name: 'foo'
+- git:
+    uri: 'foouri'
+    local-name: 'foo'
+- svn:
+    uri: 'baruri'
+    local-name: 'bar'
+    version: 'barversion'
+""")
+          shutil.rmtree(self.test_root_path)
