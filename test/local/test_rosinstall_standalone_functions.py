@@ -41,7 +41,7 @@ import unittest
 import rosinstall.helpers
 from rosinstall.helpers import ROSInstallException
 
-class ConditionalAbspath(unittest.TestCase):
+class FunctionsTest(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -63,47 +63,3 @@ class ConditionalAbspath(unittest.TestCase):
         self.assertFalse(rosinstall.helpers.is_path_ros(os.path.join("test", "example_dirs", "ros_comm")))
         self.assertFalse(rosinstall.helpers.is_path_ros((os.path.join("test", "example_dirs", "roscpp"))))
 
-    def test_get_yaml_from_uri_from_file(self):
-        file = os.path.join("test", "example.yaml")
-        y = rosinstall.helpers.get_yaml_from_uri(file)
-        
-        self.assertTrue("text" in y)
-        self.assertTrue(y["text"] == "foobar")
-
-        self.assertTrue("number" in y)
-        self.assertTrue(y["number"] == 2)
-
-    def test_get_yaml_from_uri_from_missing_file(self):
-        file = "/asdfasdfasdfasfasdf_does_not_exist"
-        try:
-            rosinstall.helpers.get_yaml_from_uri(file)
-            self.assertTrue(False, "Expected exception")
-        except ROSInstallException:
-            pass
-
-#TODO Fix this
-#    def test_get_yaml_from_uri_from_non_yaml_file(self):
-#        file = os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "Makefile")
-#        y = rosinstall.helpers.get_yaml_from_uri(file)
-#        self.assertEqual(y, None)
-
-    def test_get_yaml_from_uri_from_url(self):
-        url = "http://www.ros.org/rosinstalls/boxturtle_base.rosinstall"
-        y = rosinstall.helpers.get_yaml_from_uri(url)
-        
-        ros_found = False
-        for e in y:
-            if "svn" in e:
-                element = e["svn"]
-                if "local-name" in element:
-                    if element["local-name"] == "ros":
-                        ros_found = True
-        self.assertTrue(ros_found)
-
-    def test_get_yaml_from_uri_from_invalid_url(self):
-        url = "http://www.ros.org/invalid"
-        try:
-            rosinstall.helpers.get_yaml_from_uri(url)
-            self.assertTrue(False, "Expected exception")
-        except ROSInstallException:
-            pass
