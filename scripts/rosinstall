@@ -71,13 +71,16 @@ def insert_source_yaml(source_yaml, source, observed_paths, aggregate_source_yam
       
       return ''
 
-def rewrite_included_source(source_yaml, source_path):
-  """ Rewrite the included rosinstall file to only be other type 
-  and strip it down to just the local_path and setup-file. """
+def rewrite_included_source(source_yaml, source_dir, as_is = False):
+  """source yaml is the contents of another directory in source dir, we rewrite it to target_dir"""
   for entry in source_yaml:
     for t in __ALLTYPES__:
       if t in entry.keys():
-        local_path = os.path.join(source_path, entry[t]['local-name'])
+        if as_is:
+          local_path = entry[t]['local-name']
+        else:
+          local_path = os.path.join(source_dir, entry[t]['local-name'])
+          # local_path = create_localname(os.path.join(source_dir, entry[t]['local-name']),target_dir)
         setup_file = None
         if 'setup-file' in entry[t]:
           setup_file = entry[t]['setup-file']
