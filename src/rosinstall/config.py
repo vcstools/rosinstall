@@ -164,7 +164,11 @@ class VCSConfigElement(ConfigElement):
     return [result]
 
   def get_versioned_yaml(self):
-    return [{self.vcsc.get_vcs_type_name(): {"local-name": self.path, "uri": self.uri, "version":self.vcsc.get_version()} }]
+    "yaml looking up current version"
+    result = {self.vcsc.get_vcs_type_name(): {"local-name": self.path, "uri": self.uri, "version": self.vcsc.get_version(), "revision":""} }
+    if self.version != None and self.version.strip() != '':
+      result[self.vcsc.get_vcs_type_name()]["revision"] = self.vcsc.get_version(self.version)
+    return [result]
 
   def get_diff(self, basepath=None):
     return self.vcsc.get_diff(basepath)
