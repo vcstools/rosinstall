@@ -65,17 +65,23 @@ def prompt_del_abort_retry(prompt, allow_skip = False):
 class ConfigElement:
   """ Base class for Config provides methods with not implemented
   exceptions.  Also a few shared methods."""
-  def __init__(self, path):
+  def __init__(self, path, local_name):
     self.path = path
     self.setup_file = None
+    self.local_name = local_name
   def get_path(self):
+    """where the config element is w.r.t. current dir or absolute"""
     return self.path
+  def get_local_name(self):
+    """where the config element is w.r.t. the Config base path (or absolute)"""
+    return self.local_name
   def install(self, backup_path, mode, robust):
     raise NotImplementedError, "ConfigElement install unimplemented"
   def get_yaml(self):
     """yaml with values as specified in file"""
     raise NotImplementedError, "ConfigElement get_versioned_yaml unimplemented"
   def get_versioned_yaml(self):
+    """yaml where VCS elements have the version looked up"""
     raise NotImplementedError, "ConfigElement get_versioned_yaml unimplemented"
   def is_vcs_element(self):
     # subclasses to override when appropriate
@@ -102,8 +108,8 @@ class OtherConfigElement(ConfigElement):
     return [{"other": {"local-name": self.path} }]
   
 class VCSConfigElement(ConfigElement):
-  def __init__(self, path, uri, version=''):
-    ConfigElement.__init__(self, path)
+  def __init__(self, path, local_name, uri, version=''):
+    ConfigElement.__init__(self, path, local_name)
     if uri == None:
       raise MultiProjectException("Invalid scm entry having no uri attribute for path %s"%path)
     self.uri = uri.rstrip('/') # strip trailing slashes if defined to not be too strict #3061
@@ -180,8 +186,8 @@ class VCSConfigElement(ConfigElement):
   
 class AVCSConfigElement(VCSConfigElement):
   
-  def __init__(self, type, path, uri, version = ''):
-    VCSConfigElement.__init__(self, path, uri, version)
+  def __init__(self, type, path, local_name, uri, version = ''):
+    VCSConfigElement.__init__(self, path, local_name, uri, version)
     self.type = type
     self.vcsc = VcsClient(self.type, self.path)
 
@@ -239,12 +245,13 @@ class Config:
             child_config = Config(get_yaml_from_uri(config_file_uri), config_file_uri)
             for child_t in child_config.trees:
               full_child_path = os.path.join(local_path, child_t.get_path())
-              elem = OtherConfigElement(full_child_path)
+              child_local_name = full_child_path
+              elem = OtherConfigElement(full_child_path, child_local_name)              
               if child_t.setup_file: # Inherit setup_file key from children
                 elem.setup_file = child_t.setup_file
               self.trees.append(elem)
           else:
-            elem = OtherConfigElement(local_path)
+            elem = OtherConfigElement(local_path, local_name)
             if 'setup-file' in values:
               elem.setup_file = values['setup-file']
             self.trees.append(elem)
@@ -253,7 +260,7 @@ class Config:
           self.trees.append(elem)
         else:
           try:
-            elem = AVCSConfigElement(key, local_path, source_uri, version)
+            elem = AVCSConfigElement(key, local_path, local_name, source_uri, version)
             if 'setup-file' in values:
               elem.setup_file = values['setup-file']
             self.trees.append(elem)
