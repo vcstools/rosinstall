@@ -86,9 +86,33 @@ class MockVcsClient():
 
     def get_url(self):
         return self.mockurl
-    
-class Config_Test(unittest.TestCase):
 
+
+class MockVcsConfigElement():
+
+    def __init__(self, scmtype, path, local_name, uri, version = ''):
+        self.scmtype = scmtype
+        self.path = path
+        self.local_name = local_name
+        self.uri = uri
+        self.version = version
+    
+class ConfigMock_Test(unittest.TestCase):
+    
+    def test_mock_vcs_lement(self):
+        yaml = []
+        install_path = 'install/path'
+        config_filename = '.filename'
+        config = rosinstall.config.Config(yaml, install_path, config_filename)
+        try:
+            config.create_vcs_config_element('mock', None, None, None)
+            fail("expected Exception")
+        except MultiProjectException: pass
+        config = rosinstall.config.Config(yaml, install_path, config_filename, {"mock": MockVcsConfigElement})
+        self.assertTrue(config.create_vcs_config_element('mock', None, None, None))
+
+class ConfigSimple_Test(unittest.TestCase):
+    
     def test_init(self):
         try:
             config = rosinstall.config.Config(None, None, None)
@@ -106,3 +130,5 @@ class Config_Test(unittest.TestCase):
         self.assertEqual([], config.get_config_elements())
         self.assertEqual([], config.get_source())
         self.assertEqual([], config.get_version_locked_source())
+
+        

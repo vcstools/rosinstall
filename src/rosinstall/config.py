@@ -213,8 +213,8 @@ class AVCSConfigElement(VCSConfigElement):
   Implementation using vcstools vcsclient, works for types svn, git, hg, bzr, tar
   :raises: Lookup Exception for unknown types
   """
-  def __init__(self, vtype, path, local_name, uri, version = ''):
-    VCSConfigElement.__init__(self, path, VcsClient(vtype, path), local_name, uri, version)
+  def __init__(self, scmtype, path, local_name, uri, version = ''):
+    VCSConfigElement.__init__(self, path, VcsClient(scmtype, path), local_name, uri, version)
 
     
 class SetupConfigElement(ConfigElement):
@@ -236,7 +236,7 @@ class Config:
   and possibly a VCS from which to update the folder.
   """
   
-  def __init__(self, config_source_dicts, install_path, config_filename):
+  def __init__(self, config_source_dicts, install_path, config_filename, extended_types=None):
     """
     :param config_source_dict: A list (e.g. from yaml) describing the config, list of dict, each dict describing one element.
     :param config_filename: When given a folder, Config
@@ -248,6 +248,14 @@ class Config:
     self.trees = [ ]
     self.base_path = install_path
     self.config_filename = config_filename
+    # using a registry primarily for unit test design
+    self.registry = {'svn': AVCSConfigElement,
+                     'git': AVCSConfigElement,
+                     'hg': AVCSConfigElement,
+                     'bzr': AVCSConfigElement,
+                     'tar': AVCSConfigElement}
+    if extended_types is not None:
+      self.registry = dict(list(self.registry.items()) + list(extended_types.items()))
     self._load_config_dicts(self.source)
 
 
@@ -298,14 +306,21 @@ class Config:
           self.trees.append(elem)
         else:
           try:
-            elem = AVCSConfigElement(key, local_path, local_name, source_uri, version)
+            elem = self.create_vcs_config_element(key, local_path, local_name, source_uri, version)
             if 'setup-file' in values:
               elem.setup_file = values['setup-file']
             self.trees.append(elem)
           except LookupError as ex:
             raise MultiProjectException("Abstracted VCS Config failed. Exception: %s" % ex)
 
-          
+
+  def create_vcs_config_element(self, scmtype, path, local_name, uri, version = ''):
+    try:
+      eclass = self.registry[scmtype]
+    except LookupError:
+      raise MultiProjectException("No VCS client registered for vcs type %s"%scmtype)
+    return eclass(scmtype = scmtype, path = path, local_name = local_name, uri = uri, version = version)
+
   def get_base_path(self):
     return self.base_path
 
