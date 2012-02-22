@@ -88,7 +88,7 @@ class MockVcsClient():
         return self.mockurl
 
 
-class MockVcsConfigElement():
+class MockVcsConfigElement(rosinstall.config.VCSConfigElement):
 
     def __init__(self, scmtype, path, local_name, uri, version = ''):
         self.scmtype = scmtype
@@ -96,7 +96,10 @@ class MockVcsConfigElement():
         self.local_name = local_name
         self.uri = uri
         self.version = version
+        self.vcsc = MockVcsClient()
     
+
+
 class ConfigMock_Test(unittest.TestCase):
     
     def test_mock_vcs_lement(self):
@@ -111,7 +114,13 @@ class ConfigMock_Test(unittest.TestCase):
         config = rosinstall.config.Config(yaml, install_path, config_filename, {"mock": MockVcsConfigElement})
         self.assertTrue(config.create_vcs_config_element('mock', None, None, None))
 
+
+
 class ConfigSimple_Test(unittest.TestCase):
+
+    def _get_mock_config(self, yaml, install_path = 'install/path'):
+        config_filename = '.filename'
+        return rosinstall.config.Config(yaml, install_path, config_filename, {"mock": MockVcsConfigElement})
     
     def test_init(self):
         try:
@@ -120,6 +129,14 @@ class ConfigSimple_Test(unittest.TestCase):
         except MultiProjectException: pass
         try:
             config = rosinstall.config.Config([{'foo': 'bar'}], None, None)
+            self.fail("expected Exception")
+        except MultiProjectException: pass
+        try:
+            config = self._get_mock_config([{'mock': {}}])
+            self.fail("expected Exception")
+        except MultiProjectException: pass
+        try:
+            config = self._get_mock_config([{'mock': {"local-name": None}}])
             self.fail("expected Exception")
         except MultiProjectException: pass
         yaml = []
@@ -131,4 +148,39 @@ class ConfigSimple_Test(unittest.TestCase):
         self.assertEqual([], config.get_source())
         self.assertEqual([], config.get_version_locked_source())
 
+    def test_config_simple1(self):
+        mock1 = {'mock': {"local-name": "foo"}}
+        config = self._get_mock_config([mock1])
+        self.assertEqual(1, len(config.get_config_elements()))
+        self.assertEqual(1, len(config.get_source()))
+        self.assertEqual(1, len(config.get_version_locked_source()))
+        self.assertEqual([{'mock': {'local-name': 'foo'}}], config.get_source())
+
         
+    def test_config_simple2(self):
+        mock1 = {'mock': {"local-name": "foom"}}
+        git1 = {'git': {"local-name": "foog", "uri": "git/uri"}}
+        svn1 = {'svn': {"local-name": "foos", "uri": "svn/uri"}}
+        bzr1 = {'bzr': {"local-name": "foob", "uri": "bzr/uri"}}
+        hg1 = {'hg': {"local-name": "fooh", "uri": "hg/uri"}}
+        config = self._get_mock_config([mock1, git1, svn1, hg1, bzr1])
+        self.assertEqual(5, len(config.get_config_elements()))
+        self.assertEqual(5, len(config.get_source()))
+        self.assertEqual(5, len(config.get_version_locked_source()))
+        self.assertEqual([{'mock': {'local-name': 'foom'}}, {'git': {'local-name': 'foog', 'uri': 'git/uri'}}, {'svn': {'local-name': 'foos', 'uri': 'svn/uri'}}, {'hg': {'local-name': 'fooh', 'uri': 'hg/uri'}}, {'bzr': {'local-name': 'foob', 'uri': 'bzr/uri'}}], config.get_source())
+        self.assertEqual([{'mocktype': {'local-name': 'install/path/foom', 'version': 'mockversionNone', 'uri': None, 'revision': ''}}, {'git': {'local-name': 'install/path/foog', 'version': None, 'uri': 'git/uri', 'revision': ''}}, {'svn': {'local-name': 'install/path/foos', 'version': None, 'uri': 'svn/uri', 'revision': ''}}, {'hg': {'local-name': 'install/path/fooh', 'version': None, 'uri': 'hg/uri', 'revision': ''}}, {'bzr': {'local-name': 'install/path/foob', 'version': None, 'uri': 'bzr/uri', 'revision': ''}}], config.get_version_locked_source())
+
+
+    def test_config_simple3(self):
+        mock1 = {'mock': {"local-name": "foom"}}
+        git1 = {'git': {"local-name": "foog", "uri": "git/uri", "version": "git.version"}}
+        svn1 = {'svn': {"local-name": "foos", "uri": "svn/uri", "version": "12345"}}
+        bzr1 = {'bzr': {"local-name": "foob", "uri": "bzr/uri", "version": "bzr.version"}}
+        hg1 = {'hg': {"local-name": "fooh", "uri": "hg/uri", "version": "hg.version"}}
+        config = self._get_mock_config([mock1, git1, svn1, hg1, bzr1])
+        self.assertEqual(5, len(config.get_config_elements()))
+        self.assertEqual(5, len(config.get_source()))
+        self.assertEqual(5, len(config.get_version_locked_source()))
+        self.assertEqual([{'mock': {'local-name': 'foom'}}, {'git': {'local-name': 'foog', 'version': 'git.version', 'uri': 'git/uri'}}, {'svn': {'local-name': 'foos', 'version': '12345', 'uri': 'svn/uri'}}, {'hg': {'local-name': 'fooh', 'version': 'hg.version', 'uri': 'hg/uri'}}, {'bzr': {'local-name': 'foob', 'version': 'bzr.version', 'uri': 'bzr/uri'}}], config.get_source())
+        self.assertEqual([{'mocktype': {'local-name': 'install/path/foom', 'version': 'mockversionNone', 'uri': None, 'revision': ''}}, {'git': {'local-name': 'install/path/foog', 'version': None, 'uri': 'git/uri', 'revision': None}}, {'svn': {'local-name': 'install/path/foos', 'version': None, 'uri': 'svn/uri', 'revision': None}}, {'hg': {'local-name': 'install/path/fooh', 'version': None, 'uri': 'hg/uri', 'revision': None}}, {'bzr': {'local-name': 'install/path/foob', 'version': None, 'uri': 'bzr/uri', 'revision': None}}], config.get_version_locked_source())
+
