@@ -320,7 +320,7 @@ class Config:
           self._append_element(elem)
         else:
           try:
-            elem = self.create_vcs_config_element(key, local_path, local_name, source_uri, version)
+            elem = self._create_vcs_config_element(key, local_path, local_name, source_uri, version)
             if 'setup-file' in values:
               elem.setup_file = values['setup-file']
             self._append_element(elem)
@@ -332,7 +332,7 @@ class Config:
     self.trees.append(new_config_elt)
     return True
 
-  def create_vcs_config_element(self, scmtype, path, local_name, uri, version = ''):
+  def _create_vcs_config_element(self, scmtype, path, local_name, uri, version = ''):
     try:
       eclass = self.registry[scmtype]
     except LookupError:

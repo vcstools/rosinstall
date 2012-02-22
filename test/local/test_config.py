@@ -108,11 +108,11 @@ class ConfigMock_Test(unittest.TestCase):
         config_filename = '.filename'
         config = rosinstall.config.Config(yaml, install_path, config_filename)
         try:
-            config.create_vcs_config_element('mock', None, None, None)
+            config._create_vcs_config_element('mock', None, None, None)
             fail("expected Exception")
         except MultiProjectException: pass
         config = rosinstall.config.Config(yaml, install_path, config_filename, {"mock": MockVcsConfigElement})
-        self.assertTrue(config.create_vcs_config_element('mock', None, None, None))
+        self.assertTrue(config._create_vcs_config_element('mock', None, None, None))
 
 
 
