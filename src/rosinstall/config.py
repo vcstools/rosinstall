@@ -107,8 +107,22 @@ class OtherConfigElement(ConfigElement):
     raise MultiProjectException("Cannot generate versioned outputs with non source types")
 
   def get_yaml(self):
-    return [{"other": {"local-name": self.path} }]
+    return [{"other": {"local-name": self.get_local_name()} }]
+
+
+class SetupConfigElement(ConfigElement):
+  """A setup config element specifies a single file containing configuration data for a config."""
+
+  def install(self, backup_path, mode, robust=False):
+    return True
+
+  def get_versioned_yaml(self):
+    raise MultiProjectException("Cannot generate versioned outputs with non source types")
   
+  def get_yaml(self):
+    return [{"setup-file": {"local-name": self.get_local_name()} }]
+
+
 class VCSConfigElement(ConfigElement):
   
   def __init__(self, path, vcs_client, local_name, uri, version=''):
@@ -188,14 +202,14 @@ class VCSConfigElement(ConfigElement):
   
   def get_yaml(self):
     "yaml as from source"
-    result = {self.vcsc.get_vcs_type_name(): {"local-name": self.path, "uri": self.uri} }
+    result = {self.vcsc.get_vcs_type_name(): {"local-name": self.get_local_name(), "uri": self.uri} }
     if self.version != None and self.version != '':
       result[self.vcsc.get_vcs_type_name()]["version"] = self.version
     return [result]
 
   def get_versioned_yaml(self):
     "yaml looking up current version"
-    result = {self.vcsc.get_vcs_type_name(): {"local-name": self.path, "uri": self.uri, "version": self.vcsc.get_version(), "revision":""} }
+    result = {self.vcsc.get_vcs_type_name(): {"local-name": self.get_local_name(), "uri": self.uri, "version": self.vcsc.get_version(), "revision":""} }
     if self.version != None and self.version.strip() != '':
       result[self.vcsc.get_vcs_type_name()]["revision"] = self.vcsc.get_version(self.version)
     return [result]
@@ -217,18 +231,6 @@ class AVCSConfigElement(VCSConfigElement):
     VCSConfigElement.__init__(self, path, VcsClient(scmtype, path), local_name, uri, version)
 
     
-class SetupConfigElement(ConfigElement):
-  """A setup config element specifies a single file containing configuration data for a config."""
-  def install(self, backup_path, mode, robust=False):
-    return True
-
-  def get_versioned_yaml(self):
-    raise MultiProjectException("Cannot generate versioned outputs with non source types")
-
-  def get_yaml(self):
-    return [{"setup-file": {"local-name": self.path} }]
-
-
   
 class Config:
   """
