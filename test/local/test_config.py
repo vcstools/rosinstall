@@ -42,6 +42,20 @@ import urllib2
 import rosinstall.config
 from rosinstall.config import MultiProjectException
 
+class MockVcsClient():
+
+    def get_vcs_type_name(self):
+        return "mocktype"
+
+    def get_diff(self, basepath=None):
+        return "mockdiff%s"%basepath
+
+    def get_version(self, revision=None):
+        return "mockversion%s"%revision
+  
+    def get_status(self, basepath=None, untracked=False):
+        return "mockstatus%s,%s"%(basepath, untracked)
+  
 class testYamlIO(unittest.TestCase):
 
     def test_get_yaml_from_uri_from_file(self):
@@ -53,12 +67,18 @@ class testYamlIO(unittest.TestCase):
 
         self.assertTrue("number" in y)
         self.assertTrue(y["number"] == 2)
+        # invalid
+        try:
+            yaml = rosinstall.config.get_yaml_from_uri(os.path.join("test", "example-broken.yaml"))
+        except MultiProjectException:
+            pass
 
+        
     def test_get_yaml_from_uri_from_missing_file(self):
         file = "/asdfasdfasdfasfasdf_does_not_exist"
         try:
             rosinstall.config.get_yaml_from_uri(file)
-            self.assertTrue(False, "Expected exception")
+            self.fail("Expected exception")
         except MultiProjectException:
             pass
 
@@ -68,23 +88,87 @@ class testYamlIO(unittest.TestCase):
 #        y = rosinstall.config.get_yaml_from_uri(file)
 #        self.assertEqual(y, None)
 
-    def test_get_yaml_from_uri_from_url(self):
-        url = "http://www.ros.org/rosinstalls/boxturtle_base.rosinstall"
-        y = rosinstall.config.get_yaml_from_uri(url)
-        
-        ros_found = False
-        for e in y:
-            if "svn" in e:
-                element = e["svn"]
-                if "local-name" in element:
-                    if element["local-name"] == "ros":
-                        ros_found = True
-        self.assertTrue(ros_found)
+    def test_simple_config_element_API(self):
+        path = "some/path"
+        localname = "some/local/name"
+        other1 = rosinstall.config.ConfigElement(path, localname)
+        self.assertEqual(path, other1.get_path())
+        self.assertEqual(localname, other1.get_local_name())
+        self.assertFalse(other1.is_vcs_element())
+        other1 = rosinstall.config.OtherConfigElement(path, localname)
+        self.assertEqual(path, other1.get_path())
+        self.assertEqual(localname, other1.get_local_name())
+        self.assertEqual([{'other': {'local-name': 'some/path'}}], other1.get_yaml())
+        self.assertFalse(other1.is_vcs_element())
+        other1 = rosinstall.config.SetupConfigElement(path, localname)
+        self.assertEqual(path, other1.get_path())
+        self.assertEqual(localname, other1.get_local_name())
+        self.assertEqual([{'setup-file': {'local-name': 'some/path'}}], other1.get_yaml())
+        self.assertFalse(other1.is_vcs_element())
 
-    def test_get_yaml_from_uri_from_invalid_url(self):
-        url = "http://www.ros.org/invalid"
+    def test_mock_vcs_config_element_init(self):
+        path = "some/path"
+        localname = "some/local/name"
         try:
-            rosinstall.config.get_yaml_from_uri(url)
-            self.assertTrue(False, "Expected exception")
+            rosinstall.config.VCSConfigElement(None, None, None, None)
+            self.fail("Exception expected")
         except MultiProjectException:
             pass
+        try:
+            rosinstall.config.VCSConfigElement("path", None, None, None)
+            self.fail("Exception expected")
+        except MultiProjectException:
+            pass
+        try:
+            rosinstall.config.VCSConfigElement(None, MockVcsClient(), None, None)
+            self.fail("Exception expected")
+        except MultiProjectException:
+            pass
+        try:
+            rosinstall.config.VCSConfigElement("path", MockVcsClient(), None, None)
+            self.fail("Exception expected")
+        except MultiProjectException:
+            pass
+        try:
+            rosinstall.config.VCSConfigElement("path", None, None, "some/uri")
+            self.fail("Exception expected")
+        except MultiProjectException:
+            pass
+        try:
+            rosinstall.config.VCSConfigElement(None, MockVcsClient(), None, "some/uri")
+            self.fail("Exception expected")
+        except MultiProjectException:
+            pass
+        path = "some/path"
+        localname = "some/local/name"
+        uri = 'some/uri'
+        version='some.version'
+        vcsc = rosinstall.config.VCSConfigElement(path, MockVcsClient(), localname, uri)
+        self.assertEqual(path, vcsc.get_path())
+        self.assertEqual(localname, vcsc.get_local_name())
+        self.assertEqual(uri, vcsc.uri)
+        self.assertTrue(vcsc.is_vcs_element())
+        self.assertEqual("mockdiffNone", vcsc.get_diff())
+        self.assertEqual("mockstatusNone,False", vcsc.get_status())
+        self.assertEqual([{'mocktype': {'local-name': 'some/path', 'uri': 'some/uri'}}], vcsc.get_yaml())
+        self.assertEqual([{'mocktype': {'local-name': 'some/path', 'version': 'mockversionNone', 'uri': 'some/uri', 'revision': ''}}], vcsc.get_versioned_yaml())
+        
+        vcsc = rosinstall.config.VCSConfigElement(path, MockVcsClient(), localname, uri, None)
+        self.assertEqual(path, vcsc.get_path())
+        self.assertEqual(localname, vcsc.get_local_name())
+        self.assertEqual(uri, vcsc.uri)
+        self.assertTrue(vcsc.is_vcs_element())
+        self.assertEqual("mockdiffNone", vcsc.get_diff())
+        self.assertEqual("mockstatusNone,False", vcsc.get_status())
+        self.assertEqual([{'mocktype': {'local-name': 'some/path', 'uri': 'some/uri'}}], vcsc.get_yaml())
+        self.assertEqual([{'mocktype': {'local-name': 'some/path', 'version': 'mockversionNone', 'uri': 'some/uri', 'revision': ''}}], vcsc.get_versioned_yaml())
+
+        vcsc = rosinstall.config.VCSConfigElement(path, MockVcsClient(), localname, uri, version)
+        self.assertEqual(path, vcsc.get_path())
+        self.assertEqual(localname, vcsc.get_local_name())
+        self.assertEqual(uri, vcsc.uri)
+        self.assertTrue(vcsc.is_vcs_element())
+        self.assertEqual("mockdiffNone", vcsc.get_diff())
+        self.assertEqual("mockstatusNone,False", vcsc.get_status())
+        self.assertEqual([{'mocktype': {'local-name': 'some/path', 'version': 'some.version', 'uri': 'some/uri'}}], vcsc.get_yaml())
+        self.assertEqual([{'mocktype': {'local-name': 'some/path', 'version': 'mockversionNone', 'uri': 'some/uri', 'revision': 'mockversionsome.version'}}], vcsc.get_versioned_yaml())

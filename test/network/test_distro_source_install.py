@@ -32,12 +32,14 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import copy
 import subprocess
 import tempfile
 
 import rosinstall
 import rosinstall.helpers
 import rosinstall.config
+from rosinstall.config import MultiProjectException
 
 from test.scm_test_base import AbstractRosinstallBaseDirTest, _create_yaml_file, _create_config_elt_dict
 
@@ -47,9 +49,45 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
     def setUpClass(self):
         AbstractRosinstallBaseDirTest.setUpClass()
 
+    def _ros_found(self, yaml):
+        ros_found = False
+        for e in yaml:
+            if "svn" in e:
+                element = e["svn"]
+                if "local-name" in element:
+                    if element["local-name"] == "ros":
+                        ros_found = True
+        return ros_found
+        
+    def test_get_yaml_from_uri_from_url(self):
+        # boxturtle
+        url = "http://www.ros.org/rosinstalls/boxturtle_base.rosinstall"
+        yaml = rosinstall.config.get_yaml_from_uri(url)
+        self.assertTrue(self._ros_found(yaml), "No ros element in boxturtle")
+        # diamondback
+        yaml = rosinstall.config.get_yaml_from_uri("http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=diamondback&variant=desktop-full&overlay=no")
+        self.assertTrue(yaml is not None)
+        self.assertTrue(len(yaml)>0)
+        self.assertTrue(self._ros_found(yaml), "No ros element in diamondback")
+        # electric
+        yaml = rosinstall.config.get_yaml_from_uri("http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=electric&variant=desktop-full&overlay=no")
+        self.assertTrue(yaml is not None)
+        self.assertTrue(len(yaml)>0)
+        self.assertTrue(self._ros_found(yaml), "No ros element in electric")
+
+
+    def test_get_yaml_from_uri_from_invalid_url(self):
+        url = "http://www.ros.org/invalid"
+        try:
+            rosinstall.config.get_yaml_from_uri(url)
+            self.fail("Expected exception")
+        except MultiProjectException:
+            pass
+
+                
     def test_source_boxturtle(self):
         """install boxturtle into temp dir"""
-        cmd = self.rosinstall_fn
+        cmd = copy.copy(self.rosinstall_fn)
         self.simple_rosinstall = os.path.join(self.directory, "simple.rosinstall")
         _create_yaml_file([_create_config_elt_dict("svn", "ros", 'https://code.ros.org/svn/ros/stacks/ros/tags/boxturtle'),
                            _create_config_elt_dict("svn", "ros_release", 'https://code.ros.org/svn/ros/stacks/ros_release/trunk')],

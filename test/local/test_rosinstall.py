@@ -32,6 +32,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import copy
 import subprocess
 import tempfile
 
@@ -44,10 +45,12 @@ class RosinstallCommandlineOverlays(AbstractFakeRosBasedTest):
     """test creating parallel rosinstall env with overlayed stacks"""
       
     def setUp(self):
+        """runs rosinstall with generated self.simple_rosinstall to create local rosinstall env
+        and creates a directory for a second local rosinstall env"""
         AbstractFakeRosBasedTest.setUp(self)
 
         # setup a rosinstall env as base for further tests
-        cmd = self.rosinstall_fn
+        cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.simple_rosinstall])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
 
@@ -68,8 +71,8 @@ class RosinstallCommandlineOverlays(AbstractFakeRosBasedTest):
 
     def test_Rosinstall_ros_with_folder(self):
         """Use a folder as a remote rosinstall location"""
-        cmd = self.rosinstall_fn
+        cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.new_directory, self.directory])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ), cmd)
 
 

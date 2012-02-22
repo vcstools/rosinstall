@@ -124,7 +124,15 @@ class AbstractRosinstallBaseDirTest(AbstractRosinstallCLITest):
         self.directories = {}
 
 class AbstractFakeRosBasedTest(AbstractRosinstallBaseDirTest):
-     """creates some larger infrastructure for testing locally"""
+     """
+     creates some larger infrastructure for testing locally:
+     a root folder containing all other folders in self.test_root_path
+     a fake ros folder in self.ros_path
+     a git repo in self.git_path
+     a hg repo in self.hg_path
+     a file named self.simple_rosinstall with ros and gitrepo
+     a file named self.simple_changed_vcs_rosinstall with ros and hgrepo
+     """
      
      @classmethod
      def setUpClass(self):

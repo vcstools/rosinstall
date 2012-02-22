@@ -32,6 +32,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import copy
 import subprocess
 import tempfile
 
@@ -64,50 +65,54 @@ class RosinstallOptionsTest(AbstractFakeRosBasedTest):
                           self.broken_rosinstall)
 
     def test_Rosinstall_help(self):
-        cmd = self.rosinstall_fn
+        cmd = copy.copy(self.rosinstall_fn)
         cmd.append("-h")
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
         
     def test_rosinstall_delete_changes(self):
-        cmd = self.rosinstall_fn
+        cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.simple_rosinstall])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.simple_changed_uri_rosinstall, "--delete-changed-uri"])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
 
 
     def test_rosinstall_abort_changes(self):
-        cmd = self.rosinstall_fn
+        cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.simple_rosinstall])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.simple_changed_uri_rosinstall, "--abort-changed-uri", "-n"])
         self.assertEqual(1, subprocess.call(cmd, env=self.new_environ))
 
 
     def test_rosinstall_backup_changes(self):
-        cmd = self.rosinstall_fn
+        cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.simple_rosinstall])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
         directory1 = tempfile.mkdtemp()
         self.directories["backup1"] = directory1
+        cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.simple_changed_uri_rosinstall, "--backup-changed-uri=%s"%directory1])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
         self.assertEqual(len(os.listdir(directory1)), 1)
 
     def test_rosinstall_change_vcs_type(self):
-        cmd = self.rosinstall_fn
+        cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.simple_rosinstall])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.simple_changed_vcs_rosinstall, "--delete-changed-uri", "-n"])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
 
     def test_rosinstall_invalid_fail(self):
-        cmd = self.rosinstall_fn
+        cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.broken_rosinstall])
         self.assertEqual(1, subprocess.call(cmd, env=self.new_environ))
 
     def test_rosinstall_invalid_continue(self):
-        cmd = self.rosinstall_fn
+        cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.broken_rosinstall, "--continue-on-error"])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
 
