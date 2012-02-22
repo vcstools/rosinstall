@@ -270,7 +270,7 @@ class Config:
       for key, values in tree_elt.iteritems():
 
         # Check that local_name exists and record it
-        if not 'local-name' in values:
+        if not 'local-name' in values or values['local-name'] is None or values['local-name'].strip() == '':
           raise MultiProjectException("local-name is required on all config elements")
         else:
           local_name = values['local-name']
