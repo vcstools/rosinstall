@@ -295,7 +295,9 @@ Bzr:       %s
 
   if options.generate_versioned:
     filename = os.path.abspath(options.generate_versioned)
-    config.write_version_locked_source(filename)
+    tree_elts = config.get_version_locked_source()
+    with open(filename, 'w') as fh:
+      fh.write(yaml.safe_dump(tree_elts))
     print("Saved versioned rosinstall of current directory %s to %s"%(options.path, filename))
     return 0
 
@@ -330,13 +332,9 @@ Bzr:       %s
 
   print("rosinstall operating on", options.path, "from specifications in rosinstall files ", ", ".join(config_uris))
 
-  ## Save .rosinstall 
-  config.write_source(filename = __ROSINSTALL_FILENAME, header = """# THIS IS A FILE WHICH IS MODIFIED BY rosinstall
-# IT IS UNLIKELY YOU WANT TO EDIT THIS FILE BY HAND
-# IF YOU WANT TO CHANGE THE ROS ENVIRONMENT VARIABLES
-# USE THE rosinstall TOOL INSTEAD.
-# IF YOU CHANGE IT, USE rosinstall FOR THE CHANGES TO TAKE EFFECT
-""")
+  ## Save .rosinstall
+  rosinstall.setupfiles.generate_config_yaml(config)
+
   ## install or update each element
   install_success = config.execute_install(options.backup_changed, mode, options.robust)
   ## bootstrap the build if installing ros

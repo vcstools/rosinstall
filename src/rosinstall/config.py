@@ -310,26 +310,16 @@ class Config:
     return self.base_path
 
   
-  def write_version_locked_source(self, filename):
+  def get_version_locked_source(self):
     source_aggregate = []
     for t in self.trees:
       source_aggregate.extend(t.get_versioned_yaml())
-    with open(filename, 'w') as fh:
-      fh.write(yaml.safe_dump(source_aggregate))
+    return source_aggregate
 
-      
-  def write_source(self, filename, header = None):
-    """
-    Write file into the root of the config
-    """
-    if not os.path.exists(self.base_path):
-      os.makedirs(self.base_path)
-    f = open(os.path.join(self.base_path, filename), "w+b")
-    if header is not None:
-      f.write(header)
-    f.write(yaml.safe_dump(self.source))
-    f.close()
 
+  def get_source(self):
+    return self.source
+  
 
   def execute_install(self, backup_path, mode, robust = False):
     success = True

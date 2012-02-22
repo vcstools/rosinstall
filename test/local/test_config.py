@@ -98,8 +98,11 @@ class Config_Test(unittest.TestCase):
             config = rosinstall.config.Config([{'foo': 'bar'}], None, None)
             self.fail("expected Exception")
         except MultiProjectException: pass
-        yaml = ""
+        yaml = []
         install_path = 'install/path'
         config_filename = '.filename'
         config = rosinstall.config.Config(yaml, install_path, config_filename)
         self.assertEqual(install_path, config.get_base_path())
+        self.assertEqual([], config.get_config_elements())
+        self.assertEqual([], config.get_source())
+        self.assertEqual([], config.get_version_locked_source())

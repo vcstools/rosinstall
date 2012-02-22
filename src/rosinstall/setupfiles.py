@@ -1,9 +1,10 @@
 from __future__ import print_function
 
 import os
+import yaml
 
 import helpers
-from helpers import ROSInstallException, get_ros_stack_path, get_ros_package_path
+from helpers import ROSInstallException, get_ros_stack_path, get_ros_package_path, __ROSINSTALL_FILENAME
 import config
 from config import SetupConfigElement
 
@@ -172,3 +173,16 @@ def generate_setup(config):
     setup_path = os.path.join(config.get_base_path(), 'setup.%s'%shell)
     with open(setup_path, 'w') as f:
       f.write(text)
+
+def generate_config_yaml(config):
+  header = """# THIS IS A FILE WHICH IS MODIFIED BY rosinstall
+# IT IS UNLIKELY YOU WANT TO EDIT THIS FILE BY HAND
+# IF YOU WANT TO CHANGE THE ROS ENVIRONMENT VARIABLES
+# USE THE rosinstall TOOL INSTEAD.
+# IF YOU CHANGE IT, USE rosinstall FOR THE CHANGES TO TAKE EFFECT
+"""
+  if not os.path.exists(config.get_base_path()):
+    os.makedirs(config.get_base_path())
+  with open(os.path.join(config.get_base_path(), __ROSINSTALL_FILENAME), 'w+b') as f:
+    f.write(header)
+    f.write(yaml.safe_dump(config.get_source()))
