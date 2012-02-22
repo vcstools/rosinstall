@@ -11,6 +11,13 @@ from vcstools import VcsClient
 
 class MultiProjectException(Exception): pass
 
+def normabspath(localname, path):
+  """if localname is absolute, return it normalized. If relative, return normalized join of path and localname"""
+  if os.path.isabs(localname):
+    return  os.path.normpath(localname)
+  abs_path = os.path.normpath(os.path.join(path, localname))
+  return abs_path
+
 def get_yaml_from_uri(uri):
   """reads and parses yaml from a local file or remote uri"""
   stream = 0
@@ -285,7 +292,7 @@ class Config:
         version = values.get('version', '')
         
         #compute the local_path for the config element
-        local_path = os.path.normpath(os.path.join(self.base_path, local_name))
+        local_path = normabspath(local_name, self.base_path)
 
         if key == 'other':
           config_file_uri = '' # does not exist
@@ -302,24 +309,28 @@ class Config:
               elem = OtherConfigElement(full_child_path, child_local_name)              
               if child_t.setup_file: # Inherit setup_file key from children
                 elem.setup_file = child_t.setup_file
-              self.trees.append(elem)
+              self._append_element(elem)
           else:
             elem = OtherConfigElement(local_path, local_name)
             if 'setup-file' in values:
               elem.setup_file = values['setup-file']
-            self.trees.append(elem)
+            self._append_element(elem)
         elif key == 'setup-file':
           elem = SetupConfigElement(local_path)
-          self.trees.append(elem)
+          self._append_element(elem)
         else:
           try:
             elem = self.create_vcs_config_element(key, local_path, local_name, source_uri, version)
             if 'setup-file' in values:
               elem.setup_file = values['setup-file']
-            self.trees.append(elem)
+            self._append_element(elem)
           except LookupError as ex:
             raise MultiProjectException("Abstracted VCS Config failed. Exception: %s" % ex)
 
+
+  def _append_element(self, new_config_elt):
+    self.trees.append(new_config_elt)
+    return True
 
   def create_vcs_config_element(self, scmtype, path, local_name, uri, version = ''):
     try:
