@@ -124,16 +124,16 @@ class ConfigElements_Test(unittest.TestCase):
     def test_simple_config_element_API(self):
         path = "some/path"
         localname = "some/local/name"
-        other1 = rosinstall.config.ConfigElement(path, localname)
+        other1 = rosinstall.config_elements.ConfigElement(path, localname)
         self.assertEqual(path, other1.get_path())
         self.assertEqual(localname, other1.get_local_name())
         self.assertFalse(other1.is_vcs_element())
-        other1 = rosinstall.config.OtherConfigElement(path, localname)
+        other1 = rosinstall.config_elements.OtherConfigElement(path, localname)
         self.assertEqual(path, other1.get_path())
         self.assertEqual(localname, other1.get_local_name())
         self.assertEqual([{'other': {'local-name': 'some/local/name'}}], other1.get_yaml())
         self.assertFalse(other1.is_vcs_element())
-        other1 = rosinstall.config.SetupConfigElement(path, localname)
+        other1 = rosinstall.config_elements.SetupConfigElement(path, localname)
         self.assertEqual(path, other1.get_path())
         self.assertEqual(localname, other1.get_local_name())
         self.assertEqual([{'setup-file': {'local-name': 'some/local/name'}}], other1.get_yaml())
@@ -143,32 +143,32 @@ class ConfigElements_Test(unittest.TestCase):
         path = "some/path"
         localname = "some/local/name"
         try:
-            rosinstall.config.VCSConfigElement(None, None, None, None)
+            rosinstall.config_elements.VCSConfigElement(None, None, None, None)
             self.fail("Exception expected")
         except MultiProjectException:
             pass
         try:
-            rosinstall.config.VCSConfigElement("path", None, None, None)
+            rosinstall.config_elements.VCSConfigElement("path", None, None, None)
             self.fail("Exception expected")
         except MultiProjectException:
             pass
         try:
-            rosinstall.config.VCSConfigElement(None, MockVcsClient(), None, None)
+            rosinstall.config_elements.VCSConfigElement(None, MockVcsClient(), None, None)
             self.fail("Exception expected")
         except MultiProjectException:
             pass
         try:
-            rosinstall.config.VCSConfigElement("path", MockVcsClient(), None, None)
+            rosinstall.config_elements.VCSConfigElement("path", MockVcsClient(), None, None)
             self.fail("Exception expected")
         except MultiProjectException:
             pass
         try:
-            rosinstall.config.VCSConfigElement("path", None, None, "some/uri")
+            rosinstall.config_elements.VCSConfigElement("path", None, None, "some/uri")
             self.fail("Exception expected")
         except MultiProjectException:
             pass
         try:
-            rosinstall.config.VCSConfigElement(None, MockVcsClient(), None, "some/uri")
+            rosinstall.config_elements.VCSConfigElement(None, MockVcsClient(), None, "some/uri")
             self.fail("Exception expected")
         except MultiProjectException:
             pass
@@ -176,7 +176,7 @@ class ConfigElements_Test(unittest.TestCase):
         localname = "some/local/name"
         uri = 'some/uri'
         version='some.version'
-        vcsc = rosinstall.config.VCSConfigElement(path, MockVcsClient(), localname, uri)
+        vcsc = rosinstall.config_elements.VCSConfigElement(path, MockVcsClient(), localname, uri)
         self.assertEqual(path, vcsc.get_path())
         self.assertEqual(localname, vcsc.get_local_name())
         self.assertEqual(uri, vcsc.uri)
@@ -186,7 +186,7 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertEqual([{'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri'}}], vcsc.get_yaml())
         self.assertEqual([{'mocktype': {'local-name': 'some/local/name', 'version': 'mockversionNone', 'uri': 'some/uri', 'revision': ''}}], vcsc.get_versioned_yaml())
         
-        vcsc = rosinstall.config.VCSConfigElement(path, MockVcsClient(), localname, uri, None)
+        vcsc = rosinstall.config_elements.VCSConfigElement(path, MockVcsClient(), localname, uri, None)
         self.assertEqual(path, vcsc.get_path())
         self.assertEqual(localname, vcsc.get_local_name())
         self.assertEqual(uri, vcsc.uri)
@@ -196,7 +196,7 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertEqual([{'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri'}}], vcsc.get_yaml())
         self.assertEqual([{'mocktype': {'local-name': 'some/local/name', 'version': 'mockversionNone', 'uri': 'some/uri', 'revision': ''}}], vcsc.get_versioned_yaml())
 
-        vcsc = rosinstall.config.VCSConfigElement(path, MockVcsClient(), localname, uri, version)
+        vcsc = rosinstall.config_elements.VCSConfigElement(path, MockVcsClient(), localname, uri, version)
         self.assertEqual(path, vcsc.get_path())
         self.assertEqual(localname, vcsc.get_local_name())
         self.assertEqual(uri, vcsc.uri)
@@ -212,43 +212,43 @@ class ConfigElements_Test(unittest.TestCase):
         uri = 'some/uri'
         version='some.version'
         mockclient = MockVcsClient(url = uri)
-        vcsc = rosinstall.config.VCSConfigElement(path, mockclient, localname, uri, None)
+        vcsc = rosinstall.config_elements.VCSConfigElement(path, mockclient, localname, uri, None)
         vcsc.install()
         self.assertTrue(mockclient.checkedout)
         self.assertFalse(mockclient.updated)
         # checkout failure
         mockclient = MockVcsClient(url = uri, checkout_success = False )
         try:
-            vcsc = rosinstall.config.VCSConfigElement(path, mockclient, localname, uri, None)
+            vcsc = rosinstall.config_elements.VCSConfigElement(path, mockclient, localname, uri, None)
             vcsc.install()
             self.fail("should have raised Exception")
         except MultiProjectException: pass
         # path exists no vcs, robust
         mockclient = MockVcsClient(url = uri, path_exists = True, vcs_presence = False )
         try:
-            vcsc = rosinstall.config.VCSConfigElement(path, mockclient, localname, uri, None)
+            vcsc = rosinstall.config_elements.VCSConfigElement(path, mockclient, localname, uri, None)
             vcsc.install(robust = True)
             self.fail("should have raised Exception")
         except MultiProjectException: pass
         # uri mismatch, robust
         mockclient = MockVcsClient(url = uri + "invalid", path_exists = True)
         try:
-            vcsc = rosinstall.config.VCSConfigElement(path, mockclient, localname, uri, None)
+            vcsc = rosinstall.config_elements.VCSConfigElement(path, mockclient, localname, uri, None)
             vcsc.install(robust = True)
             self.fail("should have raised Exception")
         except MultiProjectException: pass
         # update failure
         mockclient = MockVcsClient(url = uri, path_exists = True, update_success = False )
         try:
-            vcsc = rosinstall.config.VCSConfigElement(path, mockclient, localname, uri, None)
+            vcsc = rosinstall.config_elements.VCSConfigElement(path, mockclient, localname, uri, None)
             vcsc.install()
             self.fail("should have raised Exception")
         except MultiProjectException: pass
         # path exists no vcs failure skip
         mockclient = MockVcsClient(url = uri, path_exists = True, vcs_presence = False )
-        vcsc = rosinstall.config.VCSConfigElement(path, mockclient, localname, uri, None)
+        vcsc = rosinstall.config_elements.VCSConfigElement(path, mockclient, localname, uri, None)
         vcsc.install(arg_mode='skip')
         # uri mismatch skip
         mockclient = MockVcsClient(url = uri + "invalid", path_exists = True)
-        vcsc = rosinstall.config.VCSConfigElement(path, mockclient, localname, uri, None)
+        vcsc = rosinstall.config_elements.VCSConfigElement(path, mockclient, localname, uri, None)
         vcsc.install(arg_mode='skip')

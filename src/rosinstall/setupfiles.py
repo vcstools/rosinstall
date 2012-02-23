@@ -6,7 +6,7 @@ import yaml
 import helpers
 from helpers import ROSInstallException, get_ros_stack_path, get_ros_package_path, __ROSINSTALL_FILENAME
 import config
-from config import SetupConfigElement
+from config_elements import SetupConfigElement
 
 CATKIN_CMAKE_TOPLEVEL="""#
 #  TOPLEVEL cmakelists

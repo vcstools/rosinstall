@@ -88,7 +88,7 @@ class MockVcsClient():
         return self.mockurl
 
 
-class MockVcsConfigElement(rosinstall.config.VCSConfigElement):
+class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):
 
     def __init__(self, scmtype, path, local_name, uri, version = ''):
         self.scmtype = scmtype
