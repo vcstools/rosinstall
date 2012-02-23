@@ -154,6 +154,14 @@ class ConfigSimple_Test(unittest.TestCase):
         self.assertEqual('foo', config.get_config_elements()[0].get_local_name())
         self.assertEqual('install/path/foo', config.get_config_elements()[0].get_path())
 
+    def test_config_simple1_with_setupfile(self):
+        mock1 = PathSpec('foo')
+        mock1 = PathSpec('setup.sh', tags='setup-file')
+        config = self._get_mock_config([mock1])
+        self.assertEqual(1, len(config.get_config_elements()))
+        self.assertEqual('foo', config.get_config_elements()[0].get_local_name())
+        self.assertEqual('install/path/foo', config.get_config_elements()[0].get_path())
+
         
     def test_config_simple2(self):
         git1 = PathSpec('foo', 'git', 'git/uri')

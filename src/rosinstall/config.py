@@ -4,7 +4,7 @@ import os
 import config_elements
 from config_elements import AVCSConfigElement, OtherConfigElement, SetupConfigElement
 from common import MultiProjectException, normabspath
-
+from config_yaml import get_path_specs_from_uri
 
 def get_backup_path():
   """Interactive function asking the user to choose a path for backup"""
@@ -82,7 +82,7 @@ class Config:
 
       if path_spec.get_scmtype() == None:
         if path_spec.get_tags() is not None and 'setup-file' in path_spec.get_tags():
-          elem = SetupConfigElement(local_path)
+          elem = SetupConfigElement(local_path, path_spec.get_path())
           self._append_element(elem)
         else:
           config_file_uri = '' # os.path.exists == False, later
@@ -93,12 +93,16 @@ class Config:
             if self.config_filename is not None:
               config_file_uri = os.path.join(local_path, self.config_filename)
           if os.path.exists(config_file_uri):
-            child_config = Config(get_path_specs_from_uri(config_file_uri), config_file_uri)
-            for child_t in child_config.get_config_elements():
-              full_child_path = os.path.join(local_path, child_t.get_path())
+            child_config = Config(get_path_specs_from_uri(config_file_uri), local_path, self.config_filename)
+            for child_path_spec in child_config.get_source():
+              full_child_path = os.path.join(local_path, child_path_spec.get_path())
               child_local_name = full_child_path
-              elem = OtherConfigElement(full_child_path, child_local_name)              
-              self._append_element(elem)
+              if child_path_spec.get_tags() is not None and 'setup-file' in child_path_spec.get_tags():
+                elem = SetupConfigElement(full_child_path, child_local_name)
+                self._append_element(elem)
+              else:
+                elem = OtherConfigElement(full_child_path, child_local_name)
+                self._append_element(elem)
           else:
             local_name = path_spec.get_path()
             elem = OtherConfigElement(local_path, local_name)
