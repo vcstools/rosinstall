@@ -2,13 +2,19 @@ import os
 import yaml
 import urllib2
 
-from common import MultiProjectException, __ALLTYPES__, __REPOTYPES__, normabspath, conditional_abspath
+from common import MultiProjectException, conditional_abspath
 
-## Specifications are transported and stored in yaml, this file deals
+__REPOTYPES__ = ['svn', 'bzr', 'hg', 'git']
+__ALLTYPES__ = __REPOTYPES__ + ['other', 'setup-file']
+
+## The Path spec is a leightweigt object to transport the
+## specification of a config element between functions,
+## independently of yaml structure.
+## Specifications are persisted in yaml, this file deals
 ## with manipulations of any such structures representing configs as
-## yaml. Idealy all other code can only exchange PathSpec elements
-## which abstract from the yaml syntax, and provide a more sane and
-## stable API
+## yaml.
+## get_path_spec_from_yaml turns yaml into path_spec, and pathspec
+## get_legacy_yaml returns yaml.
 
 
 def get_yaml_from_uri(uri):

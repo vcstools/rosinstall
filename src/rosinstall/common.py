@@ -1,9 +1,6 @@
 import urlparse
-import urllib2
 import os
 
-__REPOTYPES__ = ['svn', 'bzr', 'hg', 'git']
-__ALLTYPES__ = __REPOTYPES__ + ['other', 'setup-file']
 
 class MultiProjectException(Exception): pass
 

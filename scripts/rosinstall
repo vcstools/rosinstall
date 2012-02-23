@@ -25,7 +25,7 @@ import pkg_resources
 
 import rosinstall.helpers
 from rosinstall.helpers import ROSInstallException, __ROSINSTALL_FILENAME
-from rosinstall.common import MultiProjectException, __ALLTYPES__, __REPOTYPES__
+from rosinstall.common import MultiProjectException
 import rosinstall.config
 from rosinstall.config import Config
 from rosinstall.config_yaml import aggregate_from_uris
