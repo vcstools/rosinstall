@@ -35,34 +35,34 @@ def get_yaml_from_uri(uri):
   return y
 
 def get_backup_path():
-    """Interactive function asking the user to choose a path for backup"""
-    backup_path = raw_input("Please enter backup pathname: ")
-    print("backing up to %s"%backup_path)
-    return backup_path
+  """Interactive function asking the user to choose a path for backup"""
+  backup_path = raw_input("Please enter backup pathname: ")
+  print("backing up to %s"%backup_path)
+  return backup_path
 
 def prompt_del_abort_retry(prompt, allow_skip = False):
-    """Interactive function asking the user to choose a conflict resolution"""
-    if allow_skip:
-        valid_modes = ['(d)elete', '(a)bort', '(b)ackup', '(s)kip']
-    else:
-        valid_modes = ['(d)elete', '(a)bort', '(b)ackup']
+  """Interactive function asking the user to choose a conflict resolution"""
+  if allow_skip:
+    valid_modes = ['(d)elete', '(a)bort', '(b)ackup', '(s)kip']
+  else:
+    valid_modes = ['(d)elete', '(a)bort', '(b)ackup']
 
-    mode = ""
+  mode = ""
 
-    full_prompt = "%s %s: "%(prompt, ", ".join(valid_modes))
-  
-    while mode == "":
+  full_prompt = "%s %s: "%(prompt, ", ".join(valid_modes))
 
-      mode_input = raw_input(full_prompt)
-      if mode_input == 'b' or mode_input == 'backup':
-          mode = 'backup'
-      elif mode_input == 'd' or mode_input =='delete':
-          mode = 'delete'
-      elif mode_input == 'a' or mode_input =='abort':
-          mode = 'abort'
-      elif allow_skip and mode_input == 's' or mode_input =='skip':
-          mode = 'skip'
-    return mode
+  while mode == "":
+
+    mode_input = raw_input(full_prompt)
+    if mode_input == 'b' or mode_input == 'backup':
+      mode = 'backup'
+    elif mode_input == 'd' or mode_input =='delete':
+      mode = 'delete'
+    elif mode_input == 'a' or mode_input =='abort':
+      mode = 'abort'
+    elif allow_skip and mode_input == 's' or mode_input =='skip':
+      mode = 'skip'
+  return mode
 
 class ConfigElement:
   """ Base class for Config provides methods with not implemented
@@ -98,6 +98,8 @@ class ConfigElement:
     backup_path = os.path.join(backup_path, os.path.basename(self.path)+"_%s"%datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
     print("Backing up %s to %s"%(self.path, backup_path))
     shutil.move(self.path, backup_path)
+  def __str__(self):
+    return str(self.get_yaml());
 
 class OtherConfigElement(ConfigElement):
   def install(self, backup_path, mode, robust=False):
@@ -211,6 +213,7 @@ class VCSConfigElement(ConfigElement):
     "yaml looking up current version"
     result = {self.vcsc.get_vcs_type_name(): {"local-name": self.get_local_name(), "uri": self.uri, "version": self.vcsc.get_version(), "revision":""} }
     if self.version != None and self.version.strip() != '':
+      # revision is where local repo should be, version where it actually is
       result[self.vcsc.get_vcs_type_name()]["revision"] = self.vcsc.get_version(self.version)
     return [result]
 
@@ -260,11 +263,13 @@ class Config:
       self.registry = dict(list(self.registry.items()) + list(extended_types.items()))
     self._load_config_dicts(self.source)
 
+  def __str__(self):
+    return str([str(x) for x in self.trees])
 
   def _load_config_dicts(self, config_dicts):
     """
-    goes through config_dicts and builds up self.trees. validates inputs
-    and deals with duplicates. May recursively pull elements from remote sources.
+    goes through config_dicts and builds up self.trees. Validates inputs individually.
+    May recursively pull elements from remote sources.
     """
     for tree_elt in config_dicts:
       for key, values in tree_elt.iteritems():
@@ -291,7 +296,7 @@ class Config:
             
           if os.path.exists(config_file_uri):
             child_config = Config(get_yaml_from_uri(config_file_uri), config_file_uri)
-            for child_t in child_config.trees:
+            for child_t in child_config.get_config_elements():
               full_child_path = os.path.join(local_path, child_t.get_path())
               child_local_name = full_child_path
               elem = OtherConfigElement(full_child_path, child_local_name)              

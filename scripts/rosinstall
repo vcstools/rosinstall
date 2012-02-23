@@ -28,7 +28,6 @@ from rosinstall.helpers import ROSInstallException, __ROSINSTALL_FILENAME
 import rosinstall.config
 from rosinstall.config import Config, MultiProjectException
 import rosinstall.setupfiles
-from rosinstall.setupfiles import generate_setup
 
 import vcstools
 from vcstools import VcsClient
@@ -243,7 +242,7 @@ Bzr:       %s
   # Get the path to the rosinstall 
   options.path = os.path.abspath(args[0])
 
-  # Find all the configuratino sources
+  # Find all the configuration sources
   config_uris = []
 
   # Check for existing config in path
@@ -349,7 +348,7 @@ Bzr:       %s
                 
   else: # DRY install case
     ## Generate setup.sh and save
-    generate_setup(config)
+    rosinstall.setupfiles.generate_setup(config)
 
     if ros_requires_boostrap(config) and not options.nobuild:
       print("Bootstrapping ROS build")
