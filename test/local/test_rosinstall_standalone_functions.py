@@ -49,11 +49,6 @@ class FunctionsTest(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_conditional_abspath(self):
-        path = "foo"
-        self.assertEqual(os.path.normpath(os.path.join(os.getcwd(), path)), rosinstall.helpers.conditional_abspath(path))
-        path = "http://someuri.com"
-        self.assertEqual("http://someuri.com", rosinstall.helpers.conditional_abspath(path))
         
     def test_is_path_stack(self):
         self.assertTrue(rosinstall.helpers.is_path_stack(os.path.join("test", "example_dirs", "ros")))

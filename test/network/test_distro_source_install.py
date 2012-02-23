@@ -39,7 +39,7 @@ import tempfile
 import rosinstall
 import rosinstall.helpers
 import rosinstall.config
-from rosinstall.config import MultiProjectException
+from rosinstall.common import MultiProjectException
 
 from test.scm_test_base import AbstractRosinstallBaseDirTest, _create_yaml_file, _create_config_elt_dict
 

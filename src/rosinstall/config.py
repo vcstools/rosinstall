@@ -5,15 +5,9 @@ import copy
 import urllib2
 
 import config_elements
-from config_elements import MultiProjectException
+from common import MultiProjectException, normabspath
 from config_elements import AVCSConfigElement, OtherConfigElement, SetupConfigElement
 
-def normabspath(localname, path):
-  """if localname is absolute, return it normalized. If relative, return normalized join of path and localname"""
-  if os.path.isabs(localname):
-    return  os.path.normpath(localname)
-  abs_path = os.path.normpath(os.path.join(path, localname))
-  return abs_path
 
 def get_yaml_from_uri(uri):
   """reads and parses yaml from a local file or remote uri"""

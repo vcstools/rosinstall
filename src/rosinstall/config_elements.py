@@ -6,9 +6,7 @@ import datetime
 import vcstools
 from vcstools import VcsClient
 
-class MultiProjectException(Exception): pass
-
-
+from common import MultiProjectException
 
 class ConfigElement:
   """ Base class for Config provides methods with not implemented

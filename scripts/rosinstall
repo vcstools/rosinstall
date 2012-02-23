@@ -25,15 +25,13 @@ import pkg_resources
 
 import rosinstall.helpers
 from rosinstall.helpers import ROSInstallException, __ROSINSTALL_FILENAME
+from rosinstall.common import MultiProjectException, __ALLTYPES__, __REPOTYPES__
 import rosinstall.config
-from rosinstall.config import Config, MultiProjectException
+from rosinstall.config import Config
 import rosinstall.setupfiles
 
 import vcstools
 from vcstools import VcsClient
-
-__REPOTYPES__ = ['svn', 'bzr', 'hg', 'git']
-__ALLTYPES__ = __REPOTYPES__ + ['other', 'setupfile']
 
 
 

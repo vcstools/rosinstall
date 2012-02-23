@@ -38,16 +38,22 @@ import struct
 import sys
 import unittest
 
-import rosinstall.config
+import rosinstall.common
 
 class FunctionsTest(unittest.TestCase):
 
     def test_normabspath(self):
         base = "/foo/bar"
-        self.assertEqual("/foo/bar", rosinstall.config.normabspath('.', base))
-        self.assertEqual("/foo/bar", rosinstall.config.normabspath('foo/..', base))
-        self.assertEqual("/foo/bar", rosinstall.config.normabspath(base, base))
-        self.assertEqual("/foo", rosinstall.config.normabspath("/foo", base))
-        self.assertEqual("/foo/bar/bim", rosinstall.config.normabspath('bim', base))
-        self.assertEqual("/foo", rosinstall.config.normabspath('..', base))
+        self.assertEqual("/foo/bar", rosinstall.common.normabspath('.', base))
+        self.assertEqual("/foo/bar", rosinstall.common.normabspath('foo/..', base))
+        self.assertEqual("/foo/bar", rosinstall.common.normabspath(base, base))
+        self.assertEqual("/foo", rosinstall.common.normabspath("/foo", base))
+        self.assertEqual("/foo/bar/bim", rosinstall.common.normabspath('bim', base))
+        self.assertEqual("/foo", rosinstall.common.normabspath('..', base))
 
+    
+    def test_conditional_abspath(self):
+        path = "foo"
+        self.assertEqual(os.path.normpath(os.path.join(os.getcwd(), path)), rosinstall.common.conditional_abspath(path))
+        path = "http://someuri.com"
+        self.assertEqual("http://someuri.com", rosinstall.common.conditional_abspath(path))

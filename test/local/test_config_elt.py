@@ -37,10 +37,10 @@ import stat
 import struct
 import sys
 import unittest
-import urllib2
+
 
 import rosinstall.config
-from rosinstall.config import MultiProjectException
+from rosinstall.common import MultiProjectException
 
 class MockVcsClient():
 
@@ -87,38 +87,7 @@ class MockVcsClient():
     def get_url(self):
         return self.mockurl
     
-class YamlIO_Test(unittest.TestCase):
-
-    def test_get_yaml_from_uri_from_file(self):
-        file = os.path.join("test", "example.yaml")
-        y = rosinstall.config.get_yaml_from_uri(file)
-        
-        self.assertTrue("text" in y)
-        self.assertTrue(y["text"] == "foobar")
-
-        self.assertTrue("number" in y)
-        self.assertTrue(y["number"] == 2)
-        # invalid
-        try:
-            yaml = rosinstall.config.get_yaml_from_uri(os.path.join("test", "example-broken.yaml"))
-        except MultiProjectException:
-            pass
-
-        
-    def test_get_yaml_from_uri_from_missing_file(self):
-        file = "/asdfasdfasdfasfasdf_does_not_exist"
-        try:
-            rosinstall.config.get_yaml_from_uri(file)
-            self.fail("Expected exception")
-        except MultiProjectException:
-            pass
-
-#TODO Fix this
-#    def test_get_yaml_from_uri_from_non_yaml_file(self):
-#        file = os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "Makefile")
-#        y = rosinstall.config.get_yaml_from_uri(file)
-#        self.assertEqual(y, None)
-
+ 
 class ConfigElements_Test(unittest.TestCase):
 
     def test_simple_config_element_API(self):

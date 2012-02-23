@@ -31,33 +31,18 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import urlparse
-import urllib2
-import yaml
-import subprocess
-import sys
 
 class ROSInstallException(Exception): pass
 
-__ROSINSTALL_FILENAME=".rosinstall"
+__ROSINSTALL_FILENAME = ".rosinstall"
 
-def conditional_abspath(uri):
-  """
-  @param uri: The uri to check
-  @return: abspath(uri) if local path otherwise pass through uri
-  """
-  u = urlparse.urlparse(uri)
-  if u.scheme == '': # maybe it's a local file?
-    return os.path.abspath(uri)
-  else:
-    return uri
 
 def is_path_stack(path):
   """
   
   @return: True if the path provided is the root of a stack.
   """
-  stack_path = os.path.join(path,'stack.xml')
+  stack_path = os.path.join(path, 'stack.xml')
   if os.path.isfile(stack_path):
     return True
   return False
@@ -70,7 +55,7 @@ def is_path_ros(path):
   @return: True if path points to the ROS stack
   @rtype: bool
   """
-  stack_path = os.path.join(path,'stack.xml')
+  stack_path = os.path.join(path, 'stack.xml')
   if os.path.isfile(stack_path):
     return 'ros' == os.path.basename(path)
   return False
