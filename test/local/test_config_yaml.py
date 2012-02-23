@@ -67,6 +67,27 @@ class ConfigElementYamlFunctions_Test(unittest.TestCase):
         struct = [PathSpec("../opt/poo", 'hg', uri, version)]
         rewrite_included_source(struct, "foo/bar")
         self.assertEqual([PathSpec("foo/opt/poo")], struct)
+
+    def test_rewrite_included_source_setupfile(self):
+        base_path = '/foo/bar'
+        version = 'common_rosdeps-1.0.2'
+        uri = 'https://kforge.ros.org/common/rosdepcore'
+        # same simple
+        struct = [PathSpec('local', tags='setup-file')]
+        rewrite_included_source(struct, "/foo/bar")
+        self.assertEqual(PathSpec(os.path.join(base_path, "local"), tags='setup-file'), struct[0])
+        # absolute path
+        struct = [PathSpec("/opt/poo", tags='setup-file')]
+        rewrite_included_source(struct, "/foo/bar")
+        self.assertEqual([PathSpec("/opt/poo", tags='setup-file')], struct)
+        # absolute path, relative basepath
+        struct = [PathSpec("/opt/poo", tags='setup-file')]
+        rewrite_included_source(struct, "foo/bar")
+        self.assertEqual([PathSpec("/opt/poo", tags='setup-file')], struct)
+        # relative base path
+        struct = [PathSpec("../opt/poo", tags='setup-file')]
+        rewrite_included_source(struct, "foo/bar")
+        self.assertEqual([PathSpec("foo/opt/poo", tags='setup-file')], struct)
         
    
         
