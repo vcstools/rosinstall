@@ -155,12 +155,19 @@ class ConfigSimple_Test(unittest.TestCase):
         self.assertEqual('install/path/foo', config.get_config_elements()[0].get_path())
 
     def test_config_simple1_with_setupfile(self):
-        mock1 = PathSpec('foo')
         mock1 = PathSpec('setup.sh', tags='setup-file')
         config = self._get_mock_config([mock1])
         self.assertEqual(1, len(config.get_config_elements()))
-        self.assertEqual('foo', config.get_config_elements()[0].get_local_name())
-        self.assertEqual('install/path/foo', config.get_config_elements()[0].get_path())
+        self.assertEqual('setup.sh', config.get_config_elements()[0].get_local_name())
+        self.assertEqual('install/path/setup.sh', config.get_config_elements()[0].get_path())
+
+        mock1 = PathSpec('/foo')
+        mock2 = PathSpec('/opt/setup.sh', tags='setup-file')
+        mock3 = PathSpec('/bar')
+        config = self._get_mock_config([mock1, mock2, mock3])
+        self.assertEqual(3, len(config.get_config_elements()))
+        self.assertEqual('/opt/setup.sh', config.get_config_elements()[1].get_local_name())
+        self.assertEqual('/opt/setup.sh', config.get_config_elements()[1].get_path())
 
         
     def test_config_simple2(self):
