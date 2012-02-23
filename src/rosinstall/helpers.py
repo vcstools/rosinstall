@@ -39,6 +39,8 @@ import sys
 
 class ROSInstallException(Exception): pass
 
+__ROSINSTALL_FILENAME=".rosinstall"
+
 def conditional_abspath(uri):
   """
   @param uri: The uri to check

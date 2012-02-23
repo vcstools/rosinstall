@@ -24,9 +24,9 @@ import yaml
 import pkg_resources
 
 import rosinstall.helpers
-from rosinstall.helpers import ROSInstallException
+from rosinstall.helpers import ROSInstallException, __ROSINSTALL_FILENAME
 import rosinstall.config
-from rosinstall.config import Config, MultiProjectException, SetupConfigElement
+from rosinstall.config import Config, MultiProjectException
 import rosinstall.setupfiles
 from rosinstall.setupfiles import generate_setup
 
@@ -35,8 +35,6 @@ from vcstools import VcsClient
 
 __REPOTYPES__ = ['svn', 'bzr', 'hg', 'git']
 __ALLTYPES__ = __REPOTYPES__ + ['other', 'setupfile']
-
-__ROSINSTALL_FILENAME=".rosinstall"
 
 
 

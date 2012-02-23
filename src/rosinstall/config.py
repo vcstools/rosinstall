@@ -35,11 +35,13 @@ def get_yaml_from_uri(uri):
   return y
 
 def get_backup_path():
+    """Interactive function asking the user to choose a path for backup"""
     backup_path = raw_input("Please enter backup pathname: ")
     print("backing up to %s"%backup_path)
     return backup_path
 
 def prompt_del_abort_retry(prompt, allow_skip = False):
+    """Interactive function asking the user to choose a conflict resolution"""
     if allow_skip:
         valid_modes = ['(d)elete', '(a)bort', '(b)ackup', '(s)kip']
     else:
@@ -86,9 +88,9 @@ class ConfigElement:
   def is_vcs_element(self):
     # subclasses to override when appropriate
     return False
-  def get_diff(self, basepath=None):
+  def get_diff(self, basepath = None):
     raise NotImplementedError, "ConfigElement get_diff unimplemented"
-  def get_status(self, basepath=None, untracked=False):
+  def get_status(self, basepath = None, untracked = False):
     raise NotImplementedError, "ConfigElement get_status unimplemented"
   def backup(self, backup_path):
     if not backup_path:
@@ -108,22 +110,44 @@ class OtherConfigElement(ConfigElement):
     return [{"other": {"local-name": self.path} }]
   
 class VCSConfigElement(ConfigElement):
-  def __init__(self, path, local_name, uri, version=''):
+  
+  def __init__(self, path, vcs_client, local_name, uri, version=''):
+    """
+    Creates a config element for a VCS repository.
+    :param path: absolute or relative path, str
+    :param vcs_client: Object compatible with vcstools.VcsClientBase
+    :param local_name: display name for the element, str
+    :param uri: VCS uri to checkout/pull from, str
+    :param version: optional revision spec (tagname, SHAID, ..., str)
+    """
     ConfigElement.__init__(self, path, local_name)
-    if uri == None:
+    if path is None:
+      raise MultiProjectException("Invalid empty path")
+    if uri is None:
       raise MultiProjectException("Invalid scm entry having no uri attribute for path %s"%path)
     self.uri = uri.rstrip('/') # strip trailing slashes if defined to not be too strict #3061
     self.version = version
+    if vcs_client is None:
+      raise MultiProjectException("Vcs Config element can only be constructed by providing a VCS client instance")
+    self.vcsc = vcs_client
 
   def is_vcs_element(self):
     return True
     
-  def install(self,  backup_path = None,arg_mode = 'abort', robust=False):
-    mode = arg_mode
-    print("Installing %s %s to %s"%(self.uri, self.version, self.path))
+  def install(self, backup_path = None, arg_mode = 'abort', robust = False):
+    """
+    Attempt to make it so that self.path is the result of checking out / updating from remote repo
+    :param arg_mode: one of prompt, backup, delete, skip. Determins how to handle error cases
+    :param backup_path: if arg_mode==backup, determines where to backup to
+    :param robust: if true, operation will be aborted without changes to the filesystem and without user interaction
+    """
+    print("Installing %s (%s) to %s"%(self.uri, self.version, self.path))
 
-    # Directory exists see what we need to do
-    if self.vcsc.path_exists():
+    if not self.vcsc.path_exists():
+      if not self.vcsc.checkout(self.uri, self.version):
+        raise MultiProjectException("Checkout of %s version %s into %s failed."%(self.uri, self.version, self.path))
+    else:
+      # Directory exists see what we need to do
       error_message = None
       if not self.vcsc.detect_presence():
         error_message = "Failed to detect %s presence at %s."%(self.vcsc.get_vcs_type_name(), self.path)
@@ -134,12 +158,18 @@ class VCSConfigElement(ConfigElement):
       if robust and error_message:
           raise MultiProjectException(error_message)
 
-      # prompt the user based on the error code
-      if error_message:
+      if error_message is None:
+        if not self.vcsc.update(self.version):
+          raise MultiProjectException("Update Failed of %s"%self.path)
+      else:
+        # prompt the user based on the error code
         if arg_mode == 'prompt':
-            mode = prompt_del_abort_retry(error_message, allow_skip = True)
-            if mode == 'backup': # you can only backup if in prompt mode
-              backup_path = get_backup_path()
+          mode = prompt_del_abort_retry(error_message, allow_skip = True)
+          if mode == 'backup': # you can only backup if in prompt mode
+            backup_path = get_backup_path()
+        else:
+          mode = arg_mode
+          
         if mode == 'abort':
           raise MultiProjectException(error_message)
         elif mode == 'backup':
@@ -149,24 +179,18 @@ class VCSConfigElement(ConfigElement):
         elif mode == 'skip':
           return
       
-    # If the directory does not exist checkout
-    if not self.vcsc.path_exists():
-      if not self.vcsc.checkout(self.uri, self.version):
-        raise MultiProjectException("Checkout of %s version %s into %s failed."%(self.uri, self.version, self.path))
-      else:
-        return
-    else: # otherwise update
-      if not self.vcsc.update(self.version):
-          raise MultiProjectException("Update Failed of %s"%self.path)
-      else:
-          return 
-    return
+        # If the directory now does not exist checkout
+        if self.vcsc.path_exists():
+          raise MultiProjectException("Bug: directory %s should not exist anymore"%(self.path))
+        else:
+          if not self.vcsc.checkout(self.uri, self.version):
+            raise MultiProjectException("Checkout of %s version %s into %s failed."%(self.uri, self.version, self.path))
   
   def get_yaml(self):
     "yaml as from source"
     result = {self.vcsc.get_vcs_type_name(): {"local-name": self.path, "uri": self.uri} }
     if self.version != None and self.version != '':
-      result[self.vcsc.get_vcs_type_name()]["version"]=self.version
+      result[self.vcsc.get_vcs_type_name()]["version"] = self.version
     return [result]
 
   def get_versioned_yaml(self):
@@ -185,15 +209,16 @@ class VCSConfigElement(ConfigElement):
 
   
 class AVCSConfigElement(VCSConfigElement):
-  
-  def __init__(self, type, path, local_name, uri, version = ''):
-    VCSConfigElement.__init__(self, path, local_name, uri, version)
-    self.type = type
-    self.vcsc = VcsClient(self.type, self.path)
-
+  """
+  Implementation using vcstools vcsclient, works for types svn, git, hg, bzr, tar
+  :raises: Lookup Exception for unknown types
+  """
+  def __init__(self, vtype, path, local_name, uri, version = ''):
+    VCSConfigElement.__init__(self, path, VcsClient(vtype, path), local_name, uri, version)
 
     
 class SetupConfigElement(ConfigElement):
+  """A setup config element specifies a single file containing configuration data for a config."""
   def install(self, backup_path, mode, robust=False):
     return True
 
@@ -206,19 +231,32 @@ class SetupConfigElement(ConfigElement):
 
   
 class Config:
-  def __init__(self, yaml_source, install_path, config_filename):
-    if yaml_source is None:
-      raise MultiProjectException("Passes empty source to create config")
-    self.source_uri = install_path #TODO Hack so I don't have to fix the usages of this remove!!!
-    self.source = yaml_source
+  """
+  A config is a set of config elements, each of which defines a folder or file
+  and possibly a VCS from which to update the folder.
+  """
+  
+  def __init__(self, config_source_dicts, install_path, config_filename):
+    """
+    :param config_source_dict: A list (e.g. from yaml) describing the config, list of dict, each dict describing one element.
+    :param config_filename: When given a folder, Config
+    will look in folder for file of that name for more config source, str.
+    """
+    if config_source_dicts is None:
+      raise MultiProjectException("Passed empty source to create config")
+    self.source = config_source_dicts
     self.trees = [ ]
     self.base_path = install_path
     self.config_filename = config_filename
-    self._load_yaml(self.source)
+    self._load_config_dicts(self.source)
 
 
-  def _load_yaml(self, yaml):
-    for tree_elt in yaml:
+  def _load_config_dicts(self, config_dicts):
+    """
+    goes through config_dicts and builds up self.trees. validates inputs
+    and deals with duplicates. May recursively pull elements from remote sources.
+    """
+    for tree_elt in config_dicts:
       for key, values in tree_elt.iteritems():
 
         # Check that local_name exists and record it
@@ -267,16 +305,18 @@ class Config:
           except LookupError as ex:
             raise MultiProjectException("Abstracted VCS Config failed. Exception: %s" % ex)
 
+          
   def get_base_path(self):
     return self.base_path
 
+  
   def write_version_locked_source(self, filename):
     source_aggregate = []
     for t in self.trees:
       source_aggregate.extend(t.get_versioned_yaml())
-
     with open(filename, 'w') as fh:
       fh.write(yaml.safe_dump(source_aggregate))
+
       
   def write_source(self, filename, header = None):
     """
@@ -289,7 +329,8 @@ class Config:
       f.write(header)
     f.write(yaml.safe_dump(self.source))
     f.close()
-    
+
+
   def execute_install(self, backup_path, mode, robust = False):
     success = True
     if not os.path.exists(self.base_path):
@@ -310,11 +351,8 @@ class Config:
     # TODO go back and make sure that everything in options.path is described
     # in the yaml, and offer to delete otherwise? not sure, but it could go here
 
+  
   def get_config_elements(self):
     """ Return all config elements """
     return copy.copy(self.trees)
 
-
-
-    
-  

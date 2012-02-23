@@ -102,7 +102,7 @@ unset _ROS_PACKAGE_PATH_ROSINTALL
   text += "export ROS_WORKSPACE=%s\n" % config.get_base_path()
   return text
 
-def generate_setup_bash_text(config, shell):
+def generate_setup_bash_text(shell):
   if shell == 'bash':
     script_path = """
 SCRIPT_PATH="${BASH_SOURCE[0]}";
@@ -158,7 +158,7 @@ def generate_setup(config):
   # simplest case first
   ros_root = helpers.get_ros_stack_path(config)
   if not ros_root:
-    raise ROSInstallException("No 'ros' stack detected.  The 'ros' stack is required in all rosinstall directories. Please add a definition of the 'ros' stack either manually in %s and then call 'rosinstall .' in the directory. Or add one on the command line 'rosinstall . http://www.ros.org/rosinstalls/boxturtle_ros.rosinstall'. Or reference an existing install like in /opt/ros/boxturtle with 'rosinstall . /opt/ros/boxturtle'.  Note: the above suggestions assume you are using boxturtle, if you are using latest or another distro please change the urls."%__ROSINSTALL_FILENAME )
+    raise ROSInstallException("No 'ros' stack detected in %s.  The 'ros' stack is required in all rosinstall directories. Please add a definition of the 'ros' stack either manually in %s and then call 'rosinstall .' in the directory. Or add one on the command line 'rosinstall . http://www.ros.org/rosinstalls/boxturtle_ros.rosinstall'. Or reference an existing install like in /opt/ros/boxturtle with 'rosinstall . /opt/ros/boxturtle'.  Note: the above suggestions assume you are using boxturtle, if you are using latest or another distro please change the urls."%(config, __ROSINSTALL_FILENAME) )
   rpp = ':'.join(helpers.get_ros_package_path(config))
   
   text = generate_setup_sh_text(config, ros_root, rpp)
@@ -168,7 +168,7 @@ def generate_setup(config):
 
   for shell in ['bash', 'zsh']:
 
-    text = generate_setup_bash_text(config, shell)
+    text = generate_setup_bash_text(shell)
     setup_path = os.path.join(config.get_base_path(), 'setup.%s'%shell)
     with open(setup_path, 'w') as f:
       f.write(text)
