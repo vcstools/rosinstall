@@ -51,6 +51,7 @@ class Config:
     :param merge_strategy: how to deal with entries with equivalent path. See _append_element
     will look in folder for file of that name for more config source, str.
     """
+    assert install_path is not None
     if path_specs is None:
       raise MultiProjectException("Passed empty source to create config")
     self.trees = []
@@ -88,8 +89,9 @@ class Config:
           if os.path.isfile(local_path):
             config_file_uri = local_path
           elif os.path.isdir(local_path):
-            config_file_uri = os.path.join(local_path, self.config_filename)
-          
+            # unless filename feature is disabled
+            if self.config_filename is not None:
+              config_file_uri = os.path.join(local_path, self.config_filename)
           if os.path.exists(config_file_uri):
             child_config = Config(get_path_specs_from_uri(config_file_uri), config_file_uri)
             for child_t in child_config.get_config_elements():
