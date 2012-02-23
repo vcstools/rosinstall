@@ -40,6 +40,8 @@ import unittest
 
 import rosinstall.helpers
 from rosinstall.helpers import ROSInstallException
+from rosinstall.config import Config
+from rosinstall.config_yaml import PathSpec
 
 class FunctionsTest(unittest.TestCase):
 
@@ -60,3 +62,37 @@ class FunctionsTest(unittest.TestCase):
         self.assertFalse(rosinstall.helpers.is_path_ros(os.path.join("test", "example_dirs", "ros_comm")))
         self.assertFalse(rosinstall.helpers.is_path_ros((os.path.join("test", "example_dirs", "roscpp"))))
 
+    def test_get_ros_stack_path(self):
+        config = Config([PathSpec("foo"),
+                         PathSpec(os.path.join("test", "example_dirs", "ros_comm")),
+                         PathSpec(os.path.join("test", "example_dirs", "roscpp")),
+                         PathSpec("bar")],
+                        ".",
+                        None)
+        self.assertEqual(None, rosinstall.helpers.get_ros_stack_path(config))
+        config = Config([PathSpec("foo"),
+                         PathSpec(os.path.join("test", "example_dirs", "ros_comm")),
+                         PathSpec(os.path.join("test", "example_dirs", "ros")),
+                         PathSpec(os.path.join("test", "example_dirs", "roscpp")),
+                         PathSpec("bar")],
+                        ".",
+                        None)
+        self.assertEqual("test/example_dirs/ros", rosinstall.helpers.get_ros_stack_path(config))
+
+    def test_get_ros_package_path(self):
+        config = Config([],
+                        "test/example_dirs",
+                        None)
+        self.assertEqual([], rosinstall.helpers.get_ros_package_path(config))
+        config = Config([PathSpec("foo")],
+                        "test/example_dirs",
+                        None)
+        self.assertEqual(['test/example_dirs/foo'], rosinstall.helpers.get_ros_package_path(config))
+        config = Config([PathSpec("foo"),
+                         PathSpec(os.path.join("test", "example_dirs", "ros_comm")),
+                         PathSpec(os.path.join("test", "example_dirs", "ros")),
+                         PathSpec(os.path.join("test", "example_dirs", "roscpp")),
+                         PathSpec("bar")],
+                        "test/example_dirs",
+                        None)
+        self.assertEqual(['test/example_dirs/bar', 'test/example_dirs/test/example_dirs/roscpp', 'test/example_dirs/test/example_dirs/ros', 'test/example_dirs/test/example_dirs/ros_comm', 'test/example_dirs/foo'], rosinstall.helpers.get_ros_package_path(config))

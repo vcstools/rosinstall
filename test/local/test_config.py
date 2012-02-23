@@ -40,7 +40,7 @@ import unittest
 import urllib2
 
 import rosinstall.config
-from rosinstall.config import MultiProjectException
+from rosinstall.config import MultiProjectException, Config
 from rosinstall.config_yaml import PathSpec
 
 class MockVcsClient():
@@ -107,12 +107,12 @@ class ConfigMock_Test(unittest.TestCase):
         yaml = []
         install_path = 'install/path'
         config_filename = '.filename'
-        config = rosinstall.config.Config(yaml, install_path, config_filename)
+        config = Config(yaml, install_path, config_filename)
         try:
             config._create_vcs_config_element('mock', None, None, None)
             fail("expected Exception")
         except MultiProjectException: pass
-        config = rosinstall.config.Config(yaml, install_path, config_filename, {"mock": MockVcsConfigElement})
+        config = Config(yaml, install_path, config_filename, {"mock": MockVcsConfigElement})
         self.assertTrue(config._create_vcs_config_element('mock', None, None, None))
 
 
@@ -121,21 +121,28 @@ class ConfigSimple_Test(unittest.TestCase):
 
     def _get_mock_config(self, yaml, install_path = 'install/path'):
         config_filename = '.filename'
-        return rosinstall.config.Config(yaml, install_path, config_filename, {"mock": MockVcsConfigElement})
+        return Config(yaml, install_path, config_filename, {"mock": MockVcsConfigElement})
     
     def test_init(self):
         try:
-            config = rosinstall.config.Config(None, "path", None)
+            Config(None, "path", None)
             self.fail("expected Exception")
         except MultiProjectException: pass
         try:
-            config = rosinstall.config.Config([PathSpec('foo', 'bar')], "path", None)
+            Config([PathSpec('foo', 'bar')], "path", None)
             self.fail("expected Exception")
         except MultiProjectException: pass
+        Config([PathSpec("foo"),
+                PathSpec(os.path.join("test", "example_dirs", "ros_comm")),
+                PathSpec(os.path.join("test", "example_dirs", "ros")),
+                PathSpec(os.path.join("test", "example_dirs", "roscpp")),
+                PathSpec("bar")],
+               ".",
+               None)
         yaml = []
         install_path = 'install/path'
         config_filename = '.filename'
-        config = rosinstall.config.Config(yaml, install_path, config_filename)
+        config = Config(yaml, install_path, config_filename)
         self.assertEqual(install_path, config.get_base_path())
         self.assertEqual([], config.get_config_elements())
         self.assertEqual([], config.get_version_locked_source())
@@ -144,16 +151,28 @@ class ConfigSimple_Test(unittest.TestCase):
         mock1 = PathSpec('foo')
         config = self._get_mock_config([mock1])
         self.assertEqual(1, len(config.get_config_elements()))
+        self.assertEqual('foo', config.get_config_elements()[0].get_local_name())
+        self.assertEqual('install/path/foo', config.get_config_elements()[0].get_path())
 
         
     def test_config_simple2(self):
         git1 = PathSpec('foo', 'git', 'git/uri')
         svn1 = PathSpec('foos', 'svn', 'svn/uri')
-        bzr1 = PathSpec('foob', 'bzr', 'bzr/uri')
         hg1 = PathSpec('fooh', 'hg', 'hg/uri')
+        bzr1 = PathSpec('foob', 'bzr', 'bzr/uri')
         config = self._get_mock_config([git1, svn1, hg1, bzr1])
         self.assertEqual(4, len(config.get_config_elements()))
         self.assertEqual(4, len(config.get_version_locked_source()))
+        self.assertEqual('foo', config.get_config_elements()[0].get_local_name())
+        self.assertEqual('install/path/foo', config.get_config_elements()[0].get_path())
+        self.assertEqual('git', config.get_source()[0].get_scmtype())
+        self.assertEqual('git/uri', config.get_source()[0].get_uri())
+        self.assertEqual('svn', config.get_source()[1].get_scmtype())
+        self.assertEqual('svn/uri', config.get_source()[1].get_uri())
+        self.assertEqual('hg', config.get_source()[2].get_scmtype())
+        self.assertEqual('hg/uri', config.get_source()[2].get_uri())
+        self.assertEqual('bzr', config.get_source()[3].get_scmtype())
+        self.assertEqual('bzr/uri', config.get_source()[3].get_uri())
 
 
     def test_config_simple3(self):
@@ -166,21 +185,27 @@ class ConfigSimple_Test(unittest.TestCase):
         self.assertEqual(4, len(config.get_version_locked_source()))
 
     def test_absolute_localname(self):
-        mock1 = PathSpec('foo/bim')
+        mock1 = PathSpec('/foo/bim')
         config = self._get_mock_config([mock1], install_path = '/foo/bar/ba/ra/baz/bam')
         self.assertEqual(1, len(config.get_config_elements()))
+        self.assertEqual('/foo/bim', config.get_config_elements()[0].get_local_name())
+        self.assertEqual('/foo/bim', config.get_config_elements()[0].get_path())
         
     def test_unnormalized_localname(self):
         "Should source normalize local-name"
         mock1 = PathSpec('foo/bar/..')
         config = self._get_mock_config([mock1])
         self.assertEqual(1, len(config.get_config_elements()))
+        self.assertEqual('foo/bar/..', config.get_config_elements()[0].get_local_name())
+        self.assertEqual('install/path/foo', config.get_config_elements()[0].get_path())
        
     def test_long_localname(self):
         "Should source choose shorter local-name"
         mock1 = PathSpec("/foo/bar/boo/far/bim")
         config = self._get_mock_config([mock1], '/foo/bar/boo/far')
         self.assertEqual(1, len(config.get_config_elements()))
+        self.assertEqual('/foo/bar/boo/far/bim', config.get_config_elements()[0].get_local_name())
+        self.assertEqual('/foo/bar/boo/far/bim', config.get_config_elements()[0].get_path())
       
     def test_double_entry(self):
         "Should source be rewritten without duplicates"
@@ -197,14 +222,14 @@ class ConfigSimple_Test(unittest.TestCase):
         self.assertEqual(1, len(config.get_config_elements()))
 
     def test_double_localname(self):
-        "Should fail as entries have same local name"
+        "Entries have same local name"
         mock1 = PathSpec('foo', 'git', 'git/uri')
         mock2 = PathSpec('foo', 'hg', 'hg/uri')
         config = self._get_mock_config([mock1, mock2])
         self.assertEqual(1, len(config.get_config_elements()))
 
     def test_equivalent_localname(self):
-        "Should fail as entries have equivalent local name"
+        "Entries have equivalent local name"
         mock1 = PathSpec('foo', 'git', 'git/uri')
         mock2 = PathSpec('./foo/bar/..', 'hg', 'hg/uri')
         config = self._get_mock_config([mock1, mock2])
