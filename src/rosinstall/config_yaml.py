@@ -228,3 +228,11 @@ def get_path_spec_from_yaml(yaml_dict):
                    uri = uri,
                    version = version,
                    tags = tags)
+
+def generate_config_yaml(config, filename, header):
+  if not os.path.exists(config.get_base_path()):
+    os.makedirs(config.get_base_path())
+  with open(os.path.join(config.get_base_path(), filename), 'w+b') as f:
+    if header is not None:
+      f.write(header)
+    f.write(yaml.safe_dump([x.get_legacy_yaml() for x in config.get_source()]))

@@ -17,74 +17,21 @@ subsequent update:  rosinstall ~/ros
 """
 from __future__ import print_function
 import os
-import subprocess
+
 import sys
 from optparse import OptionParser
 import yaml
-import pkg_resources
 
-import rosinstall.helpers
+import rosinstall.rosinstall_cmd
+import rosinstall.multiproject_cmd
+
 from rosinstall.helpers import ROSInstallException, __ROSINSTALL_FILENAME
 from rosinstall.common import MultiProjectException
 import rosinstall.config
-from rosinstall.config import Config
-from rosinstall.config_yaml import aggregate_from_uris
-import rosinstall.setupfiles
-
-import vcstools
-from vcstools import VcsClient
-
-
 
 def usage():
   print(__doc__ % vars())
   exit(1)
-
-
-def get_diffs(config, path):
-  """calls SCM diff for all SCM entries in config, relative to path"""
-  result=[]
-
-  for element in config.get_config_elements():
-    if element.is_vcs_element():
-      result.append({'entry':element, 'diff':element.get_diff(path)})
-  return result
-
-
-def get_statuses(config, path, untracked = False):
-  """calls SCM status for all SCM entries in config, relative to path"""
-  result=[]
-  for element in config.get_config_elements():
-    path_spec = element.get_path_spec()
-    if element.is_vcs_element():
-      scmtype = path_spec.get_scmtype()
-      status = element.get_status(path, untracked)
-      # align other scm output to svn
-      columns = -1
-      if scmtype == "git":
-        columns = 3
-      elif scmtype == "hg":
-        columns = 2
-      elif scmtype == "bzr":
-        columns = 4
-      if columns > -1 and status != None:
-        status_aligned = ''
-        for line in status.splitlines():
-          status_aligned = status_aligned + line[:columns].ljust(8) + line[columns:] + '\n'
-        status = status_aligned
-      result.append({'entry':element, 'status':status})
-  return result
-
-def ros_requires_boostrap(config):
-  """Whether we might need to bootstrap ros"""
-  rp = None
-  for entry in config.get_source():
-    if rosinstall.helpers.is_path_ros(entry.get_path()):
-      # we assume that if any of the elements we installed came
-      # from a VCS source, a bootsrap might be useful
-      if entry.get_scmtype() is not None:
-        return True
-  return False
 
 def rosinstall_main(argv):
   if len(argv) < 2:
@@ -149,24 +96,8 @@ Later URIs will shadow packages of earlier URIs.\n",
   #  parser.error("rosinstall no longer bootstraps the build, it will not call rosmake or pass it rosdep options") 
 
   if options.version:
-    def prettyversion(vdict):
-      version = vdict.pop("version")
-      return "%s; %s"%(version, ",".join(vdict.values()) )
-    print("""rosinstall 0.5.30\n
-vcstools:  %s
-SVN:       %s
-Mercurial: %s
-Git:       %s
-Tar:       %s
-Bzr:       %s
-"""%(pkg_resources.require("vcstools")[0].version,
-     prettyversion(vcstools.SvnClient.get_environment_metadata()),
-     prettyversion(vcstools.HgClient.get_environment_metadata()),
-     prettyversion(vcstools.GitClient.get_environment_metadata()),
-     prettyversion(vcstools.TarClient.get_environment_metadata()),
-     prettyversion(vcstools.BzrClient.get_environment_metadata())))
+    print("rosinstall 0.5.30\n%s"%rosinstall.multiproject_cmd.cmd_version())
     sys.exit(0)
-
   
   if len(args) < 1:
     parser.error("rosinstall requires at least 1 argument")
@@ -192,27 +123,14 @@ Bzr:       %s
   # Get the path to the rosinstall 
   options.path = os.path.abspath(args[0])
 
-  # Find all the configuration sources
   config_uris = []
-
   # Check for existing config in path
   if os.path.exists(os.path.join(options.path, __ROSINSTALL_FILENAME)):
     config_uris.append(os.path.join(options.path, __ROSINSTALL_FILENAME))
 
-  # Add all arguments past the first one
   config_uris.extend(args[1:])
-
-  aggregate_source_yaml = aggregate_from_uris(config_uris, options.path, __ROSINSTALL_FILENAME)
-    
-  ## Could not get uri therefore error out
-  if len(config_uris) == 0:
-    parser.error("no source rosinstall file found! looked at arguments and, %s"%(
-        os.path.join(options.path, __ROSINSTALL_FILENAME)))
-
-  #print("source...........................", aggregate_source_yaml)
-
-  ## Generate the config class with the uri and path
-  config = Config(aggregate_source_yaml, options.path, __ROSINSTALL_FILENAME)
+  
+  config = rosinstall.multiproject_cmd.get_config(basepath = options.path, config_uris = config_uris, config_filename = __ROSINSTALL_FILENAME)
 
   if options.generate_versioned:
     filename = os.path.abspath(options.generate_versioned)
@@ -224,16 +142,15 @@ Bzr:       %s
 
   if options.vcs_diff:
     alldiff = ""
-    difflist = get_diffs(config, options.path)
+    difflist = rosinstall.multiproject_cmd.cmd_diff(config, options.path)
     for entrydiff in difflist:
       if entrydiff['diff'] != None:
         alldiff += entrydiff['diff']
     print(alldiff)
     return True
 
-  if options.vcs_status:
-    statuslist = get_statuses(config, options.path, False)
-
+  if options.vcs_status or options.vcs_status_untracked:
+    statuslist = rosinstall.multiproject_cmd.cmd_status(config, options.path, untracked = options.vcs_status_untracked)
     allstatus=""
     for entrystatus in statuslist:
       if entrystatus['status'] != None:
@@ -241,50 +158,23 @@ Bzr:       %s
     print(allstatus)
     return True
 
-  if options.vcs_status_untracked:
-    statuslist = get_statuses(config, options.path, True)
+  print("rosinstall operating on", options.path,
+        "from specifications in rosinstall files ",
+        ", ".join(config_uris))
 
-    allstatus=""
-    for entrystatus in statuslist:
-      if entrystatus['status'] != None:
-        allstatus += entrystatus['status']
-    print(allstatus)
-    return True
-
-  print("rosinstall operating on", options.path, "from specifications in rosinstall files ", ", ".join(config_uris))
-
-  ## Save .rosinstall
-  rosinstall.setupfiles.generate_config_yaml(config)
-
+  # includes ROS specific files
+  rosinstall.rosinstall_cmd.cmd_persist_config_file(config)
+  
   ## install or update each element
-  install_success = config.execute_install(options.backup_changed, mode, options.robust)
-  ## bootstrap the build if installing ros
-  if options.catkin:
-    with open(os.path.join(options.path, "CMakeLists.txt"), 'w') as cmake_file:
-      cmake_file.write(CATKIN_CMAKE_TOPLEVEL)
-
-    if options.catkinpp:
-      with open(os.path.join(options.path, "workspace-config.cmake"), 'w') as config_file:
-        config_file.write("set (CMAKE_PREFIX_PATH %s)"%options.catkinpp)
-    
-                
-  else: # DRY install case
-    ## Generate setup.sh and save
-    rosinstall.setupfiles.generate_setup(config)
-
-    if ros_requires_boostrap(config) and not options.nobuild:
-      print("Bootstrapping ROS build")
-      rosdep_yes_insert = ""
-      if options.rosdep_yes:
-        rosdep_yes_insert = " --rosdep-yes"
-      ros_comm_insert = ""
-      if 'ros_comm' in [os.path.basename(tree.path) for tree in config.trees]:
-        print("Detected ros_comm bootstrapping it too.")
-        ros_comm_insert = " ros_comm"
-      subprocess.check_call("source %s && rosmake ros%s --rosdep-install%s" % (os.path.join(options.path, 'setup.sh'), ros_comm_insert, rosdep_yes_insert), shell=True, executable='/bin/bash')
-    print("\nrosinstall update complete.\n\nNow, type 'source %s/setup.bash' to set up your environment.\nAdd that to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % options.path)
+  install_success = rosinstall.multiproject_cmd.cmd_install_or_update(config, options.backup_changed, mode, options.robust)
   
-  
+  rosinstall.rosinstall_cmd.cmd_generate_ros_files(config,
+                         options.path,
+                         options.nobuild,
+                         options.rosdep_yes,
+                         options.catkin,
+                         options.catkinpp)
+
   if not install_success:
      print("Warning: installation encountered errors, but --continue-on-error was requested.  Look above for warnings.")
   return True
