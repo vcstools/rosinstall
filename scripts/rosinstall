@@ -146,7 +146,7 @@ Later URIs will shadow packages of earlier URIs.\n",
   (options, args) = parser.parse_args(args)
 
   #if options.rosdep_yes:
-  #  pareser.error("rosinstall no longer bootstraps the build, it will not call rosmake or pass it rosdep options") 
+  #  parser.error("rosinstall no longer bootstraps the build, it will not call rosmake or pass it rosdep options") 
 
   if options.version:
     def prettyversion(vdict):

@@ -9,6 +9,9 @@ from vcstools import VcsClient
 from common import MultiProjectException
 from config_yaml import PathSpec
 
+## Each Config element provides actions on a local folder
+
+
 class ConfigElement:
   """ Base class for Config provides methods with not implemented
   exceptions.  Also a few shared methods."""
@@ -16,10 +19,10 @@ class ConfigElement:
     self.path = path
     self.local_name = local_name
   def get_path(self):
-    """where the config element is w.r.t. current dir or absolute"""
+    """A normalized absolute path"""
     return self.path
   def get_local_name(self):
-    """where the config element is w.r.t. the Config base path (or absolute)"""
+    """What the user specified in his config"""
     return self.local_name
   def install(self, backup_path, mode, robust):
     raise NotImplementedError, "ConfigElement install unimplemented"
