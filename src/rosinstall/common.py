@@ -59,6 +59,19 @@ def normabspath(localname, path):
   abs_path = os.path.realpath(os.path.join(path, localname))
   return abs_path
 
+def abspaths_overlap(abspath1, abspath2):
+  """
+  :returns: True if 2 absolute paths overlap, considering their realpath'
+  """
+  assert os.path.isabs(abspath1)
+  assert os.path.isabs(abspath2)
+  realpath1 = os.path.realpath(abspath1)
+  realpath2 = os.path.realpath(abspath2)
+  if os.path.dirname(realpath1) == os.path.dirname(realpath2):
+    return os.path.basename(realpath1) == os.path.basename(realpath2)
+  else:
+    commonprefix = os.path.commonprefix([realpath1, realpath2])
+    return commonprefix == realpath1 or commonprefix == realpath2
 
 
 ## Multithreading The following classes help with distributing work

@@ -57,3 +57,19 @@ class FunctionsTest(unittest.TestCase):
         self.assertEqual(os.path.normpath(os.path.join(os.getcwd(), path)), rosinstall.common.conditional_abspath(path))
         path = "http://someuri.com"
         self.assertEqual("http://someuri.com", rosinstall.common.conditional_abspath(path))
+
+
+    def test_abspath_overlap(self):
+        base = "/foo/bar"
+        # simple
+        self.assertTrue(rosinstall.common.abspaths_overlap("/foo", "/foo"))
+        self.assertTrue(rosinstall.common.abspaths_overlap("/", "/"))
+        # denormalized
+        self.assertTrue(rosinstall.common.abspaths_overlap("/foo/.", "/foo/bar/../"))
+        # subdir
+        self.assertTrue(rosinstall.common.abspaths_overlap("/foo", "/foo/bar/baz/bam"))
+        ## Negatives
+        # simple
+        self.assertFalse(rosinstall.common.abspaths_overlap("/foo", "/bar"))
+        self.assertFalse(rosinstall.common.abspaths_overlap("/foo", "/foo2"))
+        self.assertFalse(rosinstall.common.abspaths_overlap("/foo/bar", "/foo/ba"))
