@@ -100,12 +100,12 @@ class ConfigElements_Test(unittest.TestCase):
         other1 = rosinstall.config_elements.OtherConfigElement(path, localname)
         self.assertEqual(path, other1.get_path())
         self.assertEqual(localname, other1.get_local_name())
-        self.assertEqual([{'other': {'local-name': 'some/local/name'}}], other1.get_yaml())
+        self.assertEqual({'other': {'local-name': 'some/local/name'}}, other1.get_path_spec().get_legacy_yaml())
         self.assertFalse(other1.is_vcs_element())
         other1 = rosinstall.config_elements.SetupConfigElement(path, localname)
         self.assertEqual(path, other1.get_path())
         self.assertEqual(localname, other1.get_local_name())
-        self.assertEqual([{'setup-file': {'local-name': 'some/local/name'}}], other1.get_yaml())
+        self.assertEqual({'setup-file': {'local-name': 'some/local/name'}}, other1.get_path_spec().get_legacy_yaml())
         self.assertFalse(other1.is_vcs_element())
 
     def test_mock_vcs_config_element_init(self):
@@ -152,8 +152,8 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertTrue(vcsc.is_vcs_element())
         self.assertEqual("mockdiffNone", vcsc.get_diff())
         self.assertEqual("mockstatusNone,False", vcsc.get_status())
-        self.assertEqual([{'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri'}}], vcsc.get_yaml())
-        self.assertEqual([{'mocktype': {'local-name': 'some/local/name', 'version': 'mockversionNone', 'uri': 'some/uri', 'revision': ''}}], vcsc.get_versioned_yaml())
+        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri'}}, vcsc.get_path_spec().get_legacy_yaml())
+        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri'}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
         
         vcsc = rosinstall.config_elements.VCSConfigElement(path, MockVcsClient(), localname, uri, None)
         self.assertEqual(path, vcsc.get_path())
@@ -162,8 +162,8 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertTrue(vcsc.is_vcs_element())
         self.assertEqual("mockdiffNone", vcsc.get_diff())
         self.assertEqual("mockstatusNone,False", vcsc.get_status())
-        self.assertEqual([{'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri'}}], vcsc.get_yaml())
-        self.assertEqual([{'mocktype': {'local-name': 'some/local/name', 'version': 'mockversionNone', 'uri': 'some/uri', 'revision': ''}}], vcsc.get_versioned_yaml())
+        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri'}}, vcsc.get_path_spec().get_legacy_yaml())
+        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri'}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
 
         vcsc = rosinstall.config_elements.VCSConfigElement(path, MockVcsClient(), localname, uri, version)
         self.assertEqual(path, vcsc.get_path())
@@ -172,8 +172,8 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertTrue(vcsc.is_vcs_element())
         self.assertEqual("mockdiffNone", vcsc.get_diff())
         self.assertEqual("mockstatusNone,False", vcsc.get_status())
-        self.assertEqual([{'mocktype': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri'}}], vcsc.get_yaml())
-        self.assertEqual([{'mocktype': {'local-name': 'some/local/name', 'version': 'mockversionNone', 'uri': 'some/uri', 'revision': 'mockversionsome.version'}}], vcsc.get_versioned_yaml())
+        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri'}}, vcsc.get_path_spec().get_legacy_yaml())
+        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri', 'revision': 'mockversionsome.version'}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
 
     def test_mock_install(self):
         path = "some/path"

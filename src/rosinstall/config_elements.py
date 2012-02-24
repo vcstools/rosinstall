@@ -7,13 +7,13 @@ import vcstools
 from vcstools import VcsClient
 
 from common import MultiProjectException
+from config_yaml import PathSpec
 
 class ConfigElement:
   """ Base class for Config provides methods with not implemented
   exceptions.  Also a few shared methods."""
   def __init__(self, path, local_name):
     self.path = path
-    self.setup_file = None
     self.local_name = local_name
   def get_path(self):
     """where the config element is w.r.t. current dir or absolute"""
@@ -23,12 +23,12 @@ class ConfigElement:
     return self.local_name
   def install(self, backup_path, mode, robust):
     raise NotImplementedError, "ConfigElement install unimplemented"
-  def get_yaml(self):
-    """yaml with values as specified in file"""
-    raise NotImplementedError, "ConfigElement get_versioned_yaml unimplemented"
-  def get_versioned_yaml(self):
+  def get_path_spec(self):
+    """PathSpec object with values as specified in file"""
+    raise NotImplementedError, "ConfigElement get_path_spec unimplemented"
+  def get_versioned_path_spec(self):
     """yaml where VCS elements have the version looked up"""
-    raise NotImplementedError, "ConfigElement get_versioned_yaml unimplemented"
+    raise NotImplementedError, "ConfigElement get_versioned_path_spec unimplemented"
   def is_vcs_element(self):
     # subclasses to override when appropriate
     return False
@@ -43,7 +43,7 @@ class ConfigElement:
     print("Backing up %s to %s"%(self.path, backup_path))
     shutil.move(self.path, backup_path)
   def __str__(self):
-    return str(self.get_yaml());
+    return str(self.get_path_spec().get_legacy_yaml());
 
 
 
@@ -51,11 +51,11 @@ class OtherConfigElement(ConfigElement):
   def install(self, backup_path, mode, robust=False):
     return True
 
-  def get_versioned_yaml(self):
+  def get_versioned_path_spec(self):
     raise MultiProjectException("Cannot generate versioned outputs with non source types")
 
-  def get_yaml(self):
-    return [{"other": {"local-name": self.get_local_name()} }]
+  def get_path_spec(self):
+    return PathSpec(local_name = self.get_local_name())
 
 
 class SetupConfigElement(ConfigElement):
@@ -64,11 +64,11 @@ class SetupConfigElement(ConfigElement):
   def install(self, backup_path, mode, robust=False):
     return True
 
-  def get_versioned_yaml(self):
+  def get_versioned_path_spec(self):
     raise MultiProjectException("Cannot generate versioned outputs with non source types")
   
-  def get_yaml(self):
-    return [{"setup-file": {"local-name": self.get_local_name()} }]
+  def get_path_spec(self):
+    return PathSpec(local_name = self.get_local_name(), tags=['setup-file'])
 
 
 class VCSConfigElement(ConfigElement):
@@ -148,20 +148,29 @@ class VCSConfigElement(ConfigElement):
           if not self.vcsc.checkout(self.uri, self.version):
             raise MultiProjectException("Checkout of %s version %s into %s failed."%(self.uri, self.version, self.path))
   
-  def get_yaml(self):
+  def get_path_spec(self):
     "yaml as from source"
-    result = {self.vcsc.get_vcs_type_name(): {"local-name": self.get_local_name(), "uri": self.uri} }
-    if self.version != None and self.version != '':
-      result[self.vcsc.get_vcs_type_name()]["version"] = self.version
-    return [result]
+    version = self.version
+    if version == '': version = None
+    return PathSpec(local_name = self.get_local_name(),
+                    scmtype = self.vcsc.get_vcs_type_name(),
+                    uri = self.uri,
+                    version = version)
 
-  def get_versioned_yaml(self):
+  def get_versioned_path_spec(self):
     "yaml looking up current version"
-    result = {self.vcsc.get_vcs_type_name(): {"local-name": self.get_local_name(), "uri": self.uri, "version": self.vcsc.get_version(), "revision":""} }
-    if self.version != None and self.version.strip() != '':
+    version = self.version
+    if version == '': version = None
+    revision = None
+    if version is not None:
       # revision is where local repo should be, version where it actually is
-      result[self.vcsc.get_vcs_type_name()]["revision"] = self.vcsc.get_version(self.version)
-    return [result]
+      revision = self.vcsc.get_version(self.version)
+    return PathSpec(local_name = self.get_local_name(),
+                    scmtype = self.vcsc.get_vcs_type_name(),
+                    uri = self.uri,
+                    version = version,
+                    revision = revision)
+     
 
   def get_diff(self, basepath=None):
     return self.vcsc.get_diff(basepath)

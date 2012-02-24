@@ -1,36 +1,10 @@
 from __future__ import print_function
 import os
-import yaml
-import copy
-import urllib2
 
 import config_elements
-from common import MultiProjectException, normabspath
 from config_elements import AVCSConfigElement, OtherConfigElement, SetupConfigElement
+from common import MultiProjectException, normabspath
 
-
-def get_yaml_from_uri(uri):
-  """reads and parses yaml from a local file or remote uri"""
-  stream = 0
-  if os.path.isfile(uri):
-    try:
-      stream = open(uri, 'r')
-    except IOError as e:
-      raise MultiProjectException("error opening file [%s]: %s\n" % (uri, e))
-  else:
-    try:
-      stream = urllib2.urlopen(uri)
-    except IOError as e:
-      raise MultiProjectException("Is not a local file, nor able to download as a URL [%s]: %s\n" % (uri, e))
-    except ValueError as e:
-      raise MultiProjectException("Is not a local file, nor a valid URL [%s] : %s\n" % (uri,e))
-  if not stream:
-    raise MultiProjectException("couldn't load config uri %s\n" % uri)
-  try:
-    y = yaml.load(stream);
-  except yaml.YAMLError as e:
-    raise MultiProjectException("Invalid multiproject yaml format in [%s]: %s\n" % (uri, e))
-  return y
 
 def get_backup_path():
   """Interactive function asking the user to choose a path for backup"""
@@ -70,17 +44,18 @@ class Config:
   and possibly a VCS from which to update the folder.
   """
   
-  def __init__(self, config_source_dicts, install_path, config_filename, extended_types=None):
+  def __init__(self, path_specs, install_path, config_filename, extended_types=None, merge_strategy = 'KillAppend'):
     """
     :param config_source_dict: A list (e.g. from yaml) describing the config, list of dict, each dict describing one element.
     :param config_filename: When given a folder, Config
+    :param merge_strategy: how to deal with entries with equivalent path. See _append_element
     will look in folder for file of that name for more config source, str.
     """
-    if config_source_dicts is None:
+    if path_specs is None:
       raise MultiProjectException("Passed empty source to create config")
-    self.source = config_source_dicts
-    self.trees = [ ]
+    self.trees = []
     self.base_path = install_path
+    
     self.config_filename = config_filename
     # using a registry primarily for unit test design
     self.registry = {'svn': AVCSConfigElement,
@@ -90,67 +65,75 @@ class Config:
                      'tar': AVCSConfigElement}
     if extended_types is not None:
       self.registry = dict(list(self.registry.items()) + list(extended_types.items()))
-    self._load_config_dicts(self.source)
+    self._load_config_dicts(path_specs, merge_strategy)
 
   def __str__(self):
     return str([str(x) for x in self.trees])
 
-  def _load_config_dicts(self, config_dicts):
+  def _load_config_dicts(self, path_specs, merge_strategy = 'KillAppend'):
     """
     goes through config_dicts and builds up self.trees. Validates inputs individually.
     May recursively pull elements from remote sources.
     """
-    for tree_elt in config_dicts:
-      for key, values in tree_elt.iteritems():
+    for path_spec in path_specs:
+      #compute the local_path for the config element
+      local_path = normabspath(path_spec.get_path(), self.base_path)
 
-        # Check that local_name exists and record it
-        if not 'local-name' in values or values['local-name'] is None or values['local-name'].strip() == '':
-          raise MultiProjectException("local-name is required on all config elements")
+      if path_spec.get_scmtype() == None:
+        if path_spec.get_tags() is not None and 'setup-file' in path_spec.get_tags():
+          elem = SetupConfigElement(local_path)
+          self._append_element(elem)
         else:
-          local_name = values['local-name']
-
-        # Get the version and source_uri elements
-        source_uri = values.get('uri', None)
-        version = values.get('version', '')
-        
-        #compute the local_path for the config element
-        local_path = normabspath(local_name, self.base_path)
-
-        if key == 'other':
-          config_file_uri = '' # does not exist
+          config_file_uri = '' # os.path.exists == False, later
           if os.path.isfile(local_path):
             config_file_uri = local_path
           elif os.path.isdir(local_path):
             config_file_uri = os.path.join(local_path, self.config_filename)
-            
+          
           if os.path.exists(config_file_uri):
-            child_config = Config(get_yaml_from_uri(config_file_uri), config_file_uri)
+            child_config = Config(get_path_specs_from_uri(config_file_uri), config_file_uri)
             for child_t in child_config.get_config_elements():
               full_child_path = os.path.join(local_path, child_t.get_path())
               child_local_name = full_child_path
               elem = OtherConfigElement(full_child_path, child_local_name)              
-              if child_t.setup_file: # Inherit setup_file key from children
-                elem.setup_file = child_t.setup_file
               self._append_element(elem)
           else:
+            local_name = path_spec.get_path()
             elem = OtherConfigElement(local_path, local_name)
-            if 'setup-file' in values:
-              elem.setup_file = values['setup-file']
             self._append_element(elem)
-        elif key == 'setup-file':
-          elem = SetupConfigElement(local_path)
+      else:
+        # Get the version and source_uri elements
+        source_uri = path_spec.get_uri()
+        version = path_spec.get_version()
+        try:
+          local_name = path_spec.get_path()
+          elem = self._create_vcs_config_element(path_spec.get_scmtype(),
+                                                 local_path,
+                                                 local_name,
+                                                 source_uri,
+                                                 version)
           self._append_element(elem)
+        except LookupError as ex:
+          raise MultiProjectException("Abstracted VCS Config failed. Exception: %s" % ex)
+
+
+  def _append_element(self, new_config_elt, merge_strategy = 'KillAppend'):
+    """Add element to self.trees, checking for duplicate local-name fist.
+    In that case, follow given strategy:
+    KillAppend (default): remove old element, append new at the end
+    Replace: remove first such old element, insert new at that position."""
+    removals = []
+    for index, loop_elt in enumerate (self.trees):
+      if loop_elt.get_path() == new_config_elt.get_path():
+        if merge_strategy == 'KillAppend':
+          removals.append(loop_elt)
+        elif merge_strategy == 'Replace':
+          self.trees[index] = new_config_elt
+          return True
         else:
-          try:
-            elem = self._create_vcs_config_element(key, local_path, local_name, source_uri, version)
-            if 'setup-file' in values:
-              elem.setup_file = values['setup-file']
-            self._append_element(elem)
-          except LookupError as ex:
-            raise MultiProjectException("Abstracted VCS Config failed. Exception: %s" % ex)
-
-
-  def _append_element(self, new_config_elt):
+          raise LookupError("No such merge strategy: %s"%str(merge_strategy))
+    for loop_elt in removals:
+      self.trees.remove(loop_elt)
     self.trees.append(new_config_elt)
     return True
 
@@ -168,13 +151,15 @@ class Config:
   def get_version_locked_source(self):
     source_aggregate = []
     for t in self.trees:
-      source_aggregate.extend(t.get_versioned_yaml())
+      source_aggregate.append(t.get_versioned_path_spec())
     return source_aggregate
 
 
   def get_source(self):
-    return self.source
-  
+    source_aggregate = []
+    for t in self.trees:
+      source_aggregate.append(t.get_path_spec())
+    return source_aggregate  
 
   def execute_install(self, backup_path, mode, robust = False):
     success = True
@@ -198,6 +183,8 @@ class Config:
 
   
   def get_config_elements(self):
-    """ Return all config elements """
-    return copy.copy(self.trees)
+    source_aggregate = []
+    for t in self.trees:
+      source_aggregate.append(t)
+    return source_aggregate
 

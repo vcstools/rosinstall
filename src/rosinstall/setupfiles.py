@@ -50,11 +50,6 @@ def generate_setup_sh_text(config, ros_root, ros_package_path):
 """
   distro_unset = False
   for t in config.get_config_elements():
-    if t.setup_file:
-      if not distro_unset:
-        text += "unset ROS_DISTRO\n"
-        distro_unset = True
-      text += ". %s\n"%os.path.join(t.path, t.setup_file)
     if isinstance(t, SetupConfigElement):
       if not distro_unset:
         text += "unset ROS_DISTRO\n"
@@ -185,4 +180,4 @@ def generate_config_yaml(config):
     os.makedirs(config.get_base_path())
   with open(os.path.join(config.get_base_path(), __ROSINSTALL_FILENAME), 'w+b') as f:
     f.write(header)
-    f.write(yaml.safe_dump(config.get_source()))
+    f.write(yaml.safe_dump([x.get_legacy_yaml() for x in config.get_source()]))

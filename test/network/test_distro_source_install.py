@@ -40,6 +40,7 @@ import rosinstall
 import rosinstall.helpers
 import rosinstall.config
 from rosinstall.common import MultiProjectException
+from rosinstall.config_yaml import get_yaml_from_uri
 
 from test.scm_test_base import AbstractRosinstallBaseDirTest, _create_yaml_file, _create_config_elt_dict
 
@@ -62,15 +63,15 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
     def test_get_yaml_from_uri_from_url(self):
         # boxturtle
         url = "http://www.ros.org/rosinstalls/boxturtle_base.rosinstall"
-        yaml = rosinstall.config.get_yaml_from_uri(url)
+        yaml = get_yaml_from_uri(url)
         self.assertTrue(self._ros_found(yaml), "No ros element in boxturtle")
         # diamondback
-        yaml = rosinstall.config.get_yaml_from_uri("http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=diamondback&variant=desktop-full&overlay=no")
+        yaml = get_yaml_from_uri("http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=diamondback&variant=desktop-full&overlay=no")
         self.assertTrue(yaml is not None)
         self.assertTrue(len(yaml)>0)
         self.assertTrue(self._ros_found(yaml), "No ros element in diamondback")
         # electric
-        yaml = rosinstall.config.get_yaml_from_uri("http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=electric&variant=desktop-full&overlay=no")
+        yaml = get_yaml_from_uri("http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=electric&variant=desktop-full&overlay=no")
         self.assertTrue(yaml is not None)
         self.assertTrue(len(yaml)>0)
         self.assertTrue(self._ros_found(yaml), "No ros element in electric")
@@ -79,7 +80,7 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
     def test_get_yaml_from_uri_from_invalid_url(self):
         url = "http://www.ros.org/invalid"
         try:
-            rosinstall.config.get_yaml_from_uri(url)
+            get_yaml_from_uri(url)
             self.fail("Expected exception")
         except MultiProjectException:
             pass
@@ -99,7 +100,7 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
         self.assertTrue(os.path.exists(os.path.join(self.directory, "ros")))
         self.assertTrue(os.path.exists(os.path.join(self.directory, "ros_release")))
         self.assertTrue(os.path.exists(os.path.join(self.directory, "setup.sh")))
-        source_yaml = rosinstall.config.get_yaml_from_uri(generated_rosinstall_filename)
+        source_yaml = get_yaml_from_uri(generated_rosinstall_filename)
         self.assertEqual(source_yaml, 
                          [{'svn': { 'uri': 'https://code.ros.org/svn/ros/stacks/ros/tags/boxturtle',
                                     'local-name': 'ros'} },

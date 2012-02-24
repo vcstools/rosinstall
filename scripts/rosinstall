@@ -28,6 +28,7 @@ from rosinstall.helpers import ROSInstallException, __ROSINSTALL_FILENAME
 from rosinstall.common import MultiProjectException, __ALLTYPES__, __REPOTYPES__
 import rosinstall.config
 from rosinstall.config import Config
+from rosinstall.config_yaml import aggregate_from_uris
 import rosinstall.setupfiles
 
 import vcstools
@@ -40,62 +41,13 @@ def usage():
   exit(1)
 
 
-
-def insert_source_yaml(source_yaml, source, observed_paths, aggregate_source_yaml):
-    if source_yaml:
-      for element in source_yaml:
-        for k in element:
-          if not element[k]:
-              raise ROSInstallException("Malformed rosinstall source: %s  An \"%s\" entry is present without any information.  This can be caused by improper indentation of fields like 'local-name'. "%(source, k))
-          if 'local-name' in element[k]:
-            path = element[k]['local-name']
-            if path in observed_paths:
-              overlapping = []
-              for agel in aggregate_source_yaml:
-                for vcs_type in agel:
-                  for param in agel[vcs_type]:
-                    if param == "local-name" and agel[vcs_type]['local-name'] == path:
-                      overlapping.append(agel)
-              for ol in overlapping:
-                aggregate_source_yaml.remove(ol)
-
-            observed_paths[path] = source
-          else:  
-            return "local-name must be defined for all targets, failed in %s"%source
-      aggregate_source_yaml.extend(source_yaml)
-      
-      return ''
-
-def rewrite_included_source(source_yaml, source_dir, as_is = False):
-  """source yaml is the contents of another directory in source dir, we rewrite it to target_dir"""
-  for entry in source_yaml:
-    for t in __ALLTYPES__:
-      if t in entry.keys():
-        if as_is:
-          local_path = entry[t]['local-name']
-        else:
-          local_path = os.path.join(source_dir, entry[t]['local-name'])
-          # local_path = create_localname(os.path.join(source_dir, entry[t]['local-name']),target_dir)
-        setup_file = None
-        if 'setup-file' in entry[t]:
-          setup_file = entry[t]['setup-file']
-        del entry[t]
-        entry['other'] = {}
-        entry['other']['local-name'] = local_path
-        if setup_file:
-          entry['other']['setup-file'] = setup_file
-  return source_yaml
-
-
 def get_diffs(config, path):
   """calls SCM diff for all SCM entries in config, relative to path"""
   result=[]
 
   for element in config.get_config_elements():
-    entry = element.get_yaml()[0]
-    for scmtype in __REPOTYPES__:
-      if scmtype in entry.keys():
-        result.append({'entry':entry, 'diff':element.get_diff(path)})
+    if element.is_vcs_element():
+      result.append({'entry':element, 'diff':element.get_diff(path)})
   return result
 
 
@@ -103,34 +55,34 @@ def get_statuses(config, path, untracked = False):
   """calls SCM status for all SCM entries in config, relative to path"""
   result=[]
   for element in config.get_config_elements():
-    entry = element.get_yaml()[0]
-    for scmtype in __REPOTYPES__:
-      if scmtype in entry.keys():
-        status = element.get_status(path, untracked)
-        # align other scm output to svn
-        columns = -1
-        if scmtype == "git":
-          columns = 3
-        elif scmtype == "hg":
-          columns = 2
-        elif scmtype == "bzr":
-          columns = 4
-        if columns > -1 and status != None:
-          status_aligned = ''
-          for line in status.splitlines():
-            status_aligned = status_aligned + line[:columns].ljust(8) + line[columns:] + '\n'
-          status = status_aligned
-        result.append({'entry':entry, 'status':status})
+    path_spec = element.get_path_spec()
+    if element.is_vcs_element():
+      scmtype = path_spec.get_scmtype()
+      status = element.get_status(path, untracked)
+      # align other scm output to svn
+      columns = -1
+      if scmtype == "git":
+        columns = 3
+      elif scmtype == "hg":
+        columns = 2
+      elif scmtype == "bzr":
+        columns = 4
+      if columns > -1 and status != None:
+        status_aligned = ''
+        for line in status.splitlines():
+          status_aligned = status_aligned + line[:columns].ljust(8) + line[columns:] + '\n'
+        status = status_aligned
+      result.append({'entry':element, 'status':status})
   return result
 
 def ros_requires_boostrap(config):
   """Whether we might need to bootstrap ros"""
   rp = None
-  for t in config.get_config_elements():
-    if rosinstall.helpers.is_path_ros(t.get_path()):
+  for entry in config.get_source():
+    if rosinstall.helpers.is_path_ros(entry.get_path()):
       # we assume that if any of the elements we installed came
       # from a VCS source, a bootsrap might be useful
-      if t.is_vcs_element():
+      if entry.get_scmtype() is not None:
         return True
   return False
 
@@ -250,36 +202,8 @@ Bzr:       %s
   # Add all arguments past the first one
   config_uris.extend(args[1:])
 
-  other_source = """- other: 
-    local-name: %s
-"""
-
-  observed_paths = {}
-  aggregate_source_yaml = []
-
-  for a in config_uris:
-    #print("argument", a)
-    config_uri = rosinstall.helpers.conditional_abspath(a)
-    if os.path.isdir(config_uri):
-      rosinstall_uri = os.path.join(config_uri, __ROSINSTALL_FILENAME)
-      #print("processing config_uri %s"%config_uri)
-      if os.path.exists(rosinstall_uri):
-        source_yaml = rosinstall.config.get_yaml_from_uri(rosinstall_uri)
-        if not source_yaml:
-          raise ROSInstallException("Bad remote rosinstall folder: %s  This can be caused by empty rosinstall file. "%(a))
-        source_yaml = rewrite_included_source(source_yaml, config_uri)
-      else:
-        # fall back to just a directory
-        source_yaml = [ {'other': {'local-name': '%s'%config_uri} } ]
-    else:
-      source_yaml = rosinstall.config.get_yaml_from_uri(config_uri)
-      if not source_yaml:
-          raise ROSInstallException("Bad remote rosinstall source: %s  This can be caused by empty rosinstall file. "%(a))
-    #print("source yaml", source_yaml)
-    result = insert_source_yaml(source_yaml, a, observed_paths, aggregate_source_yaml)
-    if result != '':
-      parser.error(result)
-
+  aggregate_source_yaml = aggregate_from_uris(config_uris, options.path, __ROSINSTALL_FILENAME)
+    
   ## Could not get uri therefore error out
   if len(config_uris) == 0:
     parser.error("no source rosinstall file found! looked at arguments and, %s"%(
