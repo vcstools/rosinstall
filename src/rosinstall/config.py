@@ -35,7 +35,7 @@ import os
 
 import config_elements
 from config_elements import AVCSConfigElement, OtherConfigElement, SetupConfigElement
-from common import MultiProjectException, normabspath
+from common import MultiProjectException, normabspath, abspaths_overlap
 from config_yaml import get_path_specs_from_uri
 
   
@@ -49,12 +49,15 @@ class Config:
     """
     :param config_source_dict: A list (e.g. from yaml) describing the config, list of dict, each dict describing one element.
     :param config_filename: When given a folder, Config
-    :param merge_strategy: how to deal with entries with equivalent path. See _append_element
+    :param merge_strategy: how to deal with entries with equivalent path. See _insert_element
     will look in folder for file of that name for more config source, str.
     """
     assert install_path is not None
     if path_specs is None:
       raise MultiProjectException("Passed empty source to create config")
+    # All API operations must grant that elements in trees have unique local_name and paths
+    # Also managed (VCS) entries must be disjunct (meaning one cannot be in a child folder of another managed one)
+    # The idea is that managed entries can safely be concurrently modified
     self.trees = []
     self.base_path = os.path.abspath(install_path)
 
@@ -85,7 +88,7 @@ class Config:
       if path_spec.get_scmtype() == None:
         if path_spec.get_tags() is not None and 'setup-file' in path_spec.get_tags():
           elem = SetupConfigElement(local_path, path_spec.get_path())
-          self._append_element(elem)
+          self.insert_element(elem)
         else:
           config_file_uri = '' # os.path.exists == False, later
           if os.path.isfile(local_path):
@@ -101,14 +104,14 @@ class Config:
               child_local_name = full_child_path
               if child_path_spec.get_tags() is not None and 'setup-file' in child_path_spec.get_tags():
                 elem = SetupConfigElement(full_child_path, child_local_name)
-                self._append_element(elem)
+                self.insert_element(elem)
               else:
                 elem = OtherConfigElement(full_child_path, child_local_name)
-                self._append_element(elem)
+                self.insert_element(elem)
           else:
             local_name = path_spec.get_path()
             elem = OtherConfigElement(local_path, local_name)
-            self._append_element(elem)
+            self.insert_element(elem)
       else:
         # Get the version and source_uri elements
         source_uri = path_spec.get_uri()
@@ -120,30 +123,56 @@ class Config:
                                                  local_name,
                                                  source_uri,
                                                  version)
-          self._append_element(elem)
+          self.insert_element(elem)
         except LookupError as ex:
           raise MultiProjectException("Abstracted VCS Config failed. Exception: %s" % ex)
 
 
-  def _append_element(self, new_config_elt, merge_strategy = 'KillAppend'):
-    """Add element to self.trees, checking for duplicate local-name fist.
-    In that case, follow given strategy:
+  def insert_element(self, new_config_elt, merge_strategy = 'KillAppend'):
+    """
+    Append ConfigElement to self.trees, checking for duplicate local-name or path first.
+    In case local_name matches, follow given strategy
     KillAppend (default): remove old element, append new at the end
-    Replace: remove first such old element, insert new at that position."""
+    Replace: remove first such old element, insert new at that position.
+    In case local path matches but local name does not, raise Exception
+    """
     removals = []
     for index, loop_elt in enumerate (self.trees):
+      # if paths are os.path.realpath, no symlink problems.
       if loop_elt.get_path() == new_config_elt.get_path():
-        if merge_strategy == 'KillAppend':
-          removals.append(loop_elt)
-        elif merge_strategy == 'Replace':
-          self.trees[index] = new_config_elt
-          return True
+        if os.path.normpath(loop_elt.get_local_name()) != os.path.normpath(new_config_elt.get_local_name()):
+          raise MultiProjectException("Elements with different local_name target the same path: %s, %s"%(loop_elt, new_config_elt))
         else:
-          raise LookupError("No such merge strategy: %s"%str(merge_strategy))
+          if merge_strategy == 'KillAppend':
+            removals.append(loop_elt)
+          elif merge_strategy == 'Replace':
+            self.trees[index] = new_config_elt
+            return True
+          else:
+            raise LookupError("No such merge strategy: %s"%str(merge_strategy))
+      else:
+        if new_config_elt.is_vcs_element and loop_elt.is_vcs_element:
+          if abspaths_overlap(loop_elt.get_path(), new_config_elt.get_path()):
+            raise MultiProjectException("Managed Element paths overlap: %s, %s"%(loop_elt, new_config_elt))
     for loop_elt in removals:
       self.trees.remove(loop_elt)
     self.trees.append(new_config_elt)
     return True
+
+  def remove_element(self, local_name):
+    """
+    Removes element in the tree with the given local name (should be only one)
+    :returns: True if such an element was found
+    """
+    removals = []
+    for t in self.trees:
+      if t.get_local_name() == local_name:
+        removals.append(t)
+    if len(removals) > 0:
+      for t in removals:
+        self.trees.remove(t)
+      return True
+    return False
 
   def _create_vcs_config_element(self, scmtype, path, local_name, uri, version = ''):
     try:
