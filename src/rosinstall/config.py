@@ -44,7 +44,7 @@ class Config:
   and possibly a VCS from which to update the folder.
   """
   
-  def __init__(self, path_specs, install_path, config_filename, extended_types=None, merge_strategy = 'KillAppend'):
+  def __init__(self, path_specs, install_path, config_filename = None, extended_types=None, merge_strategy = 'KillAppend'):
     """
     :param config_source_dict: A list (e.g. from yaml) describing the config, list of dict, each dict describing one element.
     :param config_filename: When given a folder, Config
@@ -56,8 +56,10 @@ class Config:
       raise MultiProjectException("Passed empty source to create config")
     self.trees = []
     self.base_path = os.path.abspath(install_path)
-    
-    self.config_filename = config_filename
+
+    self.config_filename = None
+    if config_filename is not None:
+      self.config_filename = os.path.basename(config_filename)
     # using a registry primarily for unit test design
     self.registry = {'svn': AVCSConfigElement,
                      'git': AVCSConfigElement,

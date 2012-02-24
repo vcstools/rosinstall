@@ -186,7 +186,8 @@ def get_path_spec_from_yaml(yaml_dict):
   version = None
   scmtype = None
   tags = None
-  assert type(yaml_dict) == dict
+  if type(yaml_dict) != dict:
+    raise MultiProjectException("Yaml for each element must be in YAML dict form")
   # old syntax:
 # - hg: {local-name: common_rosdeps, version: common_rosdeps-1.0.2, uri: https://kforge.ros.org/common/rosdepcore}
 # - setup-file: {local-name: /opt/ros/fuerte/setup.sh}
@@ -230,9 +231,13 @@ def get_path_spec_from_yaml(yaml_dict):
                    tags = tags)
 
 def generate_config_yaml(config, filename, header):
+  """
+  Writes file filename with header first and then the config as yaml
+  """
   if not os.path.exists(config.get_base_path()):
     os.makedirs(config.get_base_path())
   with open(os.path.join(config.get_base_path(), filename), 'w+b') as f:
     if header is not None:
       f.write(header)
+      f.write('\n')
     f.write(yaml.safe_dump([x.get_legacy_yaml() for x in config.get_source()]))

@@ -40,7 +40,7 @@ import rosinstall
 import rosinstall.helpers
 import rosinstall.config
 from rosinstall.common import MultiProjectException
-from rosinstall.config_yaml import get_yaml_from_uri
+from rosinstall.config_yaml import get_yaml_from_uri, get_path_specs_from_uri
 
 from test.scm_test_base import AbstractRosinstallBaseDirTest, _create_yaml_file, _create_config_elt_dict
 
@@ -59,7 +59,31 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
                     if element["local-name"] == "ros":
                         ros_found = True
         return ros_found
+
+    def _ros_found_path_spec(self, specs):
+        ros_found = False
+        for s in specs:
+            if "svn" == s.get_scmtype():
+                if "ros" == s.get_path():
+                    ros_found = True
+        return ros_found
         
+    def test_get_path_specs_from_uri_from_url(self):
+        # boxturtle
+        url = "http://www.ros.org/rosinstalls/boxturtle_base.rosinstall"
+        path_specs = get_path_specs_from_uri(url)
+        self.assertTrue(self._ros_found_path_spec(path_specs), "No ros element in boxturtle")
+        # diamondback
+        path_specs = get_path_specs_from_uri("http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=diamondback&variant=desktop-full&overlay=no")
+        self.assertTrue(path_specs is not None)
+        self.assertTrue(len(path_specs)>0)
+        self.assertTrue(self._ros_found_path_spec(path_specs), "No ros element in diamondback")
+        # electric
+        path_specs = get_path_specs_from_uri("http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=electric&variant=desktop-full&overlay=no")
+        self.assertTrue(path_specs is not None)
+        self.assertTrue(len(path_specs)>0)
+        self.assertTrue(self._ros_found_path_spec(path_specs), "No ros element in electric")
+
     def test_get_yaml_from_uri_from_url(self):
         # boxturtle
         url = "http://www.ros.org/rosinstalls/boxturtle_base.rosinstall"

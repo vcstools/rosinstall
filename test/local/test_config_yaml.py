@@ -3,10 +3,13 @@ import unittest
 import copy
 import yaml
 import urllib2
+import tempfile
+import shutil
 
 import rosinstall.config_yaml
+import rosinstall.config
 from rosinstall.common import MultiProjectException
-from rosinstall.config_yaml import rewrite_included_source, get_path_spec_from_yaml, get_yaml_from_uri, PathSpec
+from rosinstall.config_yaml import rewrite_included_source, get_path_spec_from_yaml, get_yaml_from_uri, get_path_specs_from_uri, PathSpec
 
 
 class YamlIO_Test(unittest.TestCase):
@@ -25,12 +28,22 @@ class YamlIO_Test(unittest.TestCase):
             yaml = get_yaml_from_uri(os.path.join("test", "example-broken.yaml"))
         except MultiProjectException:
             pass
+        try:
+            get_path_specs_from_uri(file)
+            self.fail("Expected exception")
+        except MultiProjectException:
+            pass
 
         
     def test_get_yaml_from_uri_from_missing_file(self):
         file = "/asdfasdfasdfasfasdf_does_not_exist"
         try:
             get_yaml_from_uri(file)
+            self.fail("Expected exception")
+        except MultiProjectException:
+            pass
+        try:
+            get_path_specs_from_uri(file)
             self.fail("Expected exception")
         except MultiProjectException:
             pass
@@ -88,8 +101,43 @@ class ConfigElementYamlFunctions_Test(unittest.TestCase):
         struct = [PathSpec("../opt/poo", tags='setup-file')]
         rewrite_included_source(struct, "foo/bar")
         self.assertEqual([PathSpec("foo/opt/poo", tags='setup-file')], struct)
+
+
+class UriAggregationTest(unittest.TestCase):
+
+    def test_aggregate_from_uris(self):
+        pass
         
-   
+
+class ConfigFile_Test(unittest.TestCase):
+
+    def test_generate(self):
+        self.directory = tempfile.mkdtemp()
+        config = rosinstall.config.Config([], self.directory)
+        rosinstall.config_yaml.generate_config_yaml(config, 'foo', "# Hello")
+        filepath = os.path.join(self.directory, 'foo')
+        self.assertTrue(os.path.exists(filepath))
+        with open(filepath, 'r') as f:
+            read_data = f.read()
+        lines = read_data.splitlines()
+        self.assertEqual("# Hello", lines[0])
+
+    def test_generate_with_stack(self):
+        self.directory = tempfile.mkdtemp()
+        config = rosinstall.config.Config([PathSpec('ros', 'svn', 'some/uri')], self.directory)
+        rosinstall.config_yaml.generate_config_yaml(config, 'foo', "# Hello")
+        filepath = os.path.join(self.directory, 'foo')
+        self.assertTrue(os.path.exists(filepath))
+        with open(filepath, 'r') as f:
+            read_data = f.read()
+        lines = read_data.splitlines()
+        self.assertEqual("# Hello", lines[0])
+        self.assertEqual("- svn: {local-name: ros, uri: some/uri}", lines[1])
+
+    def tearDown(self):
+        if os.path.exists(self.directory):
+            shutil.rmtree(self.directory)
+        
         
 class ConfigElementYamlWrapper_Test(unittest.TestCase):
 
