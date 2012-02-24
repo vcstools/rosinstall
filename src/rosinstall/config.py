@@ -55,7 +55,7 @@ class Config:
     if path_specs is None:
       raise MultiProjectException("Passed empty source to create config")
     self.trees = []
-    self.base_path = install_path
+    self.base_path = os.path.abspath(install_path)
     
     self.config_filename = config_filename
     # using a registry primarily for unit test design
@@ -79,7 +79,6 @@ class Config:
     for path_spec in path_specs:
       #compute the local_path for the config element
       local_path = normabspath(path_spec.get_path(), self.base_path)
-
       if path_spec.get_scmtype() == None:
         if path_spec.get_tags() is not None and 'setup-file' in path_spec.get_tags():
           elem = SetupConfigElement(local_path, path_spec.get_path())

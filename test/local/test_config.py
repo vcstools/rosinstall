@@ -119,11 +119,11 @@ class ConfigMock_Test(unittest.TestCase):
 
 class ConfigSimple_Test(unittest.TestCase):
 
-    def _get_mock_config(self, yaml, install_path = 'install/path'):
+    def _get_mock_config(self, yaml, install_path = '/install/path'):
         config_filename = '.filename'
         return Config(yaml, install_path, config_filename, {"mock": MockVcsConfigElement})
     
-    def test_init(self):
+    def test_init_fail(self):
         try:
             Config(None, "path", None)
             self.fail("expected Exception")
@@ -132,34 +132,38 @@ class ConfigSimple_Test(unittest.TestCase):
             Config([PathSpec('foo', 'bar')], "path", None)
             self.fail("expected Exception")
         except MultiProjectException: pass
-        Config([PathSpec("foo"),
-                PathSpec(os.path.join("test", "example_dirs", "ros_comm")),
-                PathSpec(os.path.join("test", "example_dirs", "ros")),
-                PathSpec(os.path.join("test", "example_dirs", "roscpp")),
-                PathSpec("bar")],
-               ".",
-               None)
+        
+    def test_init(self):
         yaml = []
-        install_path = 'install/path'
+        install_path = '/install/path'
         config_filename = '.filename'
         config = Config(yaml, install_path, config_filename)
         self.assertEqual(install_path, config.get_base_path())
         self.assertEqual([], config.get_config_elements())
         self.assertEqual([], config.get_version_locked_source())
+        config = Config([PathSpec("foo"),
+                         PathSpec(os.path.join("test", "example_dirs", "ros_comm")),
+                         PathSpec(os.path.join("test", "example_dirs", "ros")),
+                         PathSpec(os.path.join("test", "example_dirs", "roscpp")),
+                         PathSpec("bar")],
+                        ".",
+                        None)
+        self.assertEqual(os.path.abspath('.'), config.get_base_path())
+        
 
     def test_config_simple1(self):
         mock1 = PathSpec('foo')
         config = self._get_mock_config([mock1])
         self.assertEqual(1, len(config.get_config_elements()))
         self.assertEqual('foo', config.get_config_elements()[0].get_local_name())
-        self.assertEqual('install/path/foo', config.get_config_elements()[0].get_path())
+        self.assertEqual('/install/path/foo', config.get_config_elements()[0].get_path())
 
     def test_config_simple1_with_setupfile(self):
         mock1 = PathSpec('setup.sh', tags='setup-file')
         config = self._get_mock_config([mock1])
         self.assertEqual(1, len(config.get_config_elements()))
         self.assertEqual('setup.sh', config.get_config_elements()[0].get_local_name())
-        self.assertEqual('install/path/setup.sh', config.get_config_elements()[0].get_path())
+        self.assertEqual('/install/path/setup.sh', config.get_config_elements()[0].get_path())
 
         mock1 = PathSpec('/foo')
         mock2 = PathSpec('/opt/setup.sh', tags='setup-file')
@@ -179,7 +183,7 @@ class ConfigSimple_Test(unittest.TestCase):
         self.assertEqual(4, len(config.get_config_elements()))
         self.assertEqual(4, len(config.get_version_locked_source()))
         self.assertEqual('foo', config.get_config_elements()[0].get_local_name())
-        self.assertEqual('install/path/foo', config.get_config_elements()[0].get_path())
+        self.assertEqual('/install/path/foo', config.get_config_elements()[0].get_path())
         self.assertEqual('git', config.get_source()[0].get_scmtype())
         self.assertEqual('git/uri', config.get_source()[0].get_uri())
         self.assertEqual('svn', config.get_source()[1].get_scmtype())
@@ -212,7 +216,7 @@ class ConfigSimple_Test(unittest.TestCase):
         config = self._get_mock_config([mock1])
         self.assertEqual(1, len(config.get_config_elements()))
         self.assertEqual('foo/bar/..', config.get_config_elements()[0].get_local_name())
-        self.assertEqual('install/path/foo', config.get_config_elements()[0].get_path())
+        self.assertEqual('/install/path/foo', config.get_config_elements()[0].get_path())
        
     def test_long_localname(self):
         "Should source choose shorter local-name"
