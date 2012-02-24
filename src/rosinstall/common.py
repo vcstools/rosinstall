@@ -21,7 +21,7 @@ def normabspath(localname, path):
   if localname is absolute, return it normalized. If relative, return normalized join of path and localname
   """
   if os.path.isabs(localname) or path is None:
-    return os.path.normpath(localname)
-  abs_path = os.path.normpath(os.path.join(path, localname))
+    return os.path.realpath(localname)
+  abs_path = os.path.realpath(os.path.join(path, localname))
   return abs_path
 
