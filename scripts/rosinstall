@@ -22,8 +22,9 @@ import sys
 from optparse import OptionParser
 import yaml
 
-import rosinstall.rosinstall_cmd
+import pkg_resources
 import rosinstall.multiproject_cmd
+import rosinstall.rosinstall_cmd
 
 from rosinstall.helpers import ROSInstallException, __ROSINSTALL_FILENAME
 from rosinstall.common import MultiProjectException
