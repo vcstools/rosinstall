@@ -24,7 +24,7 @@ class ConfigElement:
   def get_local_name(self):
     """What the user specified in his config"""
     return self.local_name
-  def install(self, backup_path, mode, robust):
+  def install(self, backup_path = None, arg_mode = 'abort', robust = False):
     raise NotImplementedError, "ConfigElement install unimplemented"
   def get_path_spec(self):
     """PathSpec object with values as specified in file"""
@@ -51,7 +51,7 @@ class ConfigElement:
 
 
 class OtherConfigElement(ConfigElement):
-  def install(self, backup_path, mode, robust=False):
+  def install(self, backup_path = None, arg_mode = None, robust = False):
     return True
 
   def get_versioned_path_spec(self):
@@ -64,7 +64,7 @@ class OtherConfigElement(ConfigElement):
 class SetupConfigElement(ConfigElement):
   """A setup config element specifies a single file containing configuration data for a config."""
 
-  def install(self, backup_path, mode, robust=False):
+  def install(self, backup_path = None, mode = None, robust = False):
     return True
 
   def get_versioned_path_spec(self):

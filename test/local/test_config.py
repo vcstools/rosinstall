@@ -91,14 +91,20 @@ class MockVcsClient():
 
 class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):
 
-    def __init__(self, scmtype, path, local_name, uri, version = ''):
+    def __init__(self, scmtype, path, local_name, uri, version = '', installed = False, install_success = True):
         self.scmtype = scmtype
         self.path = path
         self.local_name = local_name
         self.uri = uri
         self.version = version
         self.vcsc = MockVcsClient()
-    
+        self.installed = installed
+        self.install_success = install_success
+
+    def install(self, backup_path = None, arg_mode = 'abort', robust = False):
+        if not self.install_success:
+            raise MultiProjectException("Unittest Mock says exception failed")
+        self.installed = True
 
 
 class ConfigMock_Test(unittest.TestCase):
@@ -203,6 +209,57 @@ class ConfigSimple_Test(unittest.TestCase):
         self.assertEqual(4, len(config.get_config_elements()))
         self.assertEqual(4, len(config.get_version_locked_source()))
 
+    def test_mock_install(self):
+        git1 = PathSpec('foo', 'git', 'git/uri', 'git.version')
+        svn1 = PathSpec('foos', 'svn', 'svn/uri', '12345')
+        hg1 = PathSpec('fooh', 'hg', 'hg/uri', 'hg.version')
+        bzr1 = PathSpec('foob', 'bzr', 'bzr/uri', 'bzr.version')
+        config = Config([git1, svn1, hg1, bzr1],
+                        '.',
+                        None,
+                        {"svn": MockVcsConfigElement,
+                         "git": MockVcsConfigElement,
+                         "hg": MockVcsConfigElement,
+                         "bzr": MockVcsConfigElement})
+        self.assertFalse(config.get_config_elements()[0].installed)
+        self.assertFalse(config.get_config_elements()[1].installed)
+        self.assertFalse(config.get_config_elements()[2].installed)
+        self.assertFalse(config.get_config_elements()[3].installed)
+        config.execute_install()
+        self.assertTrue(config.get_config_elements()[0].installed)
+        self.assertTrue(config.get_config_elements()[1].installed)
+        self.assertTrue(config.get_config_elements()[2].installed)
+        self.assertTrue(config.get_config_elements()[3].installed)
+        config.execute_install()
+        self.assertTrue(config.get_config_elements()[0].installed)
+        self.assertTrue(config.get_config_elements()[1].installed)
+        self.assertTrue(config.get_config_elements()[2].installed)
+        self.assertTrue(config.get_config_elements()[3].installed)
+
+    def test_mock_install_fail(self):
+        # robust
+        git1 = PathSpec('foo', 'git', 'git/uri', 'git.version')
+        svn1 = PathSpec('foos', 'svn', 'svn/uri', '12345')
+        hg1 = PathSpec('fooh', 'hg', 'hg/uri', 'hg.version')
+        bzr1 = PathSpec('foob', 'bzr', 'bzr/uri', 'bzr.version')
+        config = Config([git1, svn1, hg1, bzr1],
+                        '.',
+                        None,
+                        {"svn": MockVcsConfigElement,
+                         "git": MockVcsConfigElement,
+                         "hg": MockVcsConfigElement,
+                         "bzr": MockVcsConfigElement})
+        config.get_config_elements()[1].install_success = False
+        config.execute_install(robust = True)
+        self.assertTrue(config.get_config_elements()[0].installed)
+        self.assertTrue(config.get_config_elements()[2].installed)
+        self.assertTrue(config.get_config_elements()[3].installed)
+        try:
+            config.execute_install(robust = False)
+            self.fail("expected Exception")
+        except MultiProjectException:
+            pass
+        
     def test_absolute_localname(self):
         mock1 = PathSpec('/foo/bim')
         config = self._get_mock_config([mock1], install_path = '/foo/bar/ba/ra/baz/bam')

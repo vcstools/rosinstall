@@ -168,13 +168,16 @@ class Config:
       source_aggregate.append(t.get_path_spec())
     return source_aggregate  
 
-  def execute_install(self, backup_path, mode, robust = False):
+  def execute_install(self, backup_path = None, mode = 'abort', robust = False):
     success = True
     if not os.path.exists(self.base_path):
       os.mkdir(self.base_path)
     for t in self.trees:
+      abs_backup_path = None
+      if backup_path is not None:
+        abs_backup_path = os.path.join(self.base_path, backup_path)
       try:
-        t.install(os.path.join(self.base_path, backup_path), mode)
+        t.install(abs_backup_path, mode)
       except MultiProjectException as ex:
         fail_str = "Failed to install tree '%s'\n %s"%(t.get_path(), ex)
         if robust:
