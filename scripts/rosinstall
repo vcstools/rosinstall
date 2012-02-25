@@ -131,7 +131,7 @@ Later URIs will shadow packages of earlier URIs.\n",
 
   config_uris.extend(args[1:])
   
-  config = rosinstall.multiproject_cmd.get_config(basepath = options.path, config_uris = config_uris, config_filename = __ROSINSTALL_FILENAME)
+  config = rosinstall.multiproject_cmd.get_config(basepath = options.path, additional_uris = config_uris, config_filename = __ROSINSTALL_FILENAME)
 
   if options.generate_versioned:
     filename = os.path.abspath(options.generate_versioned)

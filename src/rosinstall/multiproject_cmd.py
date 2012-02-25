@@ -19,7 +19,7 @@ from config_yaml import aggregate_from_uris
 import vcstools
 from vcstools import VcsClient
 
-def get_config(basepath, config_uris, config_filename = None):
+def get_config(basepath, additional_uris = None, config_filename = None):
   """
   Create a Config element necessary for all other commands.
   The command will look at the uris in sequence, each
@@ -32,18 +32,24 @@ def get_config(basepath, config_uris, config_filename = None):
   takes this list and consolidates duplicate paths by keeping the last
   one in the list.
   :param basepath: where relative paths shall be resolved against
-  :param config_uris: the location of config specifications or folders
-  :param config_filname: name of files which may be looked at for config information
+  :param additional_uris: the location of config specifications or folders
+  :param config_filename: name of files which may be looked at for config information
   :returns: a Config object
   :raises MultiProjectException: on plenty of errors
   """
+  if basepath is None:
+    raise MultiProjectException("Need to provide a basepath for Config.")
+    
+  
   # Find all the configuration sources
+  if additional_uris is None and config_filename is not None:
+    additional_uris = [[os.path.join(basepath, config_filename)]]
 
-  aggregate_source_yaml = aggregate_from_uris(config_uris, config_filename)
+  aggregate_source_yaml = aggregate_from_uris(additional_uris, config_filename)
     
   ## Could not get uri therefore error out
-  if len(config_uris) == 0:
-    parser.error("no source config file found! looked at arguments and, %s"%(
+  if len(additional_uris) == 0:
+    raise MultiProjectException("no source config file found! looked at arguments and, %s"%(
         os.path.join(basepath, config_filename)))
 
   #print("source...........................", aggregate_source_yaml)
