@@ -80,9 +80,8 @@ def aggregate_from_uris(config_uris, base_path, filename):
   for loop_uri in config_uris:
     config_uri = conditional_abspath(loop_uri)
     if os.path.isdir(config_uri):
-      config_file_uri = os.path.join(config_uri, filename)
-      if os.path.exists(config_file_uri):
-        source_path_specs = get_path_specs_from_uri(config_file_uri)
+      if filename is not None and os.path.exists(os.path.join(config_uri, filename)):
+        source_path_specs = get_path_specs_from_uri(os.path.join(config_uri, filename))
         if not source_path_specs:
           raise MultiProjectException("Bad remote folder: %s  This can be caused by empty %s file. "%(loop_uri, filename))
         # adapt paths and change any 'vcs' element into an 'other' element
