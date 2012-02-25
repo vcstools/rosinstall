@@ -80,7 +80,7 @@ try:
 except Exception as e:
   sys.exit("Invalid yaml in .rosinstall: %s "%str(e))
 if y is not None:
-  lnames=[x.values()[0]['local-name'] for x in y if x.values() is not None and x.keys()[0] != "setup-file"]
+  lnames=[x.values()[0]['local-name'] for x in y if x.values() is not None and x.keys()[0] != "setup-file" and not os.path.isfile(x.values()[0]['local-name'])]
   if len(lnames) == 0:
     sys.exit(".rosinstall contains no path elements")
   print ':'.join(reversed(lnames))
