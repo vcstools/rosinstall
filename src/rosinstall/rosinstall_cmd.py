@@ -24,7 +24,7 @@ def _ros_requires_boostrap(config):
         return True
   return False
   
-def cmd_generate_ros_files(config, path, nobuild, rosdep_yes, catkin, catkinpp):
+def cmd_generate_ros_files(config, path, nobuild = False, rosdep_yes = False, catkin = False, catkinpp = None):
   """
   Generates ROS specific setup files
   """

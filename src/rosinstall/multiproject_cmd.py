@@ -19,7 +19,7 @@ from config_yaml import aggregate_from_uris
 import vcstools
 from vcstools import VcsClient
 
-def get_config(basepath, config_uris, config_filename):
+def get_config(basepath, config_uris, config_filename = None):
   """
   Create a Config element necessary for all other commands.
   The command will look at the uris in sequence, each
@@ -54,7 +54,7 @@ def get_config(basepath, config_uris, config_filename):
   return config
 
 
-def cmd_persist_config(config, filename, header):
+def cmd_persist_config(config, filename, header = None):
     """writes config to given file in yaml syntax"""
     config_yaml.generate_config_yaml(config, filename, header)
 
@@ -77,7 +77,7 @@ Bzr:       %s
      prettyversion(vcstools.TarClient.get_environment_metadata()),
      prettyversion(vcstools.BzrClient.get_environment_metadata()))
 
-def cmd_status(config, path, untracked = False):
+def cmd_status(config, path = None, untracked = False):
   """
   calls SCM status for all SCM entries in config, relative to path
   :returns: List of dict {element: ConfigElement, diff: diffstring}
@@ -107,7 +107,7 @@ def cmd_status(config, path, untracked = False):
   return result
 
 
-def cmd_diff(config, path):
+def cmd_diff(config, path = None):
   """
   calls SCM diff for all SCM entries in config, relative to path
   :returns: List of dict {element: ConfigElement, diff: diffstring}
@@ -120,14 +120,15 @@ def cmd_diff(config, path):
       result.append({'entry':element, 'diff':element.get_diff(path)})
   return result
 
-def cmd_install_or_update(config, backup_changed, mode, robust):
+def cmd_install_or_update(config, backup_changed = None, mode = 'abort', robust = False):
     """
     performs many things, generally attempting to make
     the local filesystem look like what the config specifies,
     pulling from remote sources the most recent changes.
     
     The command may have stdin user interaction (TODO abstract)
-    :param backup_changed: whether 
+    :param backup_changed: whether to backup trees before deleting them
+    :param robust: proceed to next element even when one element fails
     :returns: True on Success
     :raises MultiProjectException: on plenty of errors
     """
