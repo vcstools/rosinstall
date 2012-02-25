@@ -114,7 +114,7 @@ class ConfigFile_Test(unittest.TestCase):
     def test_generate(self):
         self.directory = tempfile.mkdtemp()
         config = rosinstall.config.Config([], self.directory)
-        rosinstall.config_yaml.generate_config_yaml(config, 'foo', "# Hello")
+        rosinstall.config_yaml.generate_config_yaml(config, 'foo', "# Hello\n")
         filepath = os.path.join(self.directory, 'foo')
         self.assertTrue(os.path.exists(filepath))
         with open(filepath, 'r') as f:
@@ -125,7 +125,7 @@ class ConfigFile_Test(unittest.TestCase):
     def test_generate_with_stack(self):
         self.directory = tempfile.mkdtemp()
         config = rosinstall.config.Config([PathSpec('ros', 'svn', 'some/uri')], self.directory)
-        rosinstall.config_yaml.generate_config_yaml(config, 'foo', "# Hello")
+        rosinstall.config_yaml.generate_config_yaml(config, 'foo', "# Hello\n")
         filepath = os.path.join(self.directory, 'foo')
         self.assertTrue(os.path.exists(filepath))
         with open(filepath, 'r') as f:
