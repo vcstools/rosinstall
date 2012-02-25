@@ -8,6 +8,7 @@ from vcstools import VcsClient
 
 from common import MultiProjectException
 from config_yaml import PathSpec
+import ui
 
 ## Each Config element provides actions on a local folder
 
@@ -98,11 +99,11 @@ class VCSConfigElement(ConfigElement):
 
   def is_vcs_element(self):
     return True
-    
+   
   def install(self, backup_path = None, arg_mode = 'abort', robust = False):
     """
     Attempt to make it so that self.path is the result of checking out / updating from remote repo
-    :param arg_mode: one of prompt, backup, delete, skip. Determins how to handle error cases
+    :param arg_mode: one of prompt, backup, delete, skip. Determines how to handle error cases
     :param backup_path: if arg_mode==backup, determines where to backup to
     :param robust: if true, operation will be aborted without changes to the filesystem and without user interaction
     """
@@ -114,10 +115,15 @@ class VCSConfigElement(ConfigElement):
     else:
       # Directory exists see what we need to do
       error_message = None
+      
       if not self.vcsc.detect_presence():
         error_message = "Failed to detect %s presence at %s."%(self.vcsc.get_vcs_type_name(), self.path)
-      elif not self.vcsc.get_url() or self.vcsc.get_url().rstrip('/') != self.uri:  #strip trailing slashes for #3269
-        error_message = "url %s does not match %s requested."%(self.vcsc.get_url(), self.uri)
+      else:
+        cur_url = self.vcsc.get_url().rstrip('/')
+        if not cur_url or cur_url != self.uri:  #strip trailing slashes for #3269
+          # local repositories get absolute pathnames
+          if not (os.path.isdir(self.uri) and os.path.isdir(cur_url) and os.path.samefile(cur_url, self.uri)):
+            error_message = "url %s does not match %s requested."%(cur_url, self.uri)
         
       # If robust ala continue-on-error, just error now and it will be continued at a higher level
       if robust and error_message:
@@ -129,9 +135,9 @@ class VCSConfigElement(ConfigElement):
       else:
         # prompt the user based on the error code
         if arg_mode == 'prompt':
-          mode = prompt_del_abort_retry(error_message, allow_skip = True)
+          mode = ui.Ui.get_ui().prompt_del_abort_retry(error_message, allow_skip = True)
           if mode == 'backup': # you can only backup if in prompt mode
-            backup_path = get_backup_path()
+            backup_path = ui.Ui.get_ui().get_backup_path()
         else:
           mode = arg_mode
           

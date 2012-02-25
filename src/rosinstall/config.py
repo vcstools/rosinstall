@@ -6,37 +6,6 @@ from config_elements import AVCSConfigElement, OtherConfigElement, SetupConfigEl
 from common import MultiProjectException, normabspath
 from config_yaml import get_path_specs_from_uri
 
-def get_backup_path():
-  """Interactive function asking the user to choose a path for backup"""
-  backup_path = raw_input("Please enter backup pathname: ")
-  print("backing up to %s"%backup_path)
-  return backup_path
-
-def prompt_del_abort_retry(prompt, allow_skip = False):
-  """Interactive function asking the user to choose a conflict resolution"""
-  if allow_skip:
-    valid_modes = ['(d)elete', '(a)bort', '(b)ackup', '(s)kip']
-  else:
-    valid_modes = ['(d)elete', '(a)bort', '(b)ackup']
-
-  mode = ""
-
-  full_prompt = "%s %s: "%(prompt, ", ".join(valid_modes))
-
-  while mode == "":
-
-    mode_input = raw_input(full_prompt)
-    if mode_input == 'b' or mode_input == 'backup':
-      mode = 'backup'
-    elif mode_input == 'd' or mode_input =='delete':
-      mode = 'delete'
-    elif mode_input == 'a' or mode_input =='abort':
-      mode = 'abort'
-    elif allow_skip and mode_input == 's' or mode_input =='skip':
-      mode = 'skip'
-  return mode
-
-    
   
 class Config:
   """
