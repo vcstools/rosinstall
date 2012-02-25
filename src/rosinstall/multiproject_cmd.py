@@ -39,7 +39,7 @@ def get_config(basepath, config_uris, config_filename = None):
   """
   # Find all the configuration sources
 
-  aggregate_source_yaml = aggregate_from_uris(config_uris, basepath, config_filename)
+  aggregate_source_yaml = aggregate_from_uris(config_uris, config_filename)
     
   ## Could not get uri therefore error out
   if len(config_uris) == 0:

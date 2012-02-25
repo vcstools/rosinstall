@@ -63,7 +63,7 @@ def rewrite_included_source(source_path_specs, source_dir, as_is = False):
   return source_path_specs
 
 
-def aggregate_from_uris(config_uris, base_path, filename):
+def aggregate_from_uris(config_uris, filename):
   """
   Iterates through uris, each locations a set of config elements as yaml.
   builds a new list of uris following these rules:
