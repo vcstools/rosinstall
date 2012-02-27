@@ -123,12 +123,10 @@ class PathSpec:
     self._currevision = currevision
 
   def __str__(self):
-    return self.get_legacy_yaml()
+    return str(self.get_legacy_yaml())
 
   def __eq__(self, other):
     if isinstance(other, self.__class__):
-      print(self.__dict__)
-      print(other.__dict__)
       return self.__dict__ == other.__dict__
     else:
       return False
