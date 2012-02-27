@@ -37,7 +37,7 @@ import setupfiles
 import helpers
 from helpers import ROSInstallException, ROSINSTALL_FILENAME
 
-def cmd_persist_config_file(config):
+def cmd_persist_config(config, config_filename = ROSINSTALL_FILENAME):
   ## Save .rosinstall
   header = """# THIS IS A FILE WHICH IS MODIFIED BY rosinstall
 # IT IS UNLIKELY YOU WANT TO EDIT THIS FILE BY HAND,
@@ -46,7 +46,7 @@ def cmd_persist_config_file(config):
 # USE THE rosinstall TOOL INSTEAD.
 # IF YOU CHANGE IT, USE rosinstall FOR THE CHANGES TO TAKE EFFECT
 """
-  multiproject_cmd.cmd_persist_config(config, ROSINSTALL_FILENAME, header)
+  multiproject_cmd.cmd_persist_config(config, config_filename, header)
 
 def _ros_requires_boostrap(config):
   """Whether we might need to bootstrap ros"""

@@ -160,7 +160,7 @@ Later URIs will shadow packages of earlier URIs.\n",
 
   # includes ROS specific files
   print("(Over-)Writing %s/%s"%(options.path, ROSINSTALL_FILENAME))
-  rosinstall.rosinstall_cmd.cmd_persist_config_file(config)
+  rosinstall.rosinstall_cmd.cmd_persist_config(config)
   
   ## install or update each element
   install_success = rosinstall.multiproject_cmd.cmd_install_or_update(config,
