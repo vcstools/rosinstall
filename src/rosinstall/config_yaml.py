@@ -62,8 +62,7 @@ def rewrite_included_source(source_path_specs, source_dir, as_is = False):
     source_path_specs[index] = pathspec
   return source_path_specs
 
-
-def aggregate_from_uris(config_uris, filename):
+def aggregate_from_uris(config_uris, filename = None, basepath = None):
   """
   Iterates through uris, each locations a set of config elements as yaml.
   builds a new list of uris following these rules:
@@ -77,6 +76,11 @@ def aggregate_from_uris(config_uris, filename):
   """
   aggregate_source_yaml = []
   # build up a merged list of config elements from all given config_uris
+  if (filename is not None
+      and basepath is not None
+      and os.path.isfile(os.path.join(basepath, filename))):
+    source_path_specs = get_path_specs_from_uri(os.path.join(basepath, filename))
+    aggregate_source_yaml.extend(source_path_specs)
   for loop_uri in config_uris:
     config_uri = conditional_abspath(loop_uri)
     if os.path.isdir(config_uri):

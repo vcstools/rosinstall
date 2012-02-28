@@ -1,6 +1,7 @@
 from __future__ import print_function
 import pkg_resources
 
+import os
 import config_yaml
 from common import MultiProjectException
 from config import Config
@@ -43,19 +44,22 @@ def get_config(basepath, additional_uris = None, config_filename = None):
   
   # Find all the configuration sources
   if additional_uris is None and config_filename is not None:
-    additional_uris = [[os.path.join(basepath, config_filename)]]
+    additional_uris = [os.path.join(basepath, config_filename)]
 
-  aggregate_source_yaml = aggregate_from_uris(additional_uris, config_filename)
-    
+  if additional_uris is None:
+    raise MultiProjectException("no source config file found!")
+
+  path_specs = aggregate_from_uris(additional_uris, config_filename, basepath)
+
   ## Could not get uri therefore error out
-  if len(additional_uris) == 0:
-    raise MultiProjectException("no source config file found! looked at arguments and, %s"%(
-        os.path.join(basepath, config_filename)))
+  if len(path_specs) == 0:
+    raise MultiProjectException("no source config files found at %s or %s"%(
+        os.path.join(basepath, config_filename), additional_uris))
 
-  #print("source...........................", aggregate_source_yaml)
+  #print("source...........................", path_specs)
 
   ## Generate the config class with the uri and path
-  config = Config(aggregate_source_yaml, basepath, config_filename)
+  config = Config(path_specs, basepath, config_filename)
 
   return config
 

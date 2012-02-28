@@ -124,12 +124,7 @@ Later URIs will shadow packages of earlier URIs.\n",
   # Get the path to the rosinstall 
   options.path = os.path.abspath(args[0])
 
-  config_uris = []
-  # Check for existing config in path
-  if os.path.exists(os.path.join(options.path, __ROSINSTALL_FILENAME)):
-    config_uris.append(os.path.join(options.path, __ROSINSTALL_FILENAME))
-
-  config_uris.extend(args[1:])
+  config_uris = args[1:]
   
   config = rosinstall.multiproject_cmd.get_config(basepath = options.path, additional_uris = config_uris, config_filename = __ROSINSTALL_FILENAME)
 
