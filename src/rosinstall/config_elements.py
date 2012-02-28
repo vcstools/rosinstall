@@ -31,7 +31,7 @@ class ConfigElement:
     """PathSpec object with values as specified in file"""
     raise NotImplementedError, "ConfigElement get_path_spec unimplemented"
   def get_versioned_path_spec(self):
-    """yaml where VCS elements have the version looked up"""
+    """PathSpec where VCS elements have the version looked up"""
     raise NotImplementedError, "ConfigElement get_versioned_path_spec unimplemented"
   def is_vcs_element(self):
     # subclasses to override when appropriate
@@ -172,13 +172,15 @@ class VCSConfigElement(ConfigElement):
     if version == '': version = None
     revision = None
     if version is not None:
-      # revision is where local repo should be, version where it actually is
+      # revision is the UID of the version spec, can be them same
       revision = self.vcsc.get_version(self.version)
+    currevision = self.vcsc.get_version()
     return PathSpec(local_name = self.get_local_name(),
                     scmtype = self.vcsc.get_vcs_type_name(),
                     uri = self.uri,
                     version = version,
-                    revision = revision)
+                    revision = revision,
+                    currevision = currevision)
      
 
   def get_diff(self, basepath=None):

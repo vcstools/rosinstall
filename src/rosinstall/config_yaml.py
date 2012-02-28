@@ -107,14 +107,16 @@ class PathSpec:
                uri = None,
                version = None,
                tags = None,
-               revision = None):
-    """Fils in local properties based on dict, unifies different syntaxes"""
+               revision = None,
+               currevision = None):
+    """Fills in local properties based on dict, unifies different syntaxes"""
     self._local_name = local_name
     self._uri = uri
     self._version = version
     self._scmtype = scmtype
     self._tags = tags
     self._revision = revision
+    self._currevision = currevision
 
   def __str__(self):
     return self.get_legacy_yaml()
@@ -136,7 +138,9 @@ class PathSpec:
       self._scmtype = None
       self._uri = None
       self._version = None
-    
+      self._revision = None
+      self._currevision = None
+
   def get_legacy_type(self):
     """return one of __ALLTYPES__"""
     if self._scmtype is not None:
@@ -156,6 +160,8 @@ class PathSpec:
         properties['version'] = self._version
       if self._revision is not None:
         properties['revision'] = self._revision
+      if self._currevision is not None:
+        properties['current_revision'] = self._currevision
     yaml = {self.get_legacy_type(): properties}
     return yaml
 
@@ -174,6 +180,12 @@ class PathSpec:
   def get_version(self):
     return self._version
 
+  def get_revision(self):
+    return self._revision
+
+  def get_current_revision(self):
+    return self._currevision
+  
   def get_uri(self):
     return self._uri
 

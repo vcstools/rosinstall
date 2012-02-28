@@ -153,7 +153,7 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertEqual("mockdiffNone", vcsc.get_diff())
         self.assertEqual("mockstatusNone,False", vcsc.get_status())
         self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri'}}, vcsc.get_path_spec().get_legacy_yaml())
-        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri'}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
+        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri', 'current_revision': 'mockversionNone'}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
         
         vcsc = rosinstall.config_elements.VCSConfigElement(path, MockVcsClient(), localname, uri, None)
         self.assertEqual(path, vcsc.get_path())
@@ -163,7 +163,7 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertEqual("mockdiffNone", vcsc.get_diff())
         self.assertEqual("mockstatusNone,False", vcsc.get_status())
         self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri'}}, vcsc.get_path_spec().get_legacy_yaml())
-        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri'}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
+        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri', 'current_revision': 'mockversionNone'}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
 
         vcsc = rosinstall.config_elements.VCSConfigElement(path, MockVcsClient(), localname, uri, version)
         self.assertEqual(path, vcsc.get_path())
@@ -173,7 +173,7 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertEqual("mockdiffNone", vcsc.get_diff())
         self.assertEqual("mockstatusNone,False", vcsc.get_status())
         self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri'}}, vcsc.get_path_spec().get_legacy_yaml())
-        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri', 'revision': 'mockversionsome.version'}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
+        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri', 'revision': 'mockversionsome.version', 'current_revision': 'mockversionNone'}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
 
     def test_mock_install(self):
         path = "some/path"
