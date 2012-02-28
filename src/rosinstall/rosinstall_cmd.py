@@ -1,3 +1,4 @@
+import os
 import subprocess
 import multiproject_cmd
 import rosinstall.setupfiles
