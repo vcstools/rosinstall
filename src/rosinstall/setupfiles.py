@@ -56,7 +56,7 @@ def generate_setup_sh_text(config, ros_root, ros_package_path):
         distro_unset = True
       text += ". %s\n"%t.path
 
-    text += """
+  text += """
 if [ -z "${ROS_DISTRO}" ]; then
   export ROS_ROOT=%s 
   export PATH=$ROS_ROOT/bin:$PATH
@@ -64,7 +64,7 @@ if [ -z "${ROS_DISTRO}" ]; then
   if [ ! \"$ROS_MASTER_URI\" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
 fi"""% ros_root
 
-    text += """
+  text += """
 # python script to read .rosinstall even when rosnistall is not installed
 export _ROS_PACKAGE_PATH_ROSINTALL=`/usr/bin/env python << EOPYTHON
 import sys, os, yaml;
