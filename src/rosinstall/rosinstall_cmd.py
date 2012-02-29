@@ -33,8 +33,9 @@
 import os
 import subprocess
 import multiproject_cmd
-import rosinstall.setupfiles
-from rosinstall.helpers import ROSInstallException, __ROSINSTALL_FILENAME
+import setupfiles
+import helpers
+from helpers import ROSInstallException, __ROSINSTALL_FILENAME
 
 def cmd_persist_config_file(config):
   ## Save .rosinstall
@@ -50,7 +51,7 @@ def cmd_persist_config_file(config):
 def _ros_requires_boostrap(config):
   """Whether we might need to bootstrap ros"""
   for entry in config.get_source():
-    if rosinstall.helpers.is_path_ros(entry.get_path()):
+    if helpers.is_path_ros(os.path.join(config.get_base_path(), entry.get_path())):
       # we assume that if any of the elements we installed came
       # from a VCS source, a bootsrap might be useful
       if entry.get_scmtype() is not None:
@@ -68,7 +69,7 @@ def cmd_generate_ros_files(config, path, nobuild = False, rosdep_yes = False, ca
                 
   else: # DRY install case
     ## Generate setup.sh and save
-    rosinstall.setupfiles.generate_setup(config)
+    setupfiles.generate_setup(config)
 
     if _ros_requires_boostrap(config) and not nobuild:
       print("Bootstrapping ROS build")
