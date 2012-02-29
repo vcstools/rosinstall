@@ -77,7 +77,7 @@ def cmd_generate_ros_files(config, path, nobuild = False, rosdep_yes = False, ca
       if rosdep_yes:
         rosdep_yes_insert = " --rosdep-yes"
       ros_comm_insert = ""
-      if 'ros_comm' in [os.path.basename(tree.path) for tree in config.trees]:
+      if 'ros_comm' in [os.path.basename(tree.get_path()) for tree in config.get_config_elements()]:
         print("Detected ros_comm bootstrapping it too.")
         ros_comm_insert = " ros_comm"
       subprocess.check_call("source %s && rosmake ros%s --rosdep-install%s" % (os.path.join(path, 'setup.sh'), ros_comm_insert, rosdep_yes_insert), shell=True, executable='/bin/bash')
