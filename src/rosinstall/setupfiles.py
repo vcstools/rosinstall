@@ -70,6 +70,13 @@ endif()
 catkin_workspace()
 """
 
+def generate_catkin_cmake(path, catkinpp):
+    with open(os.path.join(path, "CMakeLists.txt"), 'w') as cmake_file:
+      cmake_file.write(CATKIN_CMAKE_TOPLEVEL)
+
+    if catkinpp:
+      with open(os.path.join(path, "workspace-config.cmake"), 'w') as config_file:
+        config_file.write("set (CMAKE_PREFIX_PATH %s)"%catkinpp)
 
 def generate_setup_sh_text(config, ros_root):
   # overlay or standard

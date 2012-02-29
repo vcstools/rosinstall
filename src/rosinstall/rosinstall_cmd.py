@@ -64,13 +64,7 @@ def cmd_generate_ros_files(config, path, nobuild = False, rosdep_yes = False, ca
  
   ## bootstrap the build if installing ros
   if catkin:
-    with open(os.path.join(path, "CMakeLists.txt"), 'w') as cmake_file:
-      cmake_file.write(CATKIN_CMAKE_TOPLEVEL)
-
-    if catkinpp:
-      with open(os.path.join(path, "workspace-config.cmake"), 'w') as config_file:
-        config_file.write("set (CMAKE_PREFIX_PATH %s)"%catkinpp)
-    
+    setupfiles.generate_catkin_cmake(path, catkinpp)    
                 
   else: # DRY install case
     ## Generate setup.sh and save
