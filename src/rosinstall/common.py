@@ -32,7 +32,9 @@
 
 import urlparse
 import os
-from threading import Thread
+import copy
+# choosing multiprocessing over threading for clean Control-C interrupts (provides terminate())
+from multiprocessing import Process, Manager
 
 class MultiProjectException(Exception): pass
 
@@ -65,42 +67,50 @@ def normabspath(localname, path):
 ## support for running groups of threads sequentially, for the case
 ## that some library is not thread-safe.
   
-class WorkerThread(Thread):
+class WorkerThread(Process):
+
   def __init__(self, worker, outlist, index):
-    Thread.__init__(self)
+    Process.__init__(self)
     self.worker = worker
+    if worker is None or worker.element is None:
+      raise MultiProjectException("Bug: Invalid Worker")
     self.outlist = outlist
     self.index = index
 
   def run(self):
-    result = {'entry': self.worker.element}
     try:
+      result = {'entry': self.worker.element.get_path_spec()}
       result_dict = self.worker.do_work()
       if result_dict is not None:
         result.update(result_dict)
       else:
-        result.update({'error': "worker returned None"})
-    except MultiProjectException as e:
+        result.update({'error': MultiProjectException("worker returned None")})
+    except Exception as e:
       result.update({'error': e})
     self.outlist[self.index] = result
 
-class ThreadSequentializer(Thread):
+class ThreadSequentializer(Process):
   """helper class to run 'threads' one after the other"""
   def __init__(self):
-    Thread.__init__(self)
+    Process.__init__(self)
     self.workers = []
   def add_worker(self, worker):
+    
     self.workers.append(worker)
+    
   def run(self):
     for worker in self.workers:
       worker.run() # not calling start on purpose
 
 class DistributedWork():
+  
   def __init__(self, capacity):
-    self.outputs=[None for i in range(capacity)]
+    man = Manager() # need managed array since we need the results later
+    self.outputs = man.list([None for x in range(capacity)])
     self.threads = []
     self.sequentializers = {}
     self.index = 0
+    
   def add_thread(self, worker):
     thread = WorkerThread(worker, self.outputs, self.index)
     if self.index >= len(self.outputs):
@@ -121,11 +131,26 @@ class DistributedWork():
     else:
       self.sequentializers[group].add_worker(thread)
   def run(self):
-    for thread in self.threads:
-      thread.start()
-    running_threads = self.threads
-    while len(running_threads) > 0:
-      running_threads = [t.join(1) for t in running_threads if t is not None and t.is_alive()]
+    """
+    Execute all collected workers, terminate all on KeyboardInterrupt
+    """
+    # The following code is rather delicate and may behave differently
+    # using threading or multiprocessing. running_threads is
+    # intentionally not used as a shrinking list because of al the
+    # possible multithreading / interruption corner cases
+    try:
+      for thread in self.threads:
+        thread.start()
+      running_threads = self.threads
+      while len(running_threads) > 0:
+        running_threads = [t for t in self.threads if t is not None and t.is_alive()]
+        for thread in running_threads:
+          t.join(1)
+    except KeyboardInterrupt as k:
+      for thread in self.threads:
+        if thread is not None and thread.is_alive():
+          thread.terminate()
+      raise k
     self.outputs = filter(lambda x: x is not None, self.outputs)
     message = ''
     for output in self.outputs:
