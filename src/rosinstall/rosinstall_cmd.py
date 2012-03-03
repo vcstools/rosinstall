@@ -69,6 +69,7 @@ def cmd_generate_ros_files(config, path, nobuild = False, rosdep_yes = False, ca
                 
   else: # DRY install case
     ## Generate setup.sh and save
+    print("(Over-)Writing setup.sh, setup.bash, and setup.zsh in %s"%config.get_base_path())
     setupfiles.generate_setup(config)
 
     if _ros_requires_boostrap(config) and not nobuild:
@@ -81,6 +82,6 @@ def cmd_generate_ros_files(config, path, nobuild = False, rosdep_yes = False, ca
         print("Detected ros_comm bootstrapping it too.")
         ros_comm_insert = " ros_comm"
       subprocess.check_call("source %s && rosmake ros%s --rosdep-install%s" % (os.path.join(path, 'setup.sh'), ros_comm_insert, rosdep_yes_insert), shell=True, executable='/bin/bash')
-    print("\nrosinstall update complete.\n\nNow, type 'source %s/setup.bash' to set up your environment.\nAdd that to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % path)
+
   
     
