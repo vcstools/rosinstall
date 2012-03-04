@@ -36,7 +36,6 @@ import os
 import config_elements
 from config_elements import AVCSConfigElement, OtherConfigElement, SetupConfigElement
 from common import MultiProjectException, normabspath, abspaths_overlap
-from config_yaml import get_path_specs_from_uri
 
   
 class Config:
@@ -84,12 +83,12 @@ class Config:
     """
     for path_spec in path_specs:
       #compute the local_path for the config element
-      local_path = normabspath(path_spec.get_path(), self.get_base_path())
+      local_path = normabspath(path_spec.get_local_name(), self.get_base_path())
       if path_spec.get_scmtype() != None:
         self._insert_vcs_path_spec(path_spec, local_path, merge_strategy)
       else:
         if path_spec.get_tags() is not None and 'setup-file' in path_spec.get_tags():
-          elem = SetupConfigElement(local_path, path_spec.get_path())
+          elem = SetupConfigElement(local_path, path_spec.get_local_name())
           self.insert_element(elem, merge_strategy)
         else:
           # we dont want files or other Config folders in this Config
@@ -98,7 +97,7 @@ class Config:
                   (self.config_filename is not None
                    and os.path.isdir(local_path)
                    and os.path.exists(os.path.join(local_path, self.config_filename)))):
-            local_name = path_spec.get_path()
+            local_name = path_spec.get_local_name()
             elem = OtherConfigElement(local_path, local_name)
             self.insert_element(elem, merge_strategy)
           else:
@@ -110,7 +109,7 @@ class Config:
     source_uri = path_spec.get_uri()
     version = path_spec.get_version()
     try:
-      local_name = path_spec.get_path()
+      local_name = path_spec.get_local_name()
       elem = self._create_vcs_config_element(path_spec.get_scmtype(),
                                              local_path,
                                              local_name,

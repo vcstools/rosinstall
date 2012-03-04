@@ -73,22 +73,37 @@ def get_yaml_from_uri(uri):
     raise MultiProjectException("Invalid multiproject yaml format in [%s]: %s\n" % (uri, e))
   return y
 
-def get_path_specs_from_uri(uri, filename = None, as_is = False):
+def get_path_specs_from_uri(uri, config_filename = None, as_is = False):
+  """
+  Builds a list of PathSpec elements from several types of input locations, "uris".
+  The function treats other workspace folders/files as special uris to prevent mutual conflicts.
+  :param uri: a folder, a file, or a web url
+  :param config_filename: name for files to be treated special as other workspaces
+  :param as_is: do not rewrite, used for loading the current workspace config without rewriting
+  """
   if os.path.isdir(uri):
-    if filename is not None and os.path.isfile(os.path.join(uri, filename)):
-      if as_is:
-        return get_path_specs_from_uri(os.path.join(uri, filename))
-      else:
-        return rewrite_included_source(get_path_specs_from_uri(os.path.join(uri, filename)), uri)
+    if (config_filename is not None
+       and os.path.isfile(os.path.join(uri, config_filename))):
+      uri = os.path.join(uri, config_filename)
     else:
+      # plain folders returned as themselves
       return [PathSpec(uri)]
   yaml = get_yaml_from_uri(uri)
-  if yaml is not None:
-    return [get_path_spec_from_yaml(x) for x in yaml]
-  return []
+  if yaml is None:
+    return []
+  specs = [get_path_spec_from_yaml(x) for x in yaml]
+  
+  if (config_filename is not None
+      and not as_is
+      and os.path.isfile(uri)
+      and os.path.basename(uri) == config_filename):
+    # treat config files and folders with such files special
+    # to prevent 2 workspaces from interacting
+    return rewrite_included_source(specs, os.path.dirname(uri))
+  return specs
 
 
-def rewrite_included_source(source_path_specs, source_dir, as_is = False):
+def rewrite_included_source(source_path_specs, source_dir):
   """
   assumes source_path_specs is the contents of a config file in
   another directory source dir. It rewrites all elements, by changing
@@ -97,32 +112,32 @@ def rewrite_included_source(source_path_specs, source_dir, as_is = False):
   conflicting
   """
   for index, pathspec in enumerate(source_path_specs):
-    if as_is:
-      local_path = pathspec.get_path()
-    else:
-      local_path = os.path.normpath(os.path.join(source_dir, pathspec.get_path()))
+    local_name = os.path.normpath(os.path.join(source_dir, pathspec.get_local_name()))
+    pathspec.set_local_name(local_name)
+    if pathspec.get_path() is not None:
+      path = os.path.normpath(os.path.join(source_dir, pathspec.get_path()))
+      pathspec.set_path(path)
     pathspec.detach_vcs_info()
-    pathspec.set_path(local_path)
     source_path_specs[index] = pathspec
   return source_path_specs
 
-def aggregate_from_uris(config_uris, filename = None, basepath = None):
+def aggregate_from_uris(config_uris, config_filename = None, basepath = None):
   """
   Builds a List of PathSpec from a list of location strings (uri,
-  paths). If locations is a folder, attempts to find filename in it,
-  and use "folder/filename" instead(rewriting element path and
+  paths). If locations is a folder, attempts to find config_filename in it,
+  and use "folder/config_filename" instead(rewriting element path and
   stripping scm nature), else add folder as PathSpec.  Anything else,
   parse yaml at location, and add a PathSpec for each element.
   """
   aggregate_source_yaml = []
   # build up a merged list of config elements from all given config_uris
-  if (filename is not None
+  if (config_filename is not None
       and basepath is not None
-      and os.path.isfile(os.path.join(basepath, filename))):
-    source_path_specs = get_path_specs_from_uri(os.path.join(basepath, filename), as_is = True)
+      and os.path.isfile(os.path.join(basepath, config_filename))):
+    source_path_specs = get_path_specs_from_uri(os.path.join(basepath, config_filename), as_is = True)
     aggregate_source_yaml.extend(source_path_specs)
   for loop_uri in config_uris:
-    source_path_specs = get_path_specs_from_uri(loop_uri, filename)
+    source_path_specs = get_path_specs_from_uri(loop_uri, config_filename)
     # deal with duplicates in Config class
     if source_path_specs is not None:
       assert type(source_path_specs) == list
@@ -132,15 +147,17 @@ def aggregate_from_uris(config_uris, filename = None, basepath = None):
 
 class PathSpec:
   def __init__(self,
-               local_name,
+               local_name, # localname is used as ID, currently also is used as path
                scmtype = None,
                uri = None,
                version = None,
                tags = None,
                revision = None,
-               currevision = None):
+               currevision = None,
+               path = None):
     """Fills in local properties based on dict, unifies different syntaxes"""
     self._local_name = local_name
+    self._path = path
     self._uri = uri
     self._version = version
     self._scmtype = scmtype
@@ -193,11 +210,17 @@ class PathSpec:
     yaml = {self.get_legacy_type(): properties}
     return yaml
 
-  def get_path(self):
+  def get_local_name(self):
     return self._local_name
 
-  def set_path(self, local_name):
+  def set_local_name(self, local_name):
     self._local_name = local_name
+
+  def get_path(self):
+    return self._path
+
+  def set_path(self, path):
+    self._path = path
 
   def get_tags(self):
     return self._tags
@@ -265,11 +288,13 @@ def get_path_spec_from_yaml(yaml_dict):
   else:
     if uri == None:
       raise MultiProjectException("scm type without declared uri in %s"%(value))
-  return PathSpec( local_name = local_name,
-                   scmtype = scmtype,
-                   uri = uri,
-                   version = version,
-                   tags = tags)
+  path = local_name # local_name is fixed, path may be normalized, made absolute, etc.
+  return PathSpec(local_name = local_name,
+                  path = path,
+                  scmtype = scmtype,
+                  uri = uri,
+                  version = version,
+                  tags = tags)
 
 def generate_config_yaml(config, filename, header):
   """

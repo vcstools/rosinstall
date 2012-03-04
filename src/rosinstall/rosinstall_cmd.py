@@ -51,7 +51,7 @@ def cmd_persist_config(config, config_filename = ROSINSTALL_FILENAME):
 def _ros_requires_boostrap(config):
   """Whether we might need to bootstrap ros"""
   for entry in config.get_source():
-    if helpers.is_path_ros(os.path.join(config.get_base_path(), entry.get_path())):
+    if helpers.is_path_ros(os.path.join(config.get_base_path(), entry.get_local_name())):
       # we assume that if any of the elements we installed came
       # from a VCS source, a bootsrap might be useful
       if entry.get_scmtype() is not None:

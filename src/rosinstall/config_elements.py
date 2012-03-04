@@ -91,7 +91,7 @@ class OtherConfigElement(ConfigElement):
     raise MultiProjectException("Cannot generate versioned outputs with non source types")
 
   def get_path_spec(self):
-    return PathSpec(local_name = self.get_local_name())
+    return PathSpec(local_name = self.get_local_name(), path = self.get_path())
 
 
 class SetupConfigElement(ConfigElement):
@@ -104,7 +104,7 @@ class SetupConfigElement(ConfigElement):
     raise MultiProjectException("Cannot generate versioned outputs with non source types")
   
   def get_path_spec(self):
-    return PathSpec(local_name = self.get_local_name(), tags=['setup-file'])
+    return PathSpec(local_name = self.get_local_name(), path = self.get_path(), tags=['setup-file'])
 
 
 class VCSConfigElement(ConfigElement):
@@ -194,6 +194,7 @@ class VCSConfigElement(ConfigElement):
     version = self.version
     if version == '': version = None
     return PathSpec(local_name = self.get_local_name(),
+                    path = self.get_path(),
                     scmtype = self.vcsc.get_vcs_type_name(),
                     uri = self.uri,
                     version = version)
@@ -208,6 +209,7 @@ class VCSConfigElement(ConfigElement):
       revision = self.vcsc.get_version(self.version)
     currevision = self.vcsc.get_version()
     return PathSpec(local_name = self.get_local_name(),
+                    path = self.get_path(),
                     scmtype = self.vcsc.get_vcs_type_name(),
                     uri = self.uri,
                     version = version,
