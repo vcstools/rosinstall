@@ -162,16 +162,16 @@ def cmd_diff(config, path = None):
       result.append({'entry':element, 'diff':element.get_diff(path)})
   return result
 
-def cmd_install_or_update(config, backup_changed = None, mode = 'abort', robust = False):
-    """
-    performs many things, generally attempting to make
-    the local filesystem look like what the config specifies,
-    pulling from remote sources the most recent changes.
-    
-    The command may have stdin user interaction (TODO abstract)
-    :param backup_changed: whether to backup trees before deleting them
-    :param robust: proceed to next element even when one element fails
-    :returns: True on Success
-    :raises MultiProjectException: on plenty of errors
-    """
-    return config.execute_install(backup_changed, mode, robust)
+def cmd_install_or_update(config, backup_path = None, mode = 'abort', robust = False):
+  """
+  performs many things, generally attempting to make
+  the local filesystem look like what the config specifies,
+  pulling from remote sources the most recent changes.
+  
+  The command may have stdin user interaction (TODO abstract)
+  :param backup_path: if and where to backup trees before deleting them
+  :param robust: proceed to next element even when one element fails
+  :returns: True on Success
+  :raises MultiProjectException: on plenty of errors
+  """
+  return config.execute_install(backup_path, mode, robust)

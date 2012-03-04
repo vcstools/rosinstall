@@ -81,7 +81,7 @@ class Config:
     """
     for path_spec in path_specs:
       #compute the local_path for the config element
-      local_path = normabspath(path_spec.get_path(), self.base_path)
+      local_path = normabspath(path_spec.get_path(), self.get_base_path())
       if path_spec.get_scmtype() == None:
         if path_spec.get_tags() is not None and 'setup-file' in path_spec.get_tags():
           elem = SetupConfigElement(local_path, path_spec.get_path())
@@ -171,12 +171,12 @@ class Config:
 
   def execute_install(self, backup_path = None, mode = 'abort', robust = False):
     success = True
-    if not os.path.exists(self.base_path):
-      os.mkdir(self.base_path)
+    if not os.path.exists(self.get_base_path()):
+      os.mkdir(self.get_base_path())
     for t in self.trees:
       abs_backup_path = None
       if backup_path is not None:
-        abs_backup_path = os.path.join(self.base_path, backup_path)
+        abs_backup_path = os.path.join(self.get_base_path(), backup_path)
       try:
         t.install(abs_backup_path, mode)
       except MultiProjectException as ex:

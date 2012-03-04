@@ -36,7 +36,7 @@ import os
 import yaml
 
 import helpers
-from helpers import ROSInstallException, get_ros_stack_path, get_ros_package_path, __ROSINSTALL_FILENAME
+from helpers import ROSInstallException, get_ros_stack_path, get_ros_package_path, ROSINSTALL_FILENAME
 import config
 from config_elements import SetupConfigElement
 
@@ -109,7 +109,7 @@ export _ROS_PACKAGE_PATH_ROSINTALL=`/usr/bin/env python << EOPYTHON
 import sys, os, yaml;
 if not os.path.isfile('.rosinstall'):
     sys.exit("There is no .rosinstall file at %s"%os.path.abspath('.'))
-with open(".rosinstall", "r") as f:
+with open('.rosinstall', "r") as f:
   try:
     v=f.read();
   except Exception as e:
@@ -193,7 +193,7 @@ def generate_setup(config):
   # simplest case first
   ros_root = helpers.get_ros_stack_path(config)
   if not ros_root:
-    raise ROSInstallException("No 'ros' stack detected in %s.  The 'ros' stack is required in all rosinstall directories. Please add a definition of the 'ros' stack either manually in %s and then call 'rosinstall .' in the directory. Or add one on the command line 'rosinstall . http://www.ros.org/rosinstalls/boxturtle_ros.rosinstall'. Or reference an existing install like in /opt/ros/boxturtle with 'rosinstall . /opt/ros/boxturtle'.  Note: the above suggestions assume you are using boxturtle, if you are using latest or another distro please change the urls."%(config, __ROSINSTALL_FILENAME) )
+    raise ROSInstallException("No 'ros' stack detected in %s.  The 'ros' stack is required in all rosinstall directories. Please add a definition of the 'ros' stack either manually in %s and then call 'rosinstall .' in the directory. Or add one on the command line 'rosinstall . http://www.ros.org/rosinstalls/boxturtle_ros.rosinstall'. Or reference an existing install like in /opt/ros/boxturtle with 'rosinstall . /opt/ros/boxturtle'.  Note: the above suggestions assume you are using boxturtle, if you are using latest or another distro please change the urls."%(config, ROSINSTALL_FILENAME) )
   
   text = generate_setup_sh_text(config, ros_root)
   setup_path = os.path.join(config.get_base_path(), 'setup.sh')

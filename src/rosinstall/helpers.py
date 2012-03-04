@@ -34,7 +34,7 @@ import os
 
 class ROSInstallException(Exception): pass
 
-__ROSINSTALL_FILENAME = ".rosinstall"
+ROSINSTALL_FILENAME = ".rosinstall"
 
 
 def is_path_stack(path):

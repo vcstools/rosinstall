@@ -26,7 +26,7 @@ import pkg_resources
 import rosinstall.multiproject_cmd
 import rosinstall.rosinstall_cmd
 
-from rosinstall.helpers import ROSInstallException, __ROSINSTALL_FILENAME
+from rosinstall.helpers import ROSInstallException, ROSINSTALL_FILENAME
 from rosinstall.common import MultiProjectException
 import rosinstall.config
 
@@ -126,7 +126,7 @@ Later URIs will shadow packages of earlier URIs.\n",
 
   config_uris = args[1:]
   
-  config = rosinstall.multiproject_cmd.get_config(basepath = options.path, additional_uris = config_uris, config_filename = __ROSINSTALL_FILENAME)
+  config = rosinstall.multiproject_cmd.get_config(basepath = options.path, additional_uris = config_uris, config_filename = ROSINSTALL_FILENAME)
 
   if options.generate_versioned:
     filename = os.path.abspath(options.generate_versioned)
@@ -159,12 +159,12 @@ Later URIs will shadow packages of earlier URIs.\n",
         ", ".join(config_uris))
 
   # includes ROS specific files
-  print("(Over-)Writing %s/%s"%(options.path, __ROSINSTALL_FILENAME))
+  print("(Over-)Writing %s/%s"%(options.path, ROSINSTALL_FILENAME))
   rosinstall.rosinstall_cmd.cmd_persist_config_file(config)
   
   ## install or update each element
   install_success = rosinstall.multiproject_cmd.cmd_install_or_update(config,
-                                                                      backup_changed = options.backup_changed,
+                                                                      backup_path = options.backup_changed,
                                                                       mode = mode,
                                                                       robust = options.robust)
   
