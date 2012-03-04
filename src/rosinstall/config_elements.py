@@ -138,7 +138,7 @@ class SetupConfigElement(ConfigElement):
 
 class VCSConfigElement(ConfigElement):
   
-  def __init__(self, path, vcs_client, local_name, uri, version=''):
+  def __init__(self, path, local_name, uri, version=''):
     """
     Creates a config element for a VCS repository.
     :param path: absolute or relative path, str
@@ -154,24 +154,24 @@ class VCSConfigElement(ConfigElement):
       raise MultiProjectException("Invalid scm entry having no uri attribute for path %s"%path)
     self.uri = uri.rstrip('/') # strip trailing slashes if defined to not be too strict #3061
     self.version = version
-    if vcs_client is None:
-      raise MultiProjectException("Vcs Config element can only be constructed by providing a VCS client instance")
-    self.vcsc = vcs_client
 
+  def _get_vcsc(self):
+    raise NotImplementedError, "VCSConfigElement _get_vcsc() unimplemented"
+  
   def is_vcs_element(self):
     return True
   
   def prepare_install(self, backup_path = None, arg_mode = 'abort', robust = False):
     preparation_report = PreparationReport(self)
-    if self.vcsc.path_exists():
+    if self._get_vcsc().path_exists():
       print("Prepare updating %s (%s) to %s"%(self.uri, self.version, self.path))
       # Directory exists see what we need to do
       error_message = None
       
-      if not self.vcsc.detect_presence():
-        error_message = "Failed to detect %s presence at %s."%(self.vcsc.get_vcs_type_name(), self.path)
+      if not self._get_vcsc().detect_presence():
+        error_message = "Failed to detect %s presence at %s."%(self._get_vcsc().get_vcs_type_name(), self.path)
       else:
-        cur_url = self.vcsc.get_url().rstrip('/')
+        cur_url = self._get_vcsc().get_url().rstrip('/')
         if not cur_url or cur_url != self.uri:  #strip trailing slashes for #3269
           # local repositories get absolute pathnames
           if not (os.path.isdir(self.uri) and os.path.isdir(cur_url) and os.path.samefile(cur_url, self.uri)):
@@ -207,17 +207,18 @@ class VCSConfigElement(ConfigElement):
   def install(self, checkout = True, backup = True, backup_path = None):
     if checkout == True:
       print("[%s] Installing %s (%s) to %s"%(self.get_local_name(), self.uri, self.version, self.get_path()))
-      if self.vcsc.path_exists():
+      if self._get_vcsc().path_exists():
         if (backup == False):
           shutil.rmtree(self.path)
         else:
           self.backup(backup_path)
-      if not self.vcsc.checkout(self.uri, self.version):
+      if not self._get_vcsc().checkout(self.uri, self.version):
         raise MultiProjectException("[%s] Checkout of %s version %s into %s failed."%(self.get_local_name(), self.uri, self.version, self.get_path()))
     else:
       print("[%s] Updating %s"%(self.get_local_name(), self.get_path()))
-      if not self.vcsc.update(self.version):
+      if not self._get_vcsc().update(self.version):
         raise MultiProjectException("[%s] Update Failed of %s"%(self.get_local_name(), self.get_path()))
+    print("[%s] Done."%self.get_local_name())
           
   def get_path_spec(self):
     "yaml as from source"
@@ -225,7 +226,7 @@ class VCSConfigElement(ConfigElement):
     if version == '': version = None
     return PathSpec(local_name = self.get_local_name(),
                     path = self.get_path(),
-                    scmtype = self.vcsc.get_vcs_type_name(),
+                    scmtype = self._get_vcsc().get_vcs_type_name(),
                     uri = self.uri,
                     version = version)
 
@@ -236,11 +237,11 @@ class VCSConfigElement(ConfigElement):
     revision = None
     if version is not None:
       # revision is the UID of the version spec, can be them same
-      revision = self.vcsc.get_version(self.version)
-    currevision = self.vcsc.get_version()
+      revision = self._get_vcsc().get_version(self.version)
+    currevision = self._get_vcsc().get_version()
     return PathSpec(local_name = self.get_local_name(),
                     path = self.get_path(),
-                    scmtype = self.vcsc.get_vcs_type_name(),
+                    scmtype = self._get_vcsc().get_vcs_type_name(),
                     uri = self.uri,
                     version = version,
                     revision = revision,
@@ -248,10 +249,10 @@ class VCSConfigElement(ConfigElement):
      
 
   def get_diff(self, basepath=None):
-    return self.vcsc.get_diff(basepath)
+    return self._get_vcsc().get_diff(basepath)
   
   def get_status(self, basepath=None, untracked=False):
-    return self.vcsc.get_status(basepath, untracked)
+    return self._get_vcsc().get_status(basepath, untracked)
   
 
   
@@ -260,5 +261,13 @@ class AVCSConfigElement(VCSConfigElement):
   Implementation using vcstools vcsclient, works for types svn, git, hg, bzr, tar
   :raises: Lookup Exception for unknown types
   """
-  def __init__(self, scmtype, path, local_name, uri, version = ''):
-    VCSConfigElement.__init__(self, path, VcsClient(scmtype, path), local_name, uri, version)
+  def __init__(self, scmtype, path, local_name, uri, version = '', vcsc = None):
+    VCSConfigElement.__init__(self, path, local_name, uri, version)
+    self.vcsc = vcsc
+    self._scmtype = scmtype
+
+  def _get_vcsc(self):
+    # lazy initializer
+    if self.vcsc == None:
+      self.vcsc = VcsClient(self._scmtype, self.get_path())
+    return self.vcsc
