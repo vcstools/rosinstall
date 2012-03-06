@@ -181,6 +181,8 @@ class Config:
   def get_base_path(self):
     return self.base_path
 
+  def get_config_filename(self):
+    return self.config_filename
   
   def get_version_locked_source(self):
     source_aggregate = []
