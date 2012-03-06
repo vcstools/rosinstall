@@ -221,4 +221,54 @@ def cmd_install_or_update(config, backup_path = None, mode = 'abort', robust = F
   :returns: True on Success
   :raises MultiProjectException: on plenty of errors
   """
-  return config.execute_install(backup_path, mode, robust)
+  success = True
+  if not os.path.exists(config.get_base_path()):
+    os.mkdir(config.get_base_path())
+  # Prepare install operation check filesystem and ask user
+  preparation_reports = []
+  for t in config.get_config_elements():
+    abs_backup_path = None
+    if backup_path is not None:
+      abs_backup_path = os.path.join(config.get_base_path(), backup_path)
+    try:
+      preparation_report = t.prepare_install(backup_path = abs_backup_path, arg_mode = mode, robust = robust)
+      if preparation_report is not None:
+        if preparation_report.abort:
+          raise MultiProjectException("Aborting install because of %s"%preparation_report.error)
+        if not preparation_report.skip:
+          preparation_reports.append(preparation_report)
+        else:
+          print("Skipping install of %s because: %s"%(preparation_report.config_element.get_local_name(),
+                                                      preparation_report.error))
+    except MultiProjectException as ex:
+      fail_str = "Failed to install tree '%s'\n %s"%(t.get_path(), ex)
+      if robust:
+        success = False
+        print("Continuing despite %s"%fail_str)
+      else:
+        raise MultiProjectException(fail_str)
+      
+  class Installer():
+    def __init__(self, report):
+      self.element = report.config_element
+      self.report = report
+    def do_work(self):
+      self.element.install(self.report.checkout, self.report.backup, self.report.backup_path)
+      return {}
+
+  work = DistributedWork(len(preparation_reports))
+  for report in preparation_reports:
+    thread = Installer(report)
+    work.add_thread(thread)
+ 
+  try:
+    outputs = work.run()
+  except MultiProjectException as e:  
+    success = False
+    if robust:
+      print("Errors during install %s"%(e))
+    else:
+      raise e
+  return success
+  # TODO go back and make sure that everything in options.path is described
+  # in the yaml, and offer to delete otherwise? not sure, but it could go here

@@ -233,56 +233,7 @@ class ConfigSimple_Test(unittest.TestCase):
         self.assertTrue(config.remove_element('foob'))
         self.assertEqual(0, len(config.get_config_elements()))
 
-    def test_mock_install(self):
-        git1 = PathSpec('foo', 'git', 'git/uri', 'git.version')
-        svn1 = PathSpec('foos', 'svn', 'svn/uri', '12345')
-        hg1 = PathSpec('fooh', 'hg', 'hg/uri', 'hg.version')
-        bzr1 = PathSpec('foob', 'bzr', 'bzr/uri', 'bzr.version')
-        config = Config([git1, svn1, hg1, bzr1],
-                        '.',
-                        None,
-                        {"svn": MockVcsConfigElement,
-                         "git": MockVcsConfigElement,
-                         "hg": MockVcsConfigElement,
-                         "bzr": MockVcsConfigElement})
-        self.assertFalse(config.get_config_elements()[0].installed)
-        self.assertFalse(config.get_config_elements()[1].installed)
-        self.assertFalse(config.get_config_elements()[2].installed)
-        self.assertFalse(config.get_config_elements()[3].installed)
-        config.execute_install()
-        self.assertTrue(config.get_config_elements()[0].installed)
-        self.assertTrue(config.get_config_elements()[1].installed)
-        self.assertTrue(config.get_config_elements()[2].installed)
-        self.assertTrue(config.get_config_elements()[3].installed)
-        config.execute_install()
-        self.assertTrue(config.get_config_elements()[0].installed)
-        self.assertTrue(config.get_config_elements()[1].installed)
-        self.assertTrue(config.get_config_elements()[2].installed)
-        self.assertTrue(config.get_config_elements()[3].installed)
 
-    def test_mock_install_fail(self):
-        # robust
-        git1 = PathSpec('foo', 'git', 'git/uri', 'git.version')
-        svn1 = PathSpec('foos', 'svn', 'svn/uri', '12345')
-        hg1 = PathSpec('fooh', 'hg', 'hg/uri', 'hg.version')
-        bzr1 = PathSpec('foob', 'bzr', 'bzr/uri', 'bzr.version')
-        config = Config([git1, svn1, hg1, bzr1],
-                        '.',
-                        None,
-                        {"svn": MockVcsConfigElement,
-                         "git": MockVcsConfigElement,
-                         "hg": MockVcsConfigElement,
-                         "bzr": MockVcsConfigElement})
-        config.get_config_elements()[1].install_success = False
-        config.execute_install(robust = True)
-        self.assertTrue(config.get_config_elements()[0].installed)
-        self.assertTrue(config.get_config_elements()[2].installed)
-        self.assertTrue(config.get_config_elements()[3].installed)
-        try:
-            config.execute_install(robust = False)
-            self.fail("expected Exception")
-        except MultiProjectException:
-            pass
         
     def test_absolute_localname(self):
         mock1 = PathSpec('/foo/bim')

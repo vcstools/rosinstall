@@ -42,9 +42,21 @@ from common import MultiProjectException
 from config_yaml import PathSpec
 import ui
 
+# helper class
+
+class PreparationReport:
+  """Specifies after user interaction of how to perform install / update"""
+  def __init__(self, element):
+    self.config_element = element
+    self.abort = False # abort ALL operations
+    self.skip = False # skip this tree
+    self.error = None # message
+    self.checkout = True # checkout vs update
+    self.backup = False # backup vs delete
+    self.backup_path = None # where to move tree to
+
 ## Each Config element provides actions on a local folder
-
-
+    
 class ConfigElement:
   """ Base class for Config provides methods with not implemented
   exceptions.  Also a few shared methods."""
@@ -57,7 +69,24 @@ class ConfigElement:
   def get_local_name(self):
     """What the user specified in his config"""
     return self.local_name
+  def prepare_install(self, backup_path = None, arg_mode = 'abort', robust = False):
+    """
+    Check whether install can be performed, asking user for decision if necessary. 
+    :param arg_mode: one of prompt, backup, delete, skip. Determines how to handle error cases
+    :param backup_path: if arg_mode==backup, determines where to backup to
+    :param robust: if true, operation will be aborted without changes to the filesystem and without user interaction
+    :returns: A preparation_report instance, telling whether to checkout or to update, how to deal with existing tree, and where to backup to.
+    """
+    preparation_report = PreparationReport(self)
+    preparation_report.skip = True
+    return preparation_report
   def install(self, backup_path = None, arg_mode = 'abort', robust = False):
+    """
+    Attempt to make it so that self.path is the result of checking out / updating from remote repo.
+    No user Interaction allowed here (for concurrent mode).
+    :param checkout: whether to checkout or update
+    :param backup: if checking out, what to do if path exists. If true, backup_path must be set.
+    """
     raise NotImplementedError, "ConfigElement install unimplemented"
   def get_path_spec(self):
     """PathSpec object with values as specified in file"""
@@ -74,9 +103,9 @@ class ConfigElement:
     raise NotImplementedError, "ConfigElement get_status unimplemented"
   def backup(self, backup_path):
     if not backup_path:
-      raise MultiProjectException("Cannot install %s.  backup disabled."%self.path)
+      raise MultiProjectException("[%s] Cannot install %s.  backup disabled."%(self.get_local_name(), self.get_path()))
     backup_path = os.path.join(backup_path, os.path.basename(self.path)+"_%s"%datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
-    print("Backing up %s to %s"%(self.path, backup_path))
+    print("[%s] Backing up %s to %s"%(self.get_local_name(), self.get_path(), backup_path))
     shutil.move(self.path, backup_path)
   def __str__(self):
     return str(self.get_path_spec().get_legacy_yaml());
@@ -131,20 +160,11 @@ class VCSConfigElement(ConfigElement):
 
   def is_vcs_element(self):
     return True
-   
-  def install(self, backup_path = None, arg_mode = 'abort', robust = False):
-    """
-    Attempt to make it so that self.path is the result of checking out / updating from remote repo
-    :param arg_mode: one of prompt, backup, delete, skip. Determines how to handle error cases
-    :param backup_path: if arg_mode==backup, determines where to backup to
-    :param robust: if true, operation will be aborted without changes to the filesystem and without user interaction
-    """
-    print("Installing %s (%s) to %s"%(self.uri, self.version, self.path))
-
-    if not self.vcsc.path_exists():
-      if not self.vcsc.checkout(self.uri, self.version):
-        raise MultiProjectException("Checkout of %s version %s into %s failed."%(self.uri, self.version, self.path))
-    else:
+  
+  def prepare_install(self, backup_path = None, arg_mode = 'abort', robust = False):
+    preparation_report = PreparationReport(self)
+    if self.vcsc.path_exists():
+      print("Prepare updating %s (%s) to %s"%(self.uri, self.version, self.path))
       # Directory exists see what we need to do
       error_message = None
       
@@ -155,40 +175,50 @@ class VCSConfigElement(ConfigElement):
         if not cur_url or cur_url != self.uri:  #strip trailing slashes for #3269
           # local repositories get absolute pathnames
           if not (os.path.isdir(self.uri) and os.path.isdir(cur_url) and os.path.samefile(cur_url, self.uri)):
-            error_message = "url %s does not match %s requested."%(cur_url, self.uri)
-        
-      # If robust ala continue-on-error, just error now and it will be continued at a higher level
-      if robust and error_message:
-          raise MultiProjectException(error_message)
-
+            error_message = "Url %s does not match %s requested."%(cur_url, self.uri)
       if error_message is None:
-        if not self.vcsc.update(self.version):
-          raise MultiProjectException("Update Failed of %s"%self.path)
+        # update should be possible
+        preparation_report.checkout = False
       else:
+        # If robust ala continue-on-error, just error now and it will be continued at a higher level
+        if robust:
+          raise MultiProjectException("Update Failed of %s"%self.path)
         # prompt the user based on the error code
         if arg_mode == 'prompt':
           mode = ui.Ui.get_ui().prompt_del_abort_retry(error_message, allow_skip = True)
-          if mode == 'backup': # you can only backup if in prompt mode
-            backup_path = ui.Ui.get_ui().get_backup_path()
         else:
           mode = arg_mode
-          
+        if mode == 'backup':
+            preparation_report.backup = True
+            if backup_path == None:
+              preparation_report.backup_path = ui.Ui.get_ui().get_backup_path()
+            else:
+              preparation_report.backup_path = backup_path
         if mode == 'abort':
-          raise MultiProjectException(error_message)
-        elif mode == 'backup':
-          self.backup(backup_path)
-        elif mode == 'delete':
+          preparation_report.abort = True
+          preparation_report.error = error_message
+        if mode == 'skip':
+          preparation_report.skip = True
+          preparation_report.error = error_message
+        if mode == 'delete':
+          preparation_report.backup = False
+    return preparation_report
+
+  def install(self, checkout = True, backup = True, backup_path = None):
+    if checkout == True:
+      print("[%s] Installing %s (%s) to %s"%(self.get_local_name(), self.uri, self.version, self.get_path()))
+      if self.vcsc.path_exists():
+        if (backup == False):
           shutil.rmtree(self.path)
-        elif mode == 'skip':
-          return
-      
-        # If the directory now does not exist checkout
-        if self.vcsc.path_exists():
-          raise MultiProjectException("Bug: directory %s should not exist anymore"%(self.path))
         else:
-          if not self.vcsc.checkout(self.uri, self.version):
-            raise MultiProjectException("Checkout of %s version %s into %s failed."%(self.uri, self.version, self.path))
-  
+          self.backup(backup_path)
+      if not self.vcsc.checkout(self.uri, self.version):
+        raise MultiProjectException("[%s] Checkout of %s version %s into %s failed."%(self.get_local_name(), self.uri, self.version, self.get_path()))
+    else:
+      print("[%s] Updating %s"%(self.get_local_name(), self.get_path()))
+      if not self.vcsc.update(self.version):
+        raise MultiProjectException("[%s] Update Failed of %s"%(self.get_local_name(), self.get_path()))
+          
   def get_path_spec(self):
     "yaml as from source"
     version = self.version

@@ -196,14 +196,14 @@ class ConfigElements_Test(unittest.TestCase):
         mockclient = MockVcsClient(url = uri, path_exists = True, vcs_presence = False )
         try:
             vcsc = rosinstall.config_elements.VCSConfigElement(path, mockclient, localname, uri, None)
-            vcsc.install(robust = True)
+            vcsc.install()
             self.fail("should have raised Exception")
         except MultiProjectException: pass
         # uri mismatch, robust
         mockclient = MockVcsClient(url = uri + "invalid", path_exists = True)
         try:
             vcsc = rosinstall.config_elements.VCSConfigElement(path, mockclient, localname, uri, None)
-            vcsc.install(robust = True)
+            vcsc.install()
             self.fail("should have raised Exception")
         except MultiProjectException: pass
         # update failure
@@ -213,11 +213,3 @@ class ConfigElements_Test(unittest.TestCase):
             vcsc.install()
             self.fail("should have raised Exception")
         except MultiProjectException: pass
-        # path exists no vcs failure skip
-        mockclient = MockVcsClient(url = uri, path_exists = True, vcs_presence = False )
-        vcsc = rosinstall.config_elements.VCSConfigElement(path, mockclient, localname, uri, None)
-        vcsc.install(arg_mode='skip')
-        # uri mismatch skip
-        mockclient = MockVcsClient(url = uri + "invalid", path_exists = True)
-        vcsc = rosinstall.config_elements.VCSConfigElement(path, mockclient, localname, uri, None)
-        vcsc.install(arg_mode='skip')

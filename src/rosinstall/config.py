@@ -192,29 +192,6 @@ class Config:
       source_aggregate.append(t.get_path_spec())
     return source_aggregate  
 
-  def execute_install(self, backup_path = None, mode = 'abort', robust = False):
-    success = True
-    if not os.path.exists(self.get_base_path()):
-      os.mkdir(self.get_base_path())
-    for t in self.trees:
-      abs_backup_path = None
-      if backup_path is not None:
-        abs_backup_path = os.path.join(self.get_base_path(), backup_path)
-      try:
-        t.install(abs_backup_path, mode)
-      except MultiProjectException as ex:
-        fail_str = "Failed to install tree '%s'\n %s"%(t.get_path(), ex)
-        if robust:
-          success = False
-          print("Continuing despite %s"%fail_str)
-        else:
-          raise MultiProjectException(fail_str)
-      else:
-          pass
-    return success
-    # TODO go back and make sure that everything in options.path is described
-    # in the yaml, and offer to delete otherwise? not sure, but it could go here
-
   
   def get_config_elements(self):
     source_aggregate = []
