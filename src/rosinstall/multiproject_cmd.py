@@ -52,6 +52,24 @@ from config_yaml import aggregate_from_uris
 import vcstools
 from vcstools import VcsClient
 
+def _select_element(elements, localname):
+  """
+  selects entry where path or localname matches.
+  Prefers localname matches in case of ambiguity.
+  """
+  path_candidate = None
+  if localname is not None:
+    realpath = os.path.realpath(localname)
+    for element in elements:
+      if localname == element.get_local_name():
+        path_candidate = element
+        break
+      elif realpath == os.path.realpath(element.get_path()):
+        path_candidate = element
+    if path_candidate == None:
+      raise MultiProjectException("No config element matches; %s"%localname)
+  return path_candidate
+
 def get_config(basepath, additional_uris = None, config_filename = None):
   """
   Create a Config element necessary for all other commands.
@@ -119,7 +137,7 @@ Bzr:       %s
      prettyversion(vcstools.TarClient.get_environment_metadata()),
      prettyversion(vcstools.BzrClient.get_environment_metadata()))
 
-def cmd_status(config, untracked = False):
+def cmd_status(config, localname = None, untracked = False):
   """
   calls SCM status for all SCM entries in config, relative to path
   :returns: List of dict {element: ConfigElement, diff: diffstring}
@@ -154,18 +172,18 @@ def cmd_status(config, untracked = False):
   # call SCM info in separate threads
   elements = config.get_config_elements()
   work = DistributedWork(len(elements))
-  for element in elements:
-    if element.is_vcs_element():
-      thread = StatusRetriever(element, path, untracked)
-      if element.get_path_spec().get_scmtype() == 'hg':
-        work.add_to_sequential_thread_group(thread, "hg")
-      else:
-        work.add_thread(thread)
+  selected_element = _select_element(elements, localname)
+  if selected_element is not None:
+    work.add_thread(StatusRetriever(selected_element, path, untracked))
+  else:
+    for element in elements:
+      if element.is_vcs_element():
+        work.add_thread(StatusRetriever(element, path, untracked))
   outputs = work.run()
   return outputs
 
 
-def cmd_diff(config):
+def cmd_diff(config, localname = None):
   """
   calls SCM diff for all SCM entries in config, relative to path
   :returns: List of dict {element: ConfigElement, diff: diffstring}
@@ -181,13 +199,13 @@ def cmd_diff(config):
   path = config.get_base_path()
   elements = config.get_config_elements()
   work = DistributedWork(len(elements))
-  for element in elements:
-    if element.is_vcs_element():
-      thread = DiffRetriever(element, path)
-      if element.get_path_spec().get_scmtype() == 'hg':
-        work.add_to_sequential_thread_group(thread, "hg")
-      else:        
-        work.add_thread(thread)
+  selected_element = _select_element(elements, localname)
+  if selected_element is not None:
+    work.add_thread(DiffRetriever(selected_element, path))
+  else:
+    for element in elements:
+      if element.is_vcs_element():
+        work.add_thread(DiffRetriever(element, path))
   outputs = work.run()
   return outputs
 
