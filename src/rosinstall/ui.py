@@ -56,9 +56,9 @@ class Ui:
   def prompt_del_abort_retry(self, prompt, allow_skip = False):
     """Interactive function asking the user to choose a conflict resolution"""
     if allow_skip:
-      valid_modes = ['(d)elete', '(a)bort', '(b)ackup', '(s)kip']
+      valid_modes = ['(d)elete and replace', '(a)bort', '(b)ackup and replace', '(s)kip']
     else:
-      valid_modes = ['(d)elete', '(a)bort', '(b)ackup']
+      valid_modes = ['(d)elete and replace', '(a)bort', '(b)ackup and replace']
   
     mode = ""
   
