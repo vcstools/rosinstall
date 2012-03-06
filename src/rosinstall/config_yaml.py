@@ -73,7 +73,15 @@ def get_yaml_from_uri(uri):
     raise MultiProjectException("Invalid multiproject yaml format in [%s]: %s\n" % (uri, e))
   return y
 
-def get_path_specs_from_uri(uri):
+def get_path_specs_from_uri(uri, filename = None, as_is = False):
+  if os.path.isdir(uri):
+    if filename is not None and os.path.isfile(os.path.join(uri, filename)):
+      if as_is:
+        return get_path_specs_from_uri(os.path.join(uri, filename))
+      else:
+        return rewrite_included_source(get_path_specs_from_uri(os.path.join(uri, filename)), uri)
+    else:
+      return [PathSpec(uri)]
   yaml = get_yaml_from_uri(uri)
   if yaml is not None:
     return [get_path_spec_from_yaml(x) for x in yaml]
@@ -81,9 +89,13 @@ def get_path_specs_from_uri(uri):
 
 
 def rewrite_included_source(source_path_specs, source_dir, as_is = False):
-  """source yaml is the contents of another directory in source dir,
-  we rewrite it to target_dir, by changing the path relative to source
-  dir and changing vcs types to 'other' type"""
+  """
+  assumes source_path_specs is the contents of a config file in
+  another directory source dir. It rewrites all elements, by changing
+  any relative path relative to source dir and changing vcs
+  types to non-vcs types types, to prevent two environments from
+  conflicting
+  """
   for index, pathspec in enumerate(source_path_specs):
     if as_is:
       local_path = pathspec.get_path()
@@ -96,39 +108,21 @@ def rewrite_included_source(source_path_specs, source_dir, as_is = False):
 
 def aggregate_from_uris(config_uris, filename = None, basepath = None):
   """
-  Iterates through uris, each locations a set of config elements as yaml.
-  builds a new list of uris following these rules:
-  1. when a new location is a folder, test folder for filename
-  2. if filename exists, parse yaml from there
-  3. else treat folder as a config element itself
-  4. parse all config element yamls from location
-  5. for each element to be added:
-  6. if an element exists in new list with same local-name, delete it
-  7. append new element to the new list
+  Builds a List of PathSpec from a list of location strings (uri,
+  paths). If locations is a folder, attempts to find filename in it,
+  and use "folder/filename" instead(rewriting element path and
+  stripping scm nature), else add folder as PathSpec.  Anything else,
+  parse yaml at location, and add a PathSpec for each element.
   """
   aggregate_source_yaml = []
   # build up a merged list of config elements from all given config_uris
   if (filename is not None
       and basepath is not None
       and os.path.isfile(os.path.join(basepath, filename))):
-    source_path_specs = get_path_specs_from_uri(os.path.join(basepath, filename))
+    source_path_specs = get_path_specs_from_uri(os.path.join(basepath, filename), as_is = True)
     aggregate_source_yaml.extend(source_path_specs)
   for loop_uri in config_uris:
-    config_uri = conditional_abspath(loop_uri)
-    if os.path.isdir(config_uri):
-      if filename is not None and os.path.exists(os.path.join(config_uri, filename)):
-        source_path_specs = get_path_specs_from_uri(os.path.join(config_uri, filename))
-        if not source_path_specs:
-          raise MultiProjectException("Bad remote folder: %s  This can be caused by empty %s file. "%(loop_uri, filename))
-        # adapt paths and change any 'vcs' element into an 'other' element
-        source_path_specs = rewrite_included_source(source_path_specs, config_uri)
-      else:
-        # fall back to just a directory
-        source_path_specs = [PathSpec(config_uri)]
-    else:
-      source_path_specs = get_path_specs_from_uri(config_uri)
-      if not source_path_specs:
-          raise MultiProjectException("Bad remote source: %s  This can be caused by empty %s file. "%(loop_uri, filename))
+    source_path_specs = get_path_specs_from_uri(loop_uri, filename)
     # deal with duplicates in Config class
     if source_path_specs is not None:
       assert type(source_path_specs) == list
@@ -225,7 +219,9 @@ class PathSpec:
 
 
 def get_path_spec_from_yaml(yaml_dict):
-  """Fills in local properties based on dict, unifies different syntaxes"""
+  """
+  Fills in local properties based on dict, unifies different syntaxes
+  """
   local_name = None
   uri = None
   version = None

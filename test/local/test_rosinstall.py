@@ -74,41 +74,40 @@ class RosinstallCommandlineOverlays(AbstractFakeRosBasedTest):
     def test_Rosinstall_rosinstall_file_input_ros_only(self):
         """uses base ros folder"""
         local_rosinstall = os.path.join(self.test_root_path, "local.rosinstall")
+        # invalid recursion itno some other rosinstall folder
         _create_yaml_file([_create_config_elt_dict("other", self.directory)],  local_rosinstall)
                           
         cmd = copy.copy(self.rosinstall_fn)
-        cmd.extend([self.new_directory, local_rosinstall])
+        cmd.extend([self.new_directory, self.ros_path, local_rosinstall])
+        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        stream = open(os.path.join(self.new_directory, '.rosinstall'), 'r')
+        yamlsrc = yaml.load(stream)
+        stream.close()
+        self.assertEqual(1, len(yamlsrc))
+        self.assertEqual('other', yamlsrc[0].keys()[0])
+
+    def test_Rosinstall_rosinstall_file_input_add(self):
+        """uses base ros folders and adds a stack"""
+        local_rosinstall = os.path.join(self.test_root_path, "local2.rosinstall")
+        # self.directory points invalidly at a folder containing a .rosinstall pointing to ros and gitrepo
+        _create_yaml_file([_create_config_elt_dict("other", self.directory),
+                           _create_config_elt_dict("hg", "gitrepo", self.hg_path)],
+                          local_rosinstall)
+                          
+        cmd = copy.copy(self.rosinstall_fn)
+        cmd.extend([self.new_directory, self.ros_path, local_rosinstall])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
         stream = open(os.path.join(self.new_directory, '.rosinstall'), 'r')
         yamlsrc = yaml.load(stream)
         stream.close()
         self.assertEqual(2, len(yamlsrc))
         self.assertEqual('other', yamlsrc[0].keys()[0])
-        self.assertEqual('other', yamlsrc[1].keys()[0])
-
-    def test_Rosinstall_rosinstall_file_input_add(self):
-        """uses base ros folders and adds a stack"""
-        local_rosinstall = os.path.join(self.test_root_path, "local2.rosinstall")
-        # self.directory points at a folder containing a .rosinstall pointing to ros and gitrepo
-        _create_yaml_file([_create_config_elt_dict("other", self.directory),
-                           _create_config_elt_dict("hg", "gitrepo", self.hg_path)],
-                          local_rosinstall)
-                          
-        cmd = copy.copy(self.rosinstall_fn)
-        cmd.extend([self.new_directory, local_rosinstall])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
-        stream = open(os.path.join(self.new_directory, '.rosinstall'), 'r')
-        yamlsrc = yaml.load(stream)
-        stream.close()
-        self.assertEqual(3, len(yamlsrc))
-        self.assertEqual('other', yamlsrc[0].keys()[0])
-        self.assertEqual('other', yamlsrc[1].keys()[0])
-        self.assertEqual('hg', yamlsrc[2].keys()[0])
+        self.assertEqual('hg', yamlsrc[1].keys()[0])
 
     def test_Rosinstall_ros_with_folder(self):
         """Use a folder as a remote rosinstall location"""
         cmd = copy.copy(self.rosinstall_fn)
-        cmd.extend([self.new_directory, self.directory])
+        cmd.extend([self.new_directory, self.ros_path, self.directory])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ), cmd)
 
 
@@ -141,16 +140,15 @@ class RosinstallCommandlineOverlaysWithSetup(AbstractFakeRosBasedTest):
                           local_rosinstall)
                           
         cmd = copy.copy(self.rosinstall_fn)
-        cmd.extend([self.new_directory, local_rosinstall])
+        cmd.extend([self.new_directory, self.ros_path, local_rosinstall])
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
         stream = open(os.path.join(self.new_directory, '.rosinstall'), 'r')
         yamlsrc = yaml.load(stream)
         stream.close()
-        self.assertEqual(4, len(yamlsrc))
-        self.assertEqual('other', yamlsrc[0].keys()[0])
-        self.assertEqual('setup-file', yamlsrc[1].keys()[0])
-        self.assertEqual('other', yamlsrc[2].keys()[0])
-        self.assertEqual('hg', yamlsrc[3].keys()[0])
+        self.assertEqual(2, len(yamlsrc), yamlsrc)
+        self.assertEqual('other', yamlsrc[0].keys()[0]) #ros
+        self.assertEqual('hg', yamlsrc[1].keys()[0]) #hg_repo
+
 
     def test_Rosinstall_ros_with_folder_and_setupfile(self):
         cmd = copy.copy(self.rosinstall_fn)
@@ -162,5 +160,5 @@ class RosinstallCommandlineOverlaysWithSetup(AbstractFakeRosBasedTest):
         self.assertEqual(3, len(yamlsrc))
         self.assertEqual('other', yamlsrc[0].keys()[0])
         self.assertEqual('setup-file', yamlsrc[1].keys()[0])
-        self.assertEqual('other', yamlsrc[0].keys()[0])
+        self.assertEqual('other', yamlsrc[2].keys()[0])
 

@@ -49,7 +49,7 @@ class Config:
     """
     :param config_source_dict: A list (e.g. from yaml) describing the config, list of dict, each dict describing one element.
     :param config_filename: When given a folder, Config
-    :param merge_strategy: how to deal with entries with equivalent path. See _insert_element
+    :param merge_strategy: how to deal with entries with equivalent path. See insert_element
     will look in folder for file of that name for more config source, str.
     """
     assert install_path is not None
@@ -72,65 +72,57 @@ class Config:
                      'tar': AVCSConfigElement}
     if extended_types is not None:
       self.registry = dict(list(self.registry.items()) + list(extended_types.items()))
-    self._load_config_dicts(path_specs, merge_strategy)
+    self.add_path_specs(path_specs, merge_strategy)
 
   def __str__(self):
     return str([str(x) for x in self.trees])
 
-  def _load_config_dicts(self, path_specs, merge_strategy = 'KillAppend'):
+  def add_path_specs(self, path_specs, merge_strategy = 'KillAppend'):
     """
-    goes through config_dicts and builds up self.trees. Validates inputs individually.
+    goes through path_specs and builds up self.trees.
     May recursively pull elements from remote sources.
     """
     for path_spec in path_specs:
       #compute the local_path for the config element
       local_path = normabspath(path_spec.get_path(), self.get_base_path())
-      if path_spec.get_scmtype() == None:
+      if path_spec.get_scmtype() != None:
+        self._insert_vcs_path_spec(path_spec, local_path, merge_strategy)
+      else:
         if path_spec.get_tags() is not None and 'setup-file' in path_spec.get_tags():
           elem = SetupConfigElement(local_path, path_spec.get_path())
-          self.insert_element(elem)
+          self.insert_element(elem, merge_strategy)
         else:
-          config_file_uri = '' # os.path.exists == False, later
-          if os.path.isfile(local_path):
-            config_file_uri = local_path
-          elif os.path.isdir(local_path):
-            # unless filename feature is disabled
-            if self.config_filename is not None:
-              config_file_uri = os.path.join(local_path, self.config_filename)
-          if os.path.exists(config_file_uri):
-            child_config = Config(get_path_specs_from_uri(config_file_uri), local_path, self.config_filename)
-            for child_path_spec in child_config.get_source():
-              full_child_path = os.path.join(local_path, child_path_spec.get_path())
-              child_local_name = full_child_path
-              if child_path_spec.get_tags() is not None and 'setup-file' in child_path_spec.get_tags():
-                elem = SetupConfigElement(full_child_path, child_local_name)
-                self.insert_element(elem)
-              else:
-                elem = OtherConfigElement(full_child_path, child_local_name)
-                self.insert_element(elem)
-          else:
+          # we dont want files or other Config folders in this Config
+          if not (os.path.isfile(local_path)
+                  or
+                  (self.config_filename is not None
+                   and os.path.isdir(local_path)
+                   and os.path.exists(os.path.join(local_path, self.config_filename)))):
             local_name = path_spec.get_path()
             elem = OtherConfigElement(local_path, local_name)
-            self.insert_element(elem)
-      else:
-        # Get the version and source_uri elements
-        source_uri = path_spec.get_uri()
-        version = path_spec.get_version()
-        try:
-          local_name = path_spec.get_path()
-          elem = self._create_vcs_config_element(path_spec.get_scmtype(),
-                                                 local_path,
-                                                 local_name,
-                                                 source_uri,
-                                                 version)
-          self.insert_element(elem)
-        except LookupError as ex:
-          raise MultiProjectException("Abstracted VCS Config failed. Exception: %s" % ex)
+            self.insert_element(elem, merge_strategy)
+          else:
+            print("!!!!!Warning: Not recursing into other config folder %s"%local_path)
 
+
+  def _insert_vcs_path_spec(self, path_spec, local_path, merge_strategy = 'KillAppend'):
+    # Get the version and source_uri elements
+    source_uri = path_spec.get_uri()
+    version = path_spec.get_version()
+    try:
+      local_name = path_spec.get_path()
+      elem = self._create_vcs_config_element(path_spec.get_scmtype(),
+                                             local_path,
+                                             local_name,
+                                             source_uri,
+                                             version)
+      self.insert_element(elem, merge_strategy)
+    except LookupError as ex:
+      raise MultiProjectException("Abstracted VCS Config failed. Exception: %s" % ex)
 
   def insert_element(self, new_config_elt, merge_strategy = 'KillAppend'):
     """
-    Append ConfigElement to self.trees, checking for duplicate local-name or path first.
+    Insert ConfigElement to self.trees, checking for duplicate local-name or path first.
     In case local_name matches, follow given strategy
     KillAppend (default): remove old element, append new at the end
     Replace: remove first such old element, insert new at that position.
@@ -193,6 +185,9 @@ class Config:
 
 
   def get_source(self):
+    """
+    returns all elements that got added by user keystrokes (CLI and changed .rosinstall)
+    """
     source_aggregate = []
     for t in self.trees:
       source_aggregate.append(t.get_path_spec())
