@@ -238,8 +238,9 @@ def cmd_install_or_update(config, backup_path = None, mode = 'abort', robust = F
         if not preparation_report.skip:
           preparation_reports.append(preparation_report)
         else:
-          print("Skipping install of %s because: %s"%(preparation_report.config_element.get_local_name(),
-                                                      preparation_report.error))
+          if preparation_report.error is not None:
+            print("Skipping install of %s because: %s"%(preparation_report.config_element.get_local_name(),
+                                                        preparation_report.error))
     except MultiProjectException as ex:
       fail_str = "Failed to install tree '%s'\n %s"%(t.get_path(), ex)
       if robust:
