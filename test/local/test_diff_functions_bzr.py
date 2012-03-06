@@ -65,7 +65,7 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
         subprocess.check_call(["bzr", "commit", "-m", "modified"], cwd=remote_path)
 
         # rosinstall the remote repo and fake ros
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- bzr: {local-name: clone, uri: remote}")
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- bzr: {local-name: clone, uri: ../remote}")
 
         cmd = [ROSINSTALL_CMD, "ws", "-n"]
         call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE, env=self.new_environ)

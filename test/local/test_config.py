@@ -191,13 +191,13 @@ class ConfigSimple_Test(unittest.TestCase):
         self.assertEqual('foo', config.get_config_elements()[0].get_local_name())
         self.assertEqual('/install/path/foo', config.get_config_elements()[0].get_path())
         self.assertEqual('git', config.get_source()[0].get_scmtype())
-        self.assertEqual('git/uri', config.get_source()[0].get_uri())
+        self.assertEqual('/install/path/git/uri', config.get_source()[0].get_uri())
         self.assertEqual('svn', config.get_source()[1].get_scmtype())
-        self.assertEqual('svn/uri', config.get_source()[1].get_uri())
+        self.assertEqual('/install/path/svn/uri', config.get_source()[1].get_uri())
         self.assertEqual('hg', config.get_source()[2].get_scmtype())
-        self.assertEqual('hg/uri', config.get_source()[2].get_uri())
+        self.assertEqual('/install/path/hg/uri', config.get_source()[2].get_uri())
         self.assertEqual('bzr', config.get_source()[3].get_scmtype())
-        self.assertEqual('bzr/uri', config.get_source()[3].get_uri())
+        self.assertEqual('/install/path/bzr/uri', config.get_source()[3].get_uri())
 
 
     def test_config_simple3(self):

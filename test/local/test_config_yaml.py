@@ -132,7 +132,7 @@ class ConfigFile_Test(unittest.TestCase):
             read_data = f.read()
         lines = read_data.splitlines()
         self.assertEqual("# Hello", lines[0])
-        self.assertEqual("- svn: {local-name: ros, uri: some/uri}", lines[1])
+        self.assertEqual("- svn: {local-name: ros, uri: %s/some/uri}"%self.directory, lines[1])
 
     def tearDown(self):
         if os.path.exists(self.directory):
