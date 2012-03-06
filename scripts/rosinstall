@@ -138,7 +138,7 @@ Later URIs will shadow packages of earlier URIs.\n",
 
   if options.vcs_diff:
     alldiff = ""
-    difflist = rosinstall.multiproject_cmd.cmd_diff(config, options.path)
+    difflist = rosinstall.multiproject_cmd.cmd_diff(config)
     for entrydiff in difflist:
       if entrydiff['diff'] != None:
         alldiff += entrydiff['diff']
@@ -146,7 +146,7 @@ Later URIs will shadow packages of earlier URIs.\n",
     return True
 
   if options.vcs_status or options.vcs_status_untracked:
-    statuslist = rosinstall.multiproject_cmd.cmd_status(config, options.path, untracked = options.vcs_status_untracked)
+    statuslist = rosinstall.multiproject_cmd.cmd_status(config, untracked = options.vcs_status_untracked)
     allstatus=""
     for entrystatus in statuslist:
       if entrystatus['status'] != None:

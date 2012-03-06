@@ -35,7 +35,7 @@ import pkg_resources
 
 import os
 import config_yaml
-from common import MultiProjectException
+from common import MultiProjectException, DistributedWork
 from config import Config
 from config_yaml import aggregate_from_uris
 
@@ -119,19 +119,22 @@ Bzr:       %s
      prettyversion(vcstools.TarClient.get_environment_metadata()),
      prettyversion(vcstools.BzrClient.get_environment_metadata()))
 
-def cmd_status(config, path = None, untracked = False):
+def cmd_status(config, untracked = False):
   """
   calls SCM status for all SCM entries in config, relative to path
   :returns: List of dict {element: ConfigElement, diff: diffstring}
   :param untracked: also show files not added to the SCM
   :raises MultiProjectException: on plenty of errors
   """
-  result=[]
-  for element in config.get_config_elements():
-    path_spec = element.get_path_spec()
-    if element.is_vcs_element():
+  class StatusRetriever():
+    def __init__(self, element, path, untracked):
+      self.element = element
+      self.path = path
+      self.untracked = untracked
+    def do_work(self):
+      path_spec = self.element.get_path_spec()
       scmtype = path_spec.get_scmtype()
-      status = element.get_status(path, untracked)
+      status = self.element.get_status(self.path, self.untracked)
       # align other scm output to svn
       columns = -1
       if scmtype == "git":
@@ -145,22 +148,48 @@ def cmd_status(config, path = None, untracked = False):
         for line in status.splitlines():
           status_aligned = status_aligned + line[:columns].ljust(8) + line[columns:] + '\n'
         status = status_aligned
-      result.append({'entry':element, 'status':status})
-  return result
+      return {'status':status}
+
+  path = config.get_base_path()
+  # call SCM info in separate threads
+  elements = config.get_config_elements()
+  work = DistributedWork(len(elements))
+  for element in elements:
+    if element.is_vcs_element():
+      thread = StatusRetriever(element, path, untracked)
+      if element.get_path_spec().get_scmtype() == 'hg':
+        work.add_to_sequential_thread_group(thread, "hg")
+      else:
+        work.add_thread(thread)
+  outputs = work.run()
+  return outputs
 
 
-def cmd_diff(config, path = None):
+def cmd_diff(config):
   """
   calls SCM diff for all SCM entries in config, relative to path
   :returns: List of dict {element: ConfigElement, diff: diffstring}
   :raises MultiProjectException: on plenty of errors
   """
-  result=[]
+  class DiffRetriever():
+    def __init__(self, element, path):
+      self.element = element
+      self.path = path
+    def do_work(self):
+      return {'diff':self.element.get_diff(self.path)}
 
-  for element in config.get_config_elements():
+  path = config.get_base_path()
+  elements = config.get_config_elements()
+  work = DistributedWork(len(elements))
+  for element in elements:
     if element.is_vcs_element():
-      result.append({'entry':element, 'diff':element.get_diff(path)})
-  return result
+      thread = DiffRetriever(element, path)
+      if element.get_path_spec().get_scmtype() == 'hg':
+        work.add_to_sequential_thread_group(thread, "hg")
+      else:        
+        work.add_thread(thread)
+  outputs = work.run()
+  return outputs
 
 def cmd_install_or_update(config, backup_path = None, mode = 'abort', robust = False):
   """

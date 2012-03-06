@@ -32,7 +32,7 @@
 
 import urlparse
 import os
-
+from threading import Thread
 
 class MultiProjectException(Exception): pass
 
@@ -57,3 +57,83 @@ def normabspath(localname, path):
   abs_path = os.path.realpath(os.path.join(path, localname))
   return abs_path
 
+
+
+## Multithreading The following classes help with distributing work
+## over several instances, providing wrapping for starting, joining,
+## collecting results, and catching Exceptions. Also they provide
+## support for running groups of threads sequentially, for the case
+## that some library is not thread-safe.
+  
+class WorkerThread(Thread):
+  def __init__(self, worker, outlist, index):
+    Thread.__init__(self)
+    self.worker = worker
+    self.outlist = outlist
+    self.index = index
+
+  def run(self):
+    result = {'entry': self.worker.element}
+    try:
+      result_dict = self.worker.do_work()
+      if result_dict is not None:
+        result.update(result_dict)
+      else:
+        result.update({'error': "worker returned None"})
+    except MultiProjectException as e:
+      result.update({'error': e})
+    self.outlist[self.index] = result
+
+class ThreadSequentializer(Thread):
+  """helper class to run 'threads' one after the other"""
+  def __init__(self):
+    Thread.__init__(self)
+    self.workers = []
+  def add_worker(self, worker):
+    self.workers.append(worker)
+  def run(self):
+    for worker in self.workers:
+      worker.run() # not calling start on purpose
+
+class DistributedWork():
+  def __init__(self, capacity):
+    self.outputs=[None for i in range(capacity)]
+    self.threads = []
+    self.sequentializers = {}
+    self.index = 0
+  def add_thread(self, worker):
+    thread = WorkerThread(worker, self.outputs, self.index)
+    if self.index >= len(self.outputs):
+      raise MultiProjectException("Bug: Declared capacity exceeded %s >= %s"%(self.index, len(self.outputs)))
+    self.index += 1
+    self.threads.append(thread)
+    
+  def add_to_sequential_thread_group(self, worker, group):
+    """Workers in each sequential thread group run one after the other, groups run in parallel"""
+    thread = WorkerThread(worker, self.outputs, self.index)
+    if self.index >= len(self.outputs):
+      raise MultiProjectException("Bug: Declared capacity exceeded %s >= %s"%(self.index, len(self.outputs)))
+    self.index += 1
+    if group not in self.sequentializers:
+      self.sequentializers[group] = ThreadSequentializer()
+      self.sequentializers[group].add_worker(thread)
+      self.threads.append(self.sequentializers[group])
+    else:
+      self.sequentializers[group].add_worker(thread)
+  def run(self):
+    for thread in self.threads:
+      thread.start()
+    running_threads = self.threads
+    while len(running_threads) > 0:
+      running_threads = [t.join(1) for t in running_threads if t is not None and t.is_alive()]
+    self.outputs = filter(lambda x: x is not None, self.outputs)
+    message = ''
+    for output in self.outputs:
+      if "error" in output:
+        if 'entry' in output:
+          message += "Error during install of %s : %s\n"%(output['entry'].get_path, output["error"])
+        else:
+          message += "%s\n"%output["error"]
+    if message != '':
+      raise MultiProjectException()
+    return self.outputs
