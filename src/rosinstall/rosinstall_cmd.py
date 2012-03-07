@@ -30,6 +30,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import print_function
 import os
 import subprocess
 import multiproject_cmd
@@ -62,10 +63,14 @@ def cmd_generate_ros_files(config, path, nobuild = False, rosdep_yes = False, ca
   """
   Generates ROS specific setup files
   """
- 
+
+  # Catkin must be enabled if catkinpp is set
+  if catkinpp is not None:
+    catkin = True
+  
   ## bootstrap the build if installing ros
   if catkin:
-    setupfiles.generate_catkin_cmake(path, catkinpp)    
+    setupfiles.generate_catkin_cmake(path, catkinpp)
                 
   else: # DRY install case
     ## Generate setup.sh and save
