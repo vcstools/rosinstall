@@ -73,14 +73,6 @@ def get_config(basepath, additional_uris = None, config_filename = None):
   if basepath is None:
     raise MultiProjectException("Need to provide a basepath for Config.")
     
-  
-  # Find all the configuration sources
-  if additional_uris is None and config_filename is not None:
-    additional_uris = [os.path.join(basepath, config_filename)]
-
-  if additional_uris is None:
-    raise MultiProjectException("no source config file found!")
-
   path_specs = aggregate_from_uris(additional_uris, config_filename, basepath)
 
   ## Could not get uri therefore error out
