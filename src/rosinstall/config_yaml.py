@@ -155,11 +155,13 @@ class PathSpec:
                tags = None,
                revision = None,
                currevision = None,
-               path = None):
+               path = None,
+               curr_uri = None):
     """Fills in local properties based on dict, unifies different syntaxes"""
     self._local_name = local_name
     self._path = path
     self._uri = uri
+    self._curr_uri = curr_uri
     self._version = version
     self._scmtype = scmtype
     self._tags = tags
@@ -202,6 +204,8 @@ class PathSpec:
       # cautiously discarding uri and version even if they had been set in the meantime
       if self._uri is not None:
         properties['uri'] = self._uri
+      if self._curr_uri is not None:
+        properties['curr_uri'] = self._curr_uri
       if self._version is not None:
         properties['version'] = self._version
       if self._revision is not None:
@@ -240,6 +244,9 @@ class PathSpec:
   
   def get_uri(self):
     return self._uri
+
+  def get_curr_uri(self):
+    return self._curr_uri
 
 
 def get_path_spec_from_yaml(yaml_dict):

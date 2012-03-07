@@ -249,7 +249,8 @@ class VCSConfigElement(ConfigElement):
                     uri = self.uri,
                     version = version,
                     revision = revision,
-                    currevision = currevision)
+                    currevision = currevision,
+                    curr_uri = self._get_vcsc().get_url())
      
 
   def get_diff(self, basepath=None):

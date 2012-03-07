@@ -35,7 +35,7 @@ import pkg_resources
 
 import os
 import config_yaml
-from common import MultiProjectException, DistributedWork, select_element
+from common import MultiProjectException, DistributedWork, select_element, normabspath
 from config import Config
 from config_yaml import aggregate_from_uris
 
@@ -247,3 +247,74 @@ def cmd_install_or_update(config, backup_path = None, mode = 'abort', robust = F
   return success
   # TODO go back and make sure that everything in options.path is described
   # in the yaml, and offer to delete otherwise? not sure, but it could go here
+
+def cmd_info(config, localname = None):
+  """This function compares what should be (config_file) with what is
+  (directories) and returns a list of dictionary giving each local
+  path and all the state information about it available.
+  """
+  
+  class InfoRetriever():
+    def __init__(self, element, path):
+      self.element = element
+      self.path = path
+
+    def do_work(self):
+      localname=""
+      scm = None
+      uri=""
+      curr_uri = None
+      exists=False
+      version = ""# what is given in config file
+      modified = ""
+      actualversion="" # revision number of version
+      specversion = "" # actual revision number
+      localname = self.element.get_local_name()
+      path = self.element.get_path() or localname
+
+      if localname is None or localname == "":
+        raise MultiProjectException("Missing local-name in element: %s"%self.element)
+      abs_path = normabspath(path, self.path)  
+      if (os.path.exists(abs_path)):
+        exists = True
+      if self.element.is_vcs_element():
+        if not exists:
+          path_spec = self.element.get_path_spec()
+          version = path_spec.get_version()
+        else:
+          path_spec = self.element.get_versioned_path_spec()
+          version = path_spec.get_version()
+          curr_uri = path_spec.get_curr_uri()
+          status = self.element.get_status(self.path)
+          if (status is not None
+              and status.strip() != ''):
+            modified = True
+          specversion = path_spec.get_revision()
+          if (version != None
+              and version.strip() != ''
+              and (specversion == None or specversion.strip() =='')):
+            specversion = '"%s"'%version
+          actualversion = path_spec.get_current_revision()
+        scm = path_spec.get_scmtype()
+        uri = path_spec.get_uri()
+      return {'scm':scm,
+              'exists': exists,
+              'localname': localname,
+              'path': path,
+              'uri': uri,
+              'curr_uri': curr_uri,
+              'version': version,
+              'specversion': specversion,
+              'actualversion': actualversion,
+              'modified': modified}
+  path = config.get_base_path()
+  # call SCM info in separate threads
+  elements = config.get_config_elements()
+  work = DistributedWork(len(elements))
+  selected_element = select_element(elements, localname)
+  if selected_element is not None:
+    work.add_thread(InfoRetriever(selected_element, path))
+  else:
+    map(lambda x: work.add_thread(InfoRetriever(x, path)), elements)
+  outputs = work.run()
+  return outputs
