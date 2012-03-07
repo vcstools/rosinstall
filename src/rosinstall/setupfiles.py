@@ -95,13 +95,24 @@ def generate_setup_sh_text(config, ros_root):
         distro_unset = True
       text += ". %s\n"%t.path
 
-  text += """
+  # ROS_DISTRO is set by sourcing a setup.sh from fuerte (or later)
+  # If we do not unset it, we must not check for it being unset.
+
+  if distro_unset:
+      text += """
 if [ -z "${ROS_DISTRO}" ]; then
   export ROS_ROOT=%s 
   export PATH=$ROS_ROOT/bin:$PATH
   export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH
   if [ ! \"$ROS_MASTER_URI\" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
 fi"""% ros_root
+  else:
+      text += """
+ export ROS_ROOT=%s 
+ export PATH=$ROS_ROOT/bin:$PATH
+ export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH
+ if [ ! \"$ROS_MASTER_URI\" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
+"""% ros_root
 
   text += "\nexport ROS_WORKSPACE=%s\n" % config.get_base_path()
     
