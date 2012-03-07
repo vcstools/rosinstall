@@ -88,7 +88,7 @@ class Config:
         self._insert_vcs_path_spec(path_spec, local_path, merge_strategy)
       else:
         if path_spec.get_tags() is not None and 'setup-file' in path_spec.get_tags():
-          elem = SetupConfigElement(local_path, path_spec.get_local_name())
+          elem = SetupConfigElement(local_path, os.path.normpath(path_spec.get_local_name()))
           self.insert_element(elem, merge_strategy)
         else:
           # we dont want files or other Config folders in this Config
@@ -97,7 +97,7 @@ class Config:
                   (self.config_filename is not None
                    and os.path.isdir(local_path)
                    and os.path.exists(os.path.join(local_path, self.config_filename)))):
-            local_name = path_spec.get_local_name()
+            local_name = os.path.normpath(path_spec.get_local_name())
             elem = OtherConfigElement(local_path, local_name)
             self.insert_element(elem, merge_strategy)
           else:
@@ -115,7 +115,7 @@ class Config:
         print("Warning: Converted relative uri path %s to abpath %s"%(path_spec.get_uri(), source_uri))
     version = path_spec.get_version()
     try:
-      local_name = path_spec.get_local_name()
+      local_name = os.path.normpath(path_spec.get_local_name())
       elem = self._create_vcs_config_element(path_spec.get_scmtype(),
                                              local_path,
                                              local_name,

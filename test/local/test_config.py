@@ -247,7 +247,7 @@ class ConfigSimple_Test(unittest.TestCase):
         mock1 = PathSpec('foo/bar/..')
         config = self._get_mock_config([mock1])
         self.assertEqual(1, len(config.get_config_elements()))
-        self.assertEqual('foo/bar/..', config.get_config_elements()[0].get_local_name())
+        self.assertEqual('foo', config.get_config_elements()[0].get_local_name())
         self.assertEqual('/install/path/foo', config.get_config_elements()[0].get_path())
        
     def test_long_localname(self):
