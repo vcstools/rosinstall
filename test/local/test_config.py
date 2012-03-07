@@ -36,6 +36,8 @@ import os
 import stat
 import struct
 import sys
+import tempfile
+import shutil
 import unittest
 import urllib2
 
@@ -208,6 +210,21 @@ class ConfigSimple_Test(unittest.TestCase):
         config = self._get_mock_config([git1, svn1, hg1, bzr1])
         self.assertEqual(4, len(config.get_config_elements()))
         self.assertEqual(4, len(config.get_version_locked_source()))
+
+    def test_config_realfolders(self):
+        try:
+            root_path = tempfile.mkdtemp()
+            share_path = os.path.join(root_path, "share")
+            os.makedirs(share_path)
+            ros_path = os.path.join(share_path, "ros")
+            os.makedirs(ros_path)
+            
+            p1 = PathSpec('share')
+            p2 = PathSpec('share/ros')
+            config = self._get_mock_config([p1, p2])
+            self.assertEqual(2, len(config.get_config_elements()))
+        finally:
+            shutil.rmtree(root_path)
 
     def test_remove(self):
         git1 = PathSpec('foo', 'git', 'git/uri', 'git.version')

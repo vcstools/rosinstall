@@ -148,7 +148,7 @@ class Config:
           else:
             raise LookupError("No such merge strategy: %s"%str(merge_strategy))
       else:
-        if new_config_elt.is_vcs_element and loop_elt.is_vcs_element:
+        if new_config_elt.is_vcs_element() and loop_elt.is_vcs_element():
           if abspaths_overlap(loop_elt.get_path(), new_config_elt.get_path()):
             raise MultiProjectException("Managed Element paths overlap: %s, %s"%(loop_elt, new_config_elt))
     for loop_elt in removals:
