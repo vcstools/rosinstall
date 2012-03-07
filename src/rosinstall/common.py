@@ -91,6 +91,7 @@ class WorkerThread(Process):
     self.index = index
 
   def run(self):
+    result = {}
     try:
       result = {'entry': self.worker.element.get_path_spec()}
       result_dict = self.worker.do_work()
@@ -101,19 +102,6 @@ class WorkerThread(Process):
     except Exception as e:
       result.update({'error': e})
     self.outlist[self.index] = result
-
-class ThreadSequentializer(Process):
-  """helper class to run 'threads' one after the other"""
-  def __init__(self):
-    Process.__init__(self)
-    self.workers = []
-  def add_worker(self, worker):
-    
-    self.workers.append(worker)
-    
-  def run(self):
-    for worker in self.workers:
-      worker.run() # not calling start on purpose
 
 class DistributedWork():
   
@@ -131,18 +119,29 @@ class DistributedWork():
     self.index += 1
     self.threads.append(thread)
     
-  def add_to_sequential_thread_group(self, worker, group):
-    """Workers in each sequential thread group run one after the other, groups run in parallel"""
-    thread = WorkerThread(worker, self.outputs, self.index)
-    if self.index >= len(self.outputs):
-      raise MultiProjectException("Bug: Declared capacity exceeded %s >= %s"%(self.index, len(self.outputs)))
-    self.index += 1
-    if group not in self.sequentializers:
-      self.sequentializers[group] = ThreadSequentializer()
-      self.sequentializers[group].add_worker(thread)
-      self.threads.append(self.sequentializers[group])
-    else:
-      self.sequentializers[group].add_worker(thread)
+  # def add_to_sequential_thread_group(self, worker, group):
+  #   """Workers in each sequential thread group run one after the other, groups run in parallel"""
+  #   class ThreadSequentializer(Process):
+  #     """helper class to run 'threads' one after the other"""
+  #     def __init__(self):
+  #       Process.__init__(self)
+  #       self.workers = []
+  #     def add_worker(self, worker):
+  #       self.workers.append(worker)
+  #     def run(self):
+  #     for worker in self.workers:
+  #       worker.run() # not calling start on purpose
+  #   thread = WorkerThread(worker, self.outputs, self.index)
+  #   if self.index >= len(self.outputs):
+  #     raise MultiProjectException("Bug: Declared capacity exceeded %s >= %s"%(self.index, len(self.outputs)))
+  #   self.index += 1
+  #   if group not in self.sequentializers:
+  #     self.sequentializers[group] = ThreadSequentializer()
+  #     self.sequentializers[group].add_worker(thread)
+  #     self.threads.append(self.sequentializers[group])
+  #   else:
+  #     self.sequentializers[group].add_worker(thread)
+    
   def run(self):
     """
     Execute all collected workers, terminate all on KeyboardInterrupt
@@ -169,9 +168,9 @@ class DistributedWork():
     for output in self.outputs:
       if "error" in output:
         if 'entry' in output:
-          message += "Error during install of %s : %s\n"%(output['entry'].get_path, output["error"])
+          message += "Error during install of '%s' : %s\n"%(output['entry'].get_local_name(), output["error"])
         else:
           message += "%s\n"%output["error"]
     if message != '':
-      raise MultiProjectException()
+      raise MultiProjectException(message)
     return self.outputs

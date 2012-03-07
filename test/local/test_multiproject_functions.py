@@ -39,6 +39,20 @@ import sys
 import unittest
 
 import rosinstall.common
+from rosinstall.common import MultiProjectException
+
+class FooThing:
+    def __init__(self, el, result = None):
+        self.element = el
+        self.done = False
+        self.result = result
+    def do_work(self):
+        self.done = True
+        return self.result
+    def get_path_spec(self):
+        return self.element
+    def get_local_name(self):
+        return 'bar'
 
 class FunctionsTest(unittest.TestCase):
 
@@ -73,3 +87,49 @@ class FunctionsTest(unittest.TestCase):
         self.assertFalse(rosinstall.common.abspaths_overlap("/foo", "/bar"))
         self.assertFalse(rosinstall.common.abspaths_overlap("/foo", "/foo2"))
         self.assertFalse(rosinstall.common.abspaths_overlap("/foo/bar", "/foo/ba"))
+
+    def test_worker_thread(self):
+        try:
+            w = rosinstall.common.WorkerThread(None, None, None)
+            self.fail("expected Exception")
+        except MultiProjectException: pass
+        try:
+            w = rosinstall.common.WorkerThread(FooThing(el = None), 2, 3)
+            self.fail("expected Exception")
+        except MultiProjectException: pass
+        thing = FooThing(FooThing(None))
+        result = [None]
+        w = rosinstall.common.WorkerThread(thing, result, 0)
+        self.assertEqual(thing.done, False)
+        w.run()
+        self.assertEqual(thing.done, True, result)
+        self.assertEqual(True, 'error' in result[0])
+        
+        thing = FooThing(FooThing(None), result= {'done': True})
+        result = [None]
+        w = rosinstall.common.WorkerThread(thing, result, 0)
+        self.assertEqual(thing.done, False)
+        w.run()
+        self.assertEqual(thing.done, True, result)
+        self.assertEqual(False, 'error' in result[0], result)
+        
+    def test_distributed_work(self):
+        work = rosinstall.common.DistributedWork(3)
+        
+        thing1 = FooThing(FooThing(FooThing(None)), result= {'done': True})
+        thing2 = FooThing(FooThing(FooThing(None)), result= {'done': True})
+        thing3 = FooThing(FooThing(FooThing(None)), result= {'done': True})
+        self.assertEqual(3, len(work.outputs))
+        work.add_thread(thing1)
+        self.assertEqual(1, len(work.threads))
+        work.add_thread(thing2)
+        self.assertEqual(2, len(work.threads))
+        work.add_thread(thing3)
+        self.assertEqual(3, len(work.threads))
+        self.assertEqual(thing1.done, False)
+        self.assertEqual(thing2.done, False)
+        self.assertEqual(thing3.done, False)
+        output = work.run()
+        self.assertEqual(False, 'error' in output[0], output)
+        self.assertEqual(False, 'error' in output[1], output)
+        self.assertEqual(False, 'error' in output[2], output)
