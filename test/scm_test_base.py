@@ -56,9 +56,14 @@ def _create_fake_ros_dir(root_path):
      """setup fake ros root within root_path/ros"""
      ros_path = os.path.join(root_path, "ros")
      os.makedirs(ros_path)
+     bin_path = os.path.join(ros_path, "bin")
+     os.makedirs(bin_path)
      subprocess.check_call(["git", "init"], cwd=ros_path)
      _add_to_file(os.path.join(ros_path, "stack.xml"), u'<stack></stack>')
-     _add_to_file(os.path.join(ros_path, "setup.sh"), u'export ROS_ROOT=`pwd`')
+     _add_to_file(os.path.join(ros_path, "setup.sh"), u'export FOO_BAR=`pwd`')
+     _add_to_file(os.path.join(bin_path, "rosmake"), u'#!/usr/bin/env sh')
+     # even faking rosmake
+     subprocess.check_call(["chmod", "u+x", os.path.join(bin_path, "rosmake")])
      subprocess.check_call(["git", "add", "*"], cwd=ros_path)
      subprocess.check_call(["git", "commit", "-m", "initial"], cwd=ros_path)
 
@@ -94,9 +99,17 @@ def _create_hg_repo(hg_path):
     subprocess.check_call(["touch", "hgfixed.txt"], cwd=hg_path)
     subprocess.check_call(["hg", "add", "hgfixed.txt"], cwd=hg_path)
     subprocess.check_call(["hg", "commit", "-m", "initial"], cwd=hg_path)
-               
-ROSINSTALL_CMD = os.path.join(os.getcwd(), 'scripts/rosinstall')
 
+def _nth_line_split(n, output): 
+     """returns the last line as list of non-blank tokens""" 
+     lines = output.splitlines() 
+     if len(lines) > 0: 
+	  return lines[n].split() 
+     else: 
+	  return []
+    
+ROSINSTALL_CMD = os.path.join(os.getcwd(), 'scripts/rosinstall')
+ROSWS_CMD = os.path.join(os.getcwd(), 'scripts/py-rosws')
 
 
 class AbstractRosinstallCLITest(unittest.TestCase):
@@ -104,9 +117,10 @@ class AbstractRosinstallCLITest(unittest.TestCase):
      """Base class for cli tests"""
      @classmethod
      def setUpClass(self):
-          self.new_environ = os.environ
+          self.new_environ = copy.copy(os.environ)
           self.new_environ["PYTHONPATH"] = os.path.join(os.getcwd(), "src")
-
+          if "ROS_WORKSPACE" in self.new_environ:
+               self.new_environ.pop("ROS_WORKSPACE")
 
 
 class AbstractRosinstallBaseDirTest(AbstractRosinstallCLITest):

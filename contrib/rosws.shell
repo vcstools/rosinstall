@@ -1,0 +1,75 @@
+# Software License Agreement (BSD License)
+#
+# Copyright (c) 2010, Willow Garage, Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of Willow Garage, Inc. nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Author: tkruse 
+
+
+
+_rosws_main()
+{
+  local result
+  /usr/bin/env python -c "from __future__ import print_function;\
+import sys, pkg_resources, rosinstall.rosws_cli;\
+from rosinstall.helpers import ROSInstallException;\
+from rosinstall.common import MultiProjectException;\
+sys.exit(rosinstall.rosws_cli.rosws_main(sys.argv[0:]))" $*
+}
+
+rosws()
+{
+    local i workspace
+    # _call_rosws
+
+    if [ "$#" -eq 1 ]; then
+        if [ "$1" = "reload" ]; then
+            workspace=`/usr/bin/env python << EOPYTHON
+import pkg_resources, sys, os
+import rosinstall.rosws_cli;
+try:
+  print(rosinstall.cli_common.get_workspace(sys.argv, os.getcwd(), config_filename = '.rosinstall', varname = "ROS_WORKSPACE"))
+except:
+  pass
+
+EOPYTHON`
+            if [ ! -z $workspace ]; then
+                . $workspace/setup.sh
+                echo "Sourced $workspace/setup.sh"
+            else
+                echo "Could not determine current workspace from . and ROS_WORKSPACE=$ROS_WORKSPACE."
+            fi
+        else
+            _rosws_main $*
+        fi
+    else
+      _rosws_main $*
+    fi
+}

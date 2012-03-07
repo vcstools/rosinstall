@@ -34,10 +34,9 @@ from __future__ import print_function
 import pkg_resources
 
 import os
-import config_yaml
 from common import MultiProjectException, DistributedWork, select_element, normabspath
 from config import Config
-from config_yaml import aggregate_from_uris
+from config_yaml import aggregate_from_uris, generate_config_yaml
 
 
 ## The _cmd python files attempt to provide a reasonably
@@ -52,7 +51,7 @@ from config_yaml import aggregate_from_uris
 import vcstools
 from vcstools import VcsClient
 
-def get_config(basepath, additional_uris = None, config_filename = None):
+def get_config(basepath, additional_uris = None, config_filename = None, merge_strategy = 'KillAppend'):
   """
   Create a Config element necessary for all other commands.
   The command will look at the uris in sequence, each
@@ -67,6 +66,7 @@ def get_config(basepath, additional_uris = None, config_filename = None):
   :param basepath: where relative paths shall be resolved against
   :param additional_uris: the location of config specifications or folders
   :param config_filename: name of files which may be looked at for config information
+  :param merge_strategy: One of 'KillAppend, 'MergeKeep', 'MergeReplace'
   :returns: a Config object
   :raises MultiProjectException: on plenty of errors
   """
@@ -83,14 +83,46 @@ def get_config(basepath, additional_uris = None, config_filename = None):
   #print("source...........................", path_specs)
 
   ## Generate the config class with the uri and path
-  config = Config(path_specs, basepath, config_filename)
+  config = Config(path_specs, basepath,
+                  config_filename = config_filename,
+                  merge_strategy = merge_strategy)
 
   return config
+
+def add_uris(config, additional_uris, merge_strategy = None):
+  """
+  changes the given URI by merging with the additional_uris
+  :param config: a Config objects
+  :param additional_uris: the location of config specifications or folders
+  :param config_filename: name of files which may be looked at for config information
+  :param merge_strategy: One of 'KillAppend, 'MergeKeep', 'MergeReplace'
+  :returns: a dict {<local-name>: (<action>, <path-spec>), <local-name>: ...} determined by the merge_strategy
+  :raises MultiProjectException: on plenty of errors
+  """
+  if config is None:
+    raise MultiProjectException("Need to provide a Config.")
+  
+  if additional_uris is None or len(additional_uris) == 0:
+    return {}
+
+  path_specs = aggregate_from_uris(additional_uris, config.get_config_filename(), config.get_base_path())
+
+  ## Could not get uri therefore error out
+  if len(path_specs) == 0:
+    raise MultiProjectException("no source config files found at %s or %s"%(
+        os.path.join(config.get_base_path(), config.get_config_filename()), additional_uris))
+
+  actions = {}
+  for path_spec in path_specs:
+    action = config.add_path_spec(path_spec, merge_strategy)
+    actions[path_spec.get_local_name()] = (action, path_spec)
+  
+  return actions
 
 
 def cmd_persist_config(config, filename, header = None):
     """writes config to given file in yaml syntax"""
-    config_yaml.generate_config_yaml(config, filename, header)
+    generate_config_yaml(config, filename, header)
 
     
 def cmd_version():

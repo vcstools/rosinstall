@@ -33,8 +33,6 @@
 
 
 import os
-import stat
-import struct
 import sys
 import unittest
 
