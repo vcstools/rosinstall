@@ -127,9 +127,9 @@ class ConfigMock_Test(unittest.TestCase):
 
 class ConfigSimple_Test(unittest.TestCase):
 
-    def _get_mock_config(self, yaml, install_path = '/install/path'):
+    def _get_mock_config(self, yaml, install_path = '/install/path', merge_strategy="KillAppend"):
         config_filename = '.filename'
-        return Config(yaml, install_path, config_filename, {"mock": MockVcsConfigElement})
+        return Config(yaml, install_path, config_filename, {"mock": MockVcsConfigElement}, merge_strategy=merge_strategy)
     
     def test_init_fail(self):
         try:
@@ -223,8 +223,109 @@ class ConfigSimple_Test(unittest.TestCase):
             p2 = PathSpec('share/ros')
             config = self._get_mock_config([p1, p2])
             self.assertEqual(2, len(config.get_config_elements()))
+            try:
+                p1 = PathSpec('share', 'git', 'git/uri', 'git.version')
+                p2 = PathSpec('share/ros', 'hg', 'hg/uri', 'hg.version')
+                config = self._get_mock_config([p1, p2])
+                self.fail("expected overlap Exception")
+            except MultiProjectException: pass
         finally:
             shutil.rmtree(root_path)
+
+    def test_config_merging_kill_append(self):
+        git1 = PathSpec('foo', 'git', 'git/uri')
+        svn1 = PathSpec('foo', 'svn', 'svn/uri')
+        hg1  = PathSpec('foo', 'hg',  'hg/uri')
+        bzr1 = PathSpec('foo', 'bzr', 'bzr/uri')
+        config = self._get_mock_config([git1, svn1, hg1, bzr1])
+        self.assertEqual(1, len(config.get_config_elements()))
+        self.assertEqual(1, len(config.get_version_locked_source()))
+        self.assertEqual('bzr', config.get_source()[0].get_scmtype())
+        self.assertEqual('/install/path/bzr/uri', config.get_source()[0].get_uri())
+        config = self._get_mock_config([git1, svn1, hg1, bzr1, git1])
+        self.assertEqual(1, len(config.get_config_elements()))
+        self.assertEqual(1, len(config.get_version_locked_source()))
+        self.assertEqual('git', config.get_source()[0].get_scmtype())
+        self.assertEqual('/install/path/git/uri', config.get_source()[0].get_uri())
+        bzr1 = PathSpec('bar', 'bzr', 'bzr/uri')
+        config = self._get_mock_config([git1, svn1, hg1, bzr1])
+        self.assertEqual(2, len(config.get_config_elements()))
+        self.assertEqual(2, len(config.get_version_locked_source()))
+        self.assertEqual('hg', config.get_source()[0].get_scmtype())
+        self.assertEqual('/install/path/hg/uri', config.get_source()[0].get_uri())
+        self.assertEqual('bzr', config.get_source()[1].get_scmtype())
+        self.assertEqual('/install/path/bzr/uri', config.get_source()[1].get_uri())
+        config = self._get_mock_config([git1, svn1, hg1, bzr1, git1])
+        self.assertEqual(2, len(config.get_config_elements()))
+        self.assertEqual(2, len(config.get_version_locked_source()))
+        self.assertEqual('bzr', config.get_source()[0].get_scmtype())
+        self.assertEqual('/install/path/bzr/uri', config.get_source()[0].get_uri())
+        self.assertEqual('git', config.get_source()[1].get_scmtype())
+        self.assertEqual('/install/path/git/uri', config.get_source()[1].get_uri())
+
+    def test_config_merging_keep(self):
+        git1 = PathSpec('foo', 'git', 'git/uri')
+        svn1 = PathSpec('foo', 'svn', 'svn/uri')
+        hg1  = PathSpec('foo', 'hg',  'hg/uri')
+        bzr1 = PathSpec('foo', 'bzr', 'bzr/uri')
+        config = self._get_mock_config([git1, svn1, hg1, bzr1], merge_strategy="MergeKeep")
+        self.assertEqual(1, len(config.get_config_elements()))
+        self.assertEqual(1, len(config.get_version_locked_source()))
+        self.assertEqual('git', config.get_source()[0].get_scmtype())
+        self.assertEqual('/install/path/git/uri', config.get_source()[0].get_uri())
+        config = self._get_mock_config([git1, svn1, hg1, bzr1, git1], merge_strategy="MergeKeep")
+        self.assertEqual(1, len(config.get_config_elements()))
+        self.assertEqual(1, len(config.get_version_locked_source()))
+        self.assertEqual('git', config.get_source()[0].get_scmtype())
+        self.assertEqual('/install/path/git/uri', config.get_source()[0].get_uri())
+        
+        bzr1 = PathSpec('bar', 'bzr', 'bzr/uri')
+        config = self._get_mock_config([git1, svn1, hg1, bzr1], merge_strategy="MergeKeep")
+        self.assertEqual(2, len(config.get_config_elements()))
+        self.assertEqual(2, len(config.get_version_locked_source()))
+        self.assertEqual('git', config.get_source()[0].get_scmtype())
+        self.assertEqual('/install/path/git/uri', config.get_source()[0].get_uri())
+        self.assertEqual('bzr', config.get_source()[1].get_scmtype())
+        self.assertEqual('/install/path/bzr/uri', config.get_source()[1].get_uri())
+        config = self._get_mock_config([git1, svn1, hg1, bzr1, git1], merge_strategy="MergeKeep")
+        self.assertEqual(2, len(config.get_config_elements()))
+        self.assertEqual(2, len(config.get_version_locked_source()))
+        self.assertEqual('git', config.get_source()[0].get_scmtype())
+        self.assertEqual('/install/path/git/uri', config.get_source()[0].get_uri())
+        self.assertEqual('bzr', config.get_source()[1].get_scmtype())
+        self.assertEqual('/install/path/bzr/uri', config.get_source()[1].get_uri())
+
+    def test_config_merging_replace(self):
+        git1 = PathSpec('foo', 'git', 'git/uri')
+        svn1 = PathSpec('foo', 'svn', 'svn/uri')
+        hg1  = PathSpec('foo', 'hg',  'hg/uri')
+        bzr1 = PathSpec('foo', 'bzr', 'bzr/uri')
+        config = self._get_mock_config([git1, svn1, hg1, bzr1], merge_strategy="MergeReplace")
+        self.assertEqual(1, len(config.get_config_elements()))
+        self.assertEqual(1, len(config.get_version_locked_source()))
+        self.assertEqual('bzr', config.get_source()[0].get_scmtype())
+        self.assertEqual('/install/path/bzr/uri', config.get_source()[0].get_uri())
+        config = self._get_mock_config([git1, svn1, hg1, bzr1, git1], merge_strategy="MergeReplace")
+        self.assertEqual(1, len(config.get_config_elements()))
+        self.assertEqual(1, len(config.get_version_locked_source()))
+        self.assertEqual('git', config.get_source()[0].get_scmtype())
+        self.assertEqual('/install/path/git/uri', config.get_source()[0].get_uri())
+        
+        bzr1 = PathSpec('bar', 'bzr', 'bzr/uri')
+        config = self._get_mock_config([git1, svn1, hg1, bzr1], merge_strategy="MergeReplace")
+        self.assertEqual(2, len(config.get_config_elements()))
+        self.assertEqual(2, len(config.get_version_locked_source()))
+        self.assertEqual('hg', config.get_source()[0].get_scmtype())
+        self.assertEqual('/install/path/hg/uri', config.get_source()[0].get_uri())
+        self.assertEqual('bzr', config.get_source()[1].get_scmtype())
+        self.assertEqual('/install/path/bzr/uri', config.get_source()[1].get_uri())
+        config = self._get_mock_config([git1, svn1, hg1, bzr1, git1], merge_strategy="MergeReplace")
+        self.assertEqual(2, len(config.get_config_elements()))
+        self.assertEqual(2, len(config.get_version_locked_source()))
+        self.assertEqual('git', config.get_source()[0].get_scmtype())
+        self.assertEqual('/install/path/git/uri', config.get_source()[0].get_uri())
+        self.assertEqual('bzr', config.get_source()[1].get_scmtype())
+        self.assertEqual('/install/path/bzr/uri', config.get_source()[1].get_uri())
 
     def test_remove(self):
         git1 = PathSpec('foo', 'git', 'git/uri', 'git.version')
