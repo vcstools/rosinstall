@@ -37,7 +37,7 @@ import config_elements
 from config_elements import AVCSConfigElement, OtherConfigElement, SetupConfigElement
 from common import MultiProjectException, normabspath, abspaths_overlap
 
-  
+
 class Config:
   """
   A config is a set of config elements, each of which defines a folder or file
@@ -185,7 +185,8 @@ class Config:
   def get_version_locked_source(self):
     source_aggregate = []
     for t in self.trees:
-      source_aggregate.append(t.get_versioned_path_spec())
+      source = t.get_versioned_path_spec().get_legacy_yaml()
+      source_aggregate.append(source)
     return source_aggregate
 
 
