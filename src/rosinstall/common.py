@@ -73,7 +73,23 @@ def abspaths_overlap(abspath1, abspath2):
     commonprefix = os.path.commonprefix([realpath1, realpath2])
     return commonprefix == realpath1 or commonprefix == realpath2
 
+def select_element(elements, localname):
+  """
+  selects entry among elements where path or localname matches.
+  Prefers localname matches in case of ambiguity.
+  """
+  path_candidate = None
+  if localname is not None:
+    realpath = os.path.realpath(localname)
+    for element in elements:
+      if localname == element.get_local_name():
+        path_candidate = element
+        break
+      elif realpath == os.path.realpath(element.get_path()):
+        path_candidate = element
+  return path_candidate
 
+  
 ## Multithreading The following classes help with distributing work
 ## over several instances, providing wrapping for starting, joining,
 ## collecting results, and catching Exceptions. Also they provide

@@ -35,7 +35,7 @@ import pkg_resources
 
 import os
 import config_yaml
-from common import MultiProjectException, DistributedWork
+from common import MultiProjectException, DistributedWork, select_element
 from config import Config
 from config_yaml import aggregate_from_uris
 
@@ -51,24 +51,6 @@ from config_yaml import aggregate_from_uris
 
 import vcstools
 from vcstools import VcsClient
-
-def _select_element(elements, localname):
-  """
-  selects entry where path or localname matches.
-  Prefers localname matches in case of ambiguity.
-  """
-  path_candidate = None
-  if localname is not None:
-    realpath = os.path.realpath(localname)
-    for element in elements:
-      if localname == element.get_local_name():
-        path_candidate = element
-        break
-      elif realpath == os.path.realpath(element.get_path()):
-        path_candidate = element
-    if path_candidate == None:
-      raise MultiProjectException("No config element matches; %s"%localname)
-  return path_candidate
 
 def get_config(basepath, additional_uris = None, config_filename = None):
   """
@@ -172,7 +154,7 @@ def cmd_status(config, localname = None, untracked = False):
   # call SCM info in separate threads
   elements = config.get_config_elements()
   work = DistributedWork(len(elements))
-  selected_element = _select_element(elements, localname)
+  selected_element = select_element(elements, localname)
   if selected_element is not None:
     work.add_thread(StatusRetriever(selected_element, path, untracked))
   else:
@@ -199,7 +181,7 @@ def cmd_diff(config, localname = None):
   path = config.get_base_path()
   elements = config.get_config_elements()
   work = DistributedWork(len(elements))
-  selected_element = _select_element(elements, localname)
+  selected_element = select_element(elements, localname)
   if selected_element is not None:
     work.add_thread(DiffRetriever(selected_element, path))
   else:

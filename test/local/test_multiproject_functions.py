@@ -88,6 +88,28 @@ class FunctionsTest(unittest.TestCase):
         self.assertFalse(rosinstall.common.abspaths_overlap("/foo", "/foo2"))
         self.assertFalse(rosinstall.common.abspaths_overlap("/foo/bar", "/foo/ba"))
 
+    def test_select_element(self):
+        class MockElement:
+            def __init__(self, localname, path):
+                self.localname = localname
+                self.path = path
+            def get_local_name(self):
+                return self.localname
+            def get_path(self):
+                return self.path
+        self.assertEqual(None, rosinstall.common.select_element(None, None))
+        self.assertEqual(None, rosinstall.common.select_element([], None))
+        mock1 = MockElement('foo', '/test/path1')
+        mock2 = MockElement('bar', '/test/path2')
+        mock3 = MockElement('baz', '/test/path3')
+        self.assertEqual(None, rosinstall.common.select_element([], 'pin'))
+        self.assertEqual(None, rosinstall.common.select_element([mock1], 'pin'))
+        self.assertEqual(None, rosinstall.common.select_element([mock1, mock3], 'pin'))
+
+        self.assertEqual('bar', rosinstall.common.select_element([mock1, mock2, mock3], 'bar').get_local_name())
+        self.assertEqual('bar', rosinstall.common.select_element([mock1, mock2, mock3], '/test/path2').get_local_name())
+        self.assertEqual('bar', rosinstall.common.select_element([mock1, mock2, mock3], '/test/../foo/../test/path2/').get_local_name())
+
     def test_worker_thread(self):
         try:
             w = rosinstall.common.WorkerThread(None, None, None)
