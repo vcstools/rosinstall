@@ -55,6 +55,8 @@ def is_path_ros(path):
   @return: True if path points to the ROS stack
   @rtype: bool
   """
+  if path is None:
+    return False
   stack_path = os.path.join(path, 'stack.xml')
   if os.path.isfile(stack_path):
     return 'ros' == os.path.basename(path)
