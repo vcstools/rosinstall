@@ -80,7 +80,7 @@ class ConfigElement:
     preparation_report = PreparationReport(self)
     preparation_report.skip = True
     return preparation_report
-  def install(self, backup_path = None, arg_mode = 'abort', robust = False):
+  def install(self, checkout = True, backup_path = None, arg_mode = 'abort', robust = False):
     """
     Attempt to make it so that self.path is the result of checking out / updating from remote repo.
     No user Interaction allowed here (for concurrent mode).
@@ -117,7 +117,7 @@ class ConfigElement:
 
 
 class OtherConfigElement(ConfigElement):
-  def install(self, backup_path = None, arg_mode = None, robust = False):
+  def install(self, checkout = True, backup_path = None, arg_mode = None, robust = False):
     return True
 
   def get_versioned_path_spec(self):
@@ -130,7 +130,7 @@ class OtherConfigElement(ConfigElement):
 class SetupConfigElement(ConfigElement):
   """A setup config element specifies a single file containing configuration data for a config."""
 
-  def install(self, backup_path = None, mode = None, robust = False):
+  def install(self, checkout = True, backup_path = None, mode = None, robust = False):
     return True
 
   def get_versioned_path_spec(self):
