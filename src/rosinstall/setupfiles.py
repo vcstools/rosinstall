@@ -103,38 +103,42 @@ if [ -z "${ROS_DISTRO}" ]; then
   if [ ! \"$ROS_MASTER_URI\" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
 fi"""% ros_root
 
+  text += "\nexport ROS_WORKSPACE=%s\n" % config.get_base_path()
+    
   text += """
 # python script to read .rosinstall even when rosnistall is not installed
 export _ROS_PACKAGE_PATH_ROSINTALL=`/usr/bin/env python << EOPYTHON
 import sys, os, yaml;
-if not os.path.isfile('.rosinstall'):
-    sys.exit("There is no .rosinstall file at %s"%os.path.abspath('.'))
-with open('.rosinstall', "r") as f:
+filename = '.rosinstall'
+if 'ROS_WORKSPACE' in os.environ:
+  filename = os.path.join(os.environ['ROS_WORKSPACE'], filename)
+if not os.path.isfile(filename):
+    sys.exit("There is no file at %s"%filename)
+with open(filename, "r") as f:
   try:
     v=f.read();
   except Exception as e:
-    sys.exit("Failed to read .rosinstall file: %s "%str(e))
+    sys.exit("Failed to read file: %s %s "%(filename, str(e)))
 try:
   y = yaml.load(v);
 except Exception as e:
-  sys.exit("Invalid yaml in .rosinstall: %s "%str(e))
+  sys.exit("Invalid yaml in %s: %s "%(filename, str(e)))
 if y is not None:
   lnames=[x.values()[0]['local-name'] for x in y if x.values() is not None and x.keys()[0] != "setup-file" and not os.path.isfile(x.values()[0]['local-name'])]
   if len(lnames) == 0:
-    sys.exit(".rosinstall contains no path elements")
+    sys.exit("%s contains no path elements"%filename)
   print ':'.join(reversed(lnames))
 else:
-  sys.exit(".rosinstall contains no path elements")
+  sys.exit("%s contains no path elements"%filename)
 EOPYTHON`
 if [ -z $_ROS_PACKAGE_PATH_ROSINTALL ]; then
-    echo Error: Udate of ROS_PACKAGE_PATH failed
+    echo Error: Update of ROS_PACKAGE_PATH failed
     return 22
 fi
 export ROS_PACKAGE_PATH=$_ROS_PACKAGE_PATH_ROSINTALL
 unset _ROS_PACKAGE_PATH_ROSINTALL
 """
 
-  text += "export ROS_WORKSPACE=%s\n" % config.get_base_path()
   return text
 
 def generate_setup_bash_text(shell):
