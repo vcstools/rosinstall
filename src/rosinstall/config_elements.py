@@ -168,7 +168,6 @@ class VCSConfigElement(ConfigElement):
   def prepare_install(self, backup_path = None, arg_mode = 'abort', robust = False):
     preparation_report = PreparationReport(self)
     if self._get_vcsc().path_exists():
-      print("Prepare updating %s (%s) to %s"%(self.uri, self.version, self.path))
       # Directory exists see what we need to do
       error_message = None
       
@@ -189,12 +188,14 @@ class VCSConfigElement(ConfigElement):
           raise MultiProjectException("Update Failed of %s"%self.path)
         # prompt the user based on the error code
         if arg_mode == 'prompt':
+          print("Prepare updating %s (%s) to %s"%(self.uri, self.version, self.path))
           mode = ui.Ui.get_ui().prompt_del_abort_retry(error_message, allow_skip = True)
         else:
           mode = arg_mode
         if mode == 'backup':
             preparation_report.backup = True
             if backup_path == None:
+              print("Prepare updating %s (%s) to %s"%(self.uri, self.version, self.path))
               preparation_report.backup_path = ui.Ui.get_ui().get_backup_path()
             else:
               preparation_report.backup_path = backup_path
