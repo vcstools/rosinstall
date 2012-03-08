@@ -319,12 +319,11 @@ When an element in an additional URI has the same local-name as an existing elem
           if not options.nobuild:
               output += "\n     Call rosmake on ros and ros_comm (use -n to avoid that)\n"
                   
-              
           if output != "":
               if options.confirm_all or not ask_user:
                   print("     Performing actions: ")
                   print(output)
-              if ask_user:
+              else:
                   print(output)
                   abort = None
                   prompt = "Continue(y/n): "
