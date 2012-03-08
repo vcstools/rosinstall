@@ -82,7 +82,7 @@ class MultiprojectCLI:
 
     def cmd_init(self, argv):
         pass
-        # TODO enable when necessary
+        # TODO enable when making multiproject an independent CLI
 #         if self.config_filename == None:
 #             print('Error: Bug: config filename required for init')
 #             return 1
@@ -118,7 +118,7 @@ class MultiprojectCLI:
     
     def cmd_install(self, target_path, argv, config = None):
         pass
-        # TODO enable when necessary
+        # TODO enable when making multiproject an independent CLI
         # parser = OptionParser(usage="usage: rosws install PATH [URI]+\n\n\
 # rosws install does the following:\n\
 #   1. Merges new URIs to existing .rosinstall file at PATH\n\
@@ -413,41 +413,42 @@ The command will infer whether you want to add or modify an entry. If you modify
         :param target_path: where to look for config
         :param config: config to use instead of parsing file anew
         """
-        parser = OptionParser(usage="usage: rosws info [localname] ",
-                              description=__MULTIPRO_CMD_DICT__["info"] + ". The Status (S) column can be x for missing and M for modified.",
-                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
-        parser.add_option("--data-only", dest="data_only", default=False,
-                          help="Does not provide explanations",
-                          action="store_true")
-        parser.add_option("--localnames-only", dest="local_names_only", default=False,
-                          help="Shows only local names separated by ' '.",
-                          action="store_true")
-        # -t option required here for help but used one layer above, see cli_common
-        parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
-                          help="which workspace to use",
-                          action="store")
-        (options, args) = parser.parse_args(argv)
+        # TODO enable when making multiproject an independent CLI
+        # parser = OptionParser(usage="usage: rosws info [localname] ",
+        #                       description=__MULTIPRO_CMD_DICT__["info"] + ". The Status (S) column can be x for missing and M for modified.",
+        #                       epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+        # parser.add_option("--data-only", dest="data_only", default=False,
+        #                   help="Does not provide explanations",
+        #                   action="store_true")
+        # parser.add_option("--localnames-only", dest="local_names_only", default=False,
+        #                   help="Shows only local names separated by ' '.",
+        #                   action="store_true")
+        # # -t option required here for help but used one layer above, see cli_common
+        # parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
+        #                   help="which workspace to use",
+        #                   action="store")
+        # (options, args) = parser.parse_args(argv)
 
-        if config == None:
-            config = multiproject_cmd.get_config(target_path, [], config_filename = self.config_filename)
-        elif config.get_base_path() != target_path:
-            raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
+        # if config == None:
+        #     config = multiproject_cmd.get_config(target_path, [], config_filename = self.config_filename)
+        # elif config.get_base_path() != target_path:
+        #     raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
       
-        if len(args) > 0:
-            localname = args[0]
-            if len(args) > 1:
-                print("Warning, ignoring extra arguments %s."%args[1:])
-            outputs = multiproject_cmd.cmd_info(config, localname)
-            if len(outputs) == 0 or outputs[0] == None:
-                    print("Unknown Localname: %s."%localname)
-                    return 1
-            cli_common.print_info_list(config.get_base_path(), outputs[0], options.data_only)
-        else:
-            if options.local_names_only:
-                print(" ".join(map(lambda x : x.get_local_name(), config.get_config_elements())))
-                return False
-            outputs = multiproject_cmd.cmd_info(config)
-            cli_common.print_info_table(config.get_base_path(), outputs, options.data_only, reverse)
+        # if len(args) > 0:
+        #     localname = args[0]
+        #     if len(args) > 1:
+        #         print("Warning, ignoring extra arguments %s."%args[1:])
+        #     outputs = multiproject_cmd.cmd_info(config, localname)
+        #     if len(outputs) == 0 or outputs[0] == None:
+        #             print("Unknown Localname: %s."%localname)
+        #             return 1
+        #     cli_common.print_info_list(config.get_base_path(), outputs[0], options.data_only)
+        # else:
+        #     if options.local_names_only:
+        #         print(" ".join(map(lambda x : x.get_local_name(), config.get_config_elements())))
+        #         return False
+        #     outputs = multiproject_cmd.cmd_info(config)
+        #     cli_common.print_info_table(config.get_base_path(), outputs, options.data_only, reverse)
       
         return 0
 
