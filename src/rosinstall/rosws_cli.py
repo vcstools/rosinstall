@@ -401,7 +401,7 @@ When an element in an additional URI has the same local-name as an existing elem
 
    
     def cmd_info(self, target_path, argv, config = None):
-        parser = OptionParser(usage="usage: rosws info PATH [OPTIONS]",
+        parser = OptionParser(usage="usage: rosws info [localname] [OPTIONS]",
                               formatter = IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["info"] + """
 
