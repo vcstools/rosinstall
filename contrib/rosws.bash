@@ -96,7 +96,7 @@ _rosws_complete()
     cmdOpts="-h --help -n --nobuild --rosdep-yes -c --catkin --cmake-prefix-path -t --target-workspace --continue-on-error --delete-changed-uris --abort-changed-uris --backup-changed-uris --nocheckout --noupdates -y --confirm-all -m --merge-replace -k --merge-keep --merge-kill-append"
     ;;
   modify)
-    cmdOpts="-h --help -t --target-workspace --git --svn --bzr --hg --uri --version --dettach"
+    cmdOpts="-h --help -t --target-workspace --git --svn --bzr --hg --uri --version-new --dettach -y --confirm"
     ;;
   remove)
     cmdOpts="-h --help -t --target-workspace"

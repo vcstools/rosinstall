@@ -255,7 +255,7 @@ The command will infer whether you want to add or modify an entry. If you modify
         parser.add_option("--uri", dest="uri", default=False,
                           help="point SCM to this remote uri",
                           action="store")
-        parser.add_option("--version", dest="version", default=False,
+        parser.add_option("--version-new", dest="version", default=False,
                           help="point SCM to this version",
                           action="store")
         parser.add_option("--git", dest="git", default=False,

@@ -504,7 +504,7 @@ def rosws_main(argv=None):
     argv = sys.argv
   if (sys.argv[0] == '-c'):
       sys.argv = ['rosws'] + sys.argv[1:]
-  if '--version' in argv[:2]:
+  if '--version' in argv:
     print("rosws: \t%s\n%s"%(__MULTIPRO_VERSION__, multiproject_cmd.cmd_version()))
     sys.exit(0)
   workspace = None
