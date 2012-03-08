@@ -93,6 +93,14 @@ def _create_git_repo(git_path):
     subprocess.check_call(["git", "add", "*"], cwd=git_path)
     subprocess.check_call(["git", "commit", "-m", "initial"], cwd=git_path)
 
+def _create_tar_file(tar_file):
+    parent_path = os.path.dirname(tar_file)
+    tar_path = os.path.join(parent_path, 'temptar')
+    os.makedirs(tar_path)
+    subprocess.check_call(["touch", "tarfixed.txt"], cwd=tar_path)
+    subprocess.check_call(["tar", "-czf", os.path.basename(tar_file), 'temptar'], cwd=parent_path)
+
+
 def _create_hg_repo(hg_path):
     os.makedirs(hg_path)
     subprocess.check_call(["hg", "init"], cwd=hg_path)
