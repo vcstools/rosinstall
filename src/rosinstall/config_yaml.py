@@ -36,7 +36,7 @@ import urllib2
 
 from common import MultiProjectException, conditional_abspath
 
-__REPOTYPES__ = ['svn', 'bzr', 'hg', 'git']
+__REPOTYPES__ = ['svn', 'bzr', 'hg', 'git', 'tar']
 __ALLTYPES__ = __REPOTYPES__ + ['other', 'setup-file']
 
 ## The Path spec is a leightweigt object to transport the
