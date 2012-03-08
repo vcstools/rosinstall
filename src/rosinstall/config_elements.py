@@ -60,9 +60,10 @@ class PreparationReport:
 class ConfigElement:
   """ Base class for Config provides methods with not implemented
   exceptions.  Also a few shared methods."""
-  def __init__(self, path, local_name):
+  def __init__(self, path, local_name, properties = None):
     self.path = path
     self.local_name = local_name
+    self.properties = properties
   def get_path(self):
     """A normalized absolute path"""
     return self.path
@@ -91,6 +92,9 @@ class ConfigElement:
   def get_path_spec(self):
     """PathSpec object with values as specified in file"""
     raise NotImplementedError, "ConfigElement get_path_spec unimplemented"
+  def get_properties(self):
+    """Any meta information attached"""
+    return self.properties
   def get_versioned_path_spec(self):
     """PathSpec where VCS elements have the version looked up"""
     raise NotImplementedError, "ConfigElement get_versioned_path_spec unimplemented"
@@ -124,7 +128,7 @@ class OtherConfigElement(ConfigElement):
     raise MultiProjectException("Cannot generate versioned outputs with non source types")
 
   def get_path_spec(self):
-    return PathSpec(local_name = self.get_local_name(), path = self.get_path())
+    return PathSpec(local_name = self.get_local_name(), path = self.get_path(), tags = self.get_properties())
 
 
 class SetupConfigElement(ConfigElement):
@@ -137,12 +141,12 @@ class SetupConfigElement(ConfigElement):
     raise MultiProjectException("Cannot generate versioned outputs with non source types")
   
   def get_path_spec(self):
-    return PathSpec(local_name = self.get_local_name(), path = self.get_path(), tags=['setup-file'])
+    return PathSpec(local_name = self.get_local_name(), path = self.get_path(), tags=['setup-file'] + (self.get_properties() or []))
 
 
 class VCSConfigElement(ConfigElement):
   
-  def __init__(self, path, local_name, uri, version=''):
+  def __init__(self, path, local_name, uri, version='', properties = None):
     """
     Creates a config element for a VCS repository.
     :param path: absolute or relative path, str
@@ -151,7 +155,7 @@ class VCSConfigElement(ConfigElement):
     :param uri: VCS uri to checkout/pull from, str
     :param version: optional revision spec (tagname, SHAID, ..., str)
     """
-    ConfigElement.__init__(self, path, local_name)
+    ConfigElement.__init__(self, path, local_name, properties)
     if path is None:
       raise MultiProjectException("Invalid empty path")
     if uri is None:
@@ -233,7 +237,8 @@ class VCSConfigElement(ConfigElement):
                     path = self.get_path(),
                     scmtype = self._get_vcsc().get_vcs_type_name(),
                     uri = self.uri,
-                    version = version)
+                    version = version,
+                    tags = self.get_properties())
 
   def get_versioned_path_spec(self):
     "yaml looking up current version"
@@ -251,7 +256,8 @@ class VCSConfigElement(ConfigElement):
                     version = version,
                     revision = revision,
                     currevision = currevision,
-                    curr_uri = self._get_vcsc().get_url())
+                    curr_uri = self._get_vcsc().get_url(),
+                    tags = self.get_properties())
      
 
   def get_diff(self, basepath=None):
@@ -267,8 +273,8 @@ class AVCSConfigElement(VCSConfigElement):
   Implementation using vcstools vcsclient, works for types svn, git, hg, bzr, tar
   :raises: Lookup Exception for unknown types
   """
-  def __init__(self, scmtype, path, local_name, uri, version = '', vcsc = None):
-    VCSConfigElement.__init__(self, path, local_name, uri, version)
+  def __init__(self, scmtype, path, local_name, uri, version = '', vcsc = None, properties = None):
+    VCSConfigElement.__init__(self, path, local_name = local_name, uri = uri, version = version, properties = properties)
     self.vcsc = vcsc
     self._scmtype = scmtype
 

@@ -249,16 +249,6 @@ class ConfigElementYamlWrapper_Test(unittest.TestCase):
             get_path_spec_from_yaml(struct)
             self.fail("expected exception")
         except MultiProjectException: pass
-        try:
-            struct = {"other": {"local-name": local_name, "uri": uri}}
-            get_path_spec_from_yaml(struct)
-            self.fail("expected exception")
-        except MultiProjectException: pass
-        try:
-            struct = {"other": {"local-name": local_name, "version": version}}
-            get_path_spec_from_yaml(struct)
-            self.fail("expected exception")
-        except MultiProjectException: pass
 
     def test_original_syntax_setupfile(self):
         local_name = '/opt/ros/fuerte/setup.sh'
@@ -280,16 +270,6 @@ class ConfigElementYamlWrapper_Test(unittest.TestCase):
         except MultiProjectException: pass
         try:
             struct = {"setup-file": {"version": version}}
-            get_path_spec_from_yaml(struct)
-            self.fail("expected exception")
-        except MultiProjectException: pass
-        try:
-            struct = {"setup-file": {"local-name": local_name, "uri": uri}}
-            get_path_spec_from_yaml(struct)
-            self.fail("expected exception")
-        except MultiProjectException: pass
-        try:
-            struct = {"setup-file": {"local-name": local_name, "version": version}}
             get_path_spec_from_yaml(struct)
             self.fail("expected exception")
         except MultiProjectException: pass

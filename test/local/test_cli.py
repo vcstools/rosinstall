@@ -142,7 +142,7 @@ class FakeConfig():
 
 class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):
 
-    def __init__(self, scmtype, path, local_name, uri, version = '', actualversion = '', specversion = ''):
+    def __init__(self, scmtype, path, local_name, uri, version = '', actualversion = '', specversion = '', properties = None):
         self.scmtype = scmtype
         self.path = path
         self.local_name = local_name
@@ -150,6 +150,7 @@ class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):
         self.uri = uri
         self.version = version
         self.install_success = True
+        self.properties = properties
 
     def install(self, backup_path = None, arg_mode = 'abort', robust = False):
         if not self.install_success:

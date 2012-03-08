@@ -212,6 +212,13 @@ class PathSpec:
         properties['revision'] = self._revision
       if self._currevision is not None:
         properties['current_revision'] = self._currevision
+    if self._tags is not None:
+      for tag in self._tags:
+        if tag != 'setup-file' and tag != []:
+          if type(tag) == dict:
+            properties.update(tag)
+          else:
+            properties[tag] = None
     yaml = {self.get_legacy_type(): properties}
     return yaml
 
@@ -257,7 +264,7 @@ def get_path_spec_from_yaml(yaml_dict):
   uri = None
   version = None
   scmtype = None
-  tags = None
+  tags = []
   if type(yaml_dict) != dict:
     raise MultiProjectException("Yaml for each element must be in YAML dict form")
   # old syntax:
@@ -271,12 +278,14 @@ def get_path_spec_from_yaml(yaml_dict):
     if firstkey in __REPOTYPES__:
       scmtype = yaml_dict.keys()[0]
     if firstkey == 'setup-file':
-      tags = ['setup-file']
+      tags.append('setup-file')
     values = yaml_dict[firstkey]
     if values is not None:
       for key, value in values.items():
         if key == "local-name":
           local_name = value
+        elif key == "meta":
+          tags.append({key: value})        
         elif key == "uri":
           uri = value
         elif key == "version":
@@ -288,12 +297,7 @@ def get_path_spec_from_yaml(yaml_dict):
   # global validation
   if local_name == None:
     raise MultiProjectException("Config element without a local-name: %s"%(yaml_dict))
-  if scmtype == None:
-    if uri != None:
-      raise MultiProjectException("Uri provided in non-scm entry %s"%(yaml_dict))
-    if version != None:
-      raise MultiProjectException("Version provided in non-scm entry %s"%(yaml_dict))
-  else:
+  if scmtype != None:
     if uri == None:
       raise MultiProjectException("scm type without declared uri in %s"%(value))
   path = local_name # local_name is fixed, path may be normalized, made absolute, etc.

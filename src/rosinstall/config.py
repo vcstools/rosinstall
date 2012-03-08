@@ -100,7 +100,7 @@ class Config:
       return self._insert_vcs_path_spec(path_spec, local_path, merge_strategy)
     else:
       if path_spec.get_tags() is not None and 'setup-file' in path_spec.get_tags():
-        elem = SetupConfigElement(local_path, os.path.normpath(path_spec.get_local_name()))
+        elem = SetupConfigElement(local_path, os.path.normpath(path_spec.get_local_name()), properties = path_spec.get_tags())
         return self.insert_element(elem, merge_strategy)
       else:
         # we dont want files or other Config folders in this Config
@@ -110,7 +110,7 @@ class Config:
                  and os.path.isdir(local_path)
                  and os.path.exists(os.path.join(local_path, self.config_filename)))):
           local_name = os.path.normpath(path_spec.get_local_name())
-          elem = OtherConfigElement(local_path, local_name)
+          elem = OtherConfigElement(local_path, local_name, properties = path_spec.get_tags())
           return self.insert_element(elem, merge_strategy)
         else:
           print("!!!!!Warning: Not recursing into other config folder %s"%local_path)
@@ -132,7 +132,8 @@ class Config:
                                              local_path,
                                              local_name,
                                              source_uri,
-                                             version)
+                                             version,
+                                             properties = path_spec.get_tags())
       return self.insert_element(elem, merge_strategy)
     except LookupError as ex:
       raise MultiProjectException("Abstracted VCS Config failed. Exception: %s" % ex)
@@ -198,12 +199,12 @@ class Config:
       return True
     return False
 
-  def _create_vcs_config_element(self, scmtype, path, local_name, uri, version = ''):
+  def _create_vcs_config_element(self, scmtype, path, local_name, uri, version = '', properties = None):
     try:
       eclass = self.registry[scmtype]
     except LookupError:
       raise MultiProjectException("No VCS client registered for vcs type %s"%scmtype)
-    return eclass(scmtype = scmtype, path = path, local_name = local_name, uri = uri, version = version)
+    return eclass(scmtype = scmtype, path = path, local_name = local_name, uri = uri, version = version, properties = properties)
 
   def get_base_path(self):
     return self.base_path
