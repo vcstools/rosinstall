@@ -276,26 +276,35 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
     def test_cmd_init_no_ros(self):
         self.local_path = os.path.join(self.test_root_path, "ws10")
 
-        environ = os.environ
-        if 'ROS_ROOT' in environ:
-            
-            oldros = environ.pop('ROS_ROOT')
+
+        ros_root_existed = False
+        if 'ROS_ROOT' in os.environ:
+            ros_root_existed = True
+            oldros = os.environ.pop('ROS_ROOT')
         cli = RoswsCLI()
         try:
             self.assertEqual(0, cli.cmd_init([self.local_path]))
             self.fail("expected Exception")
         except ROSInstallException:
             pass
-        environ['ROS_ROOT'] = self.ros_path
+        os.environ['ROS_ROOT'] = self.ros_path
         self.assertEqual(0, cli.cmd_init([self.local_path]))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.bash')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.zsh')))
-        environ['ROS_ROOT'] = oldros
-
+        if ros_root_existed:
+            os.environ['ROS_ROOT'] = oldros
+        else:
+            os.environ.pop('ROS_ROOT')
 
     def test_cmd_init_main(self):
         # rosinstall to create dir
+        ros_root_existed = False
+
+        if 'ROS_ROOT' in os.environ:
+            ros_root_existed = True
+            oldros = os.environ.pop('ROS_ROOT')
+        os.environ['ROS_ROOT'] = self.ros_path
         self.local_path = os.path.join(self.test_root_path, "ws11")
         self.assertEqual(0, rosinstall.rosws_cli.rosws_main(['rosws', 'help']))
         self.assertEqual(0, rosinstall.rosws_cli.rosws_main(['rosws', 'init', self.local_path]))
@@ -306,6 +315,10 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.bash')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.zsh')))
+        if ros_root_existed:
+            os.environ['ROS_ROOT'] = oldros
+        else:
+            os.environ.pop('ROS_ROOT')
 
 
     def test_cmd_remove(self):
