@@ -532,7 +532,7 @@ def rosws_main(argv=None):
       else:
         command=argv[2]
         args = argv[3:]
-        args.insert(0,"-h")
+        args.insert(0,"--help")
         # help help
         if command == 'help':
             usage()
@@ -565,7 +565,7 @@ def rosws_main(argv=None):
           print("Error: unknown command: %s"%command)
         usage()
         return 1
-    if workspace is None:
+    if workspace is None and not '--help' in args and not '-h' in args:
         
       workspace = cli_common.get_workspace(args, os.getcwd(), config_filename = ROSINSTALL_FILENAME, varname = "ROS_WORKSPACE")
     return commands[command](workspace, args)
