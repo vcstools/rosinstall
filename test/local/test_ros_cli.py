@@ -141,6 +141,7 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.bash')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.zsh')))
 
+
     def test_cmd_generate_ros_files_vcs(self):
         self.local_path = os.path.join(self.test_root_path, "ws2")
         os.makedirs(self.local_path)
@@ -198,12 +199,19 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.bash')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.zsh')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, '.rosinstall')))
-
+        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.local_path, 'setup.sh') , shell=True, env=self.new_environ))
+        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.local_path, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
+        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.local_path, 'setup.zsh') , shell=True, env=self.new_environ, executable='/bin/zsh'))
+        
         self.assertEqual(0, cli.cmd_install(self.local_path, [self.ros_path, "-y"]))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.bash')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.zsh')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, '.rosinstall')))
+        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.local_path, 'setup.sh') , shell=True, env=self.new_environ))
+        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.local_path, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
+        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.local_path, 'setup.zsh') , shell=True, env=self.new_environ, executable='/bin/zsh'))
+
 
     def test_cmd_init_catkin(self):
         self.local_path = os.path.join(self.test_root_path, "ws6")
