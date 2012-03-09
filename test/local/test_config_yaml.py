@@ -179,7 +179,8 @@ class ConfigElementYamlWrapper_Test(unittest.TestCase):
         self.assertEqual(scmtype, wrap.get_legacy_type())
         self.assertEqual(version, wrap.get_version())
         self.assertEqual(uri, wrap.get_uri())
-
+        self.assertEqual({'hg': {'local-name': 'common_rosdeps', 'uri': 'https://kforge.ros.org/common/rosdepcore'}}, wrap.get_legacy_yaml())
+        
         # other
         local_name = 'common_rosdeps'
         version = None
@@ -192,6 +193,36 @@ class ConfigElementYamlWrapper_Test(unittest.TestCase):
         self.assertEqual(version, wrap.get_version())
         self.assertEqual(uri, wrap.get_uri())
         self.assertEqual({scmtype: {'local-name': local_name}}, wrap.get_legacy_yaml())
+
+        # properties (undocumented feature required for builds)
+        local_name = 'common_rosdeps'
+        version = None
+        uri = None
+        scmtype = 'other'
+        struct = {scmtype: {'local-name': local_name, 'version': version, 'uri': uri,
+                            'meta': {'repo-name': 'skynetish-ros-pkg'}}}
+        wrap = get_path_spec_from_yaml(struct)
+        self.assertEqual(None, wrap.get_scmtype())
+        self.assertEqual(scmtype, wrap.get_legacy_type())
+        self.assertEqual(version, wrap.get_version())
+        self.assertEqual(uri, wrap.get_uri())
+        self.assertEqual([{'meta': {'repo-name': 'skynetish-ros-pkg'}}], wrap.get_tags())
+        self.assertEqual({scmtype: {'local-name': local_name, 'meta': {'repo-name': 'skynetish-ros-pkg'}}}, wrap.get_legacy_yaml())
+
+        # properties (undocumented feature required for builds)
+        local_name = 'common_rosdeps'
+        version = None
+        uri = 'some/uri'
+        scmtype = 'git'
+        struct = {scmtype: {'local-name': local_name, 'version': version, 'uri': uri,
+                            'meta': {'repo-name': 'skynetish-ros-pkg'}}}
+        wrap = get_path_spec_from_yaml(struct)
+        self.assertEqual('git', wrap.get_scmtype())
+        self.assertEqual(scmtype, wrap.get_legacy_type())
+        self.assertEqual(version, wrap.get_version())
+        self.assertEqual(uri, wrap.get_uri())
+        self.assertEqual([{'meta': {'repo-name': 'skynetish-ros-pkg'}}], wrap.get_tags())
+        self.assertEqual({scmtype: {'local-name': local_name, 'uri': 'some/uri', 'meta': {'repo-name': 'skynetish-ros-pkg'}}}, wrap.get_legacy_yaml())
         
     def test_original_syntax_invalids(self):
         local_name = 'common_rosdeps'
