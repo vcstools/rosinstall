@@ -41,7 +41,7 @@ import rosinstall.helpers
 import rosinstall.config
 from rosinstall.common import MultiProjectException
 from rosinstall.config_yaml import get_yaml_from_uri, get_path_specs_from_uri
-
+from nose.plugins.skip import SkipTest
 from test.scm_test_base import AbstractRosinstallBaseDirTest, _create_yaml_file, _create_config_elt_dict
 
 class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
@@ -131,6 +131,10 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
                           {'svn': { 'uri': 'https://code.ros.org/svn/ros/stacks/ros_release/trunk',
                                     'local-name': 'ros_release'} }
                           ])
+        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
+        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
+
+
         
     # def test_source_cturtle(self):
     #     TODO
@@ -140,3 +144,52 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
         
     # def test_source_boxelectric(self):
     #     TODO
+
+    def test_local_cturtle(self):
+        distrodir = '/opt/ros/cturtle'
+        if not os.path.isdir(distrodir):
+            raise SkipTest("Cturtle Test is skipped")
+        cmd = copy.copy(self.rosinstall_fn)
+        cmd.extend([self.directory, distrodir])
+        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
+        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
+
+    def test_local_diamondback(self):
+        distrodir = '/opt/ros/diamondback'
+        if not os.path.isdir(distrodir):
+            raise SkipTest("Diamondback Test is skipped")
+        cmd = copy.copy(self.rosinstall_fn)
+        cmd.extend([self.directory, distrodir])
+        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
+        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
+        
+    def test_local_electric(self):
+        distrodir = '/opt/ros/electric'
+        if not os.path.isdir(distrodir):
+            raise SkipTest("Electric Test is skipped")
+        cmd = copy.copy(self.rosinstall_fn)
+        cmd.extend([self.directory, distrodir])
+        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
+        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
+        
+    def test_local_fuerte(self):
+        distrodir = '/opt/ros/fuerte'
+        if not os.path.isdir(distrodir):
+            raise SkipTest("Fuerte Test is skipped")
+        cmd = copy.copy(self.rosinstall_fn)
+        cmd.extend([self.directory, distrodir])
+        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
+        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
+
+    def test_local_fuerte_catkin(self):
+        distrodir = '/opt/ros/fuerte'
+        if not os.path.isdir(distrodir):
+            raise SkipTest("Fuerte Test is skipped")
+        cmd = copy.copy(self.rosinstall_fn)
+        cmd.extend([self.directory, distrodir, '--catkin'])
+        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertTrue(os.path.exists(os.path.join(self.directory, 'CMakeLists.txt')))
