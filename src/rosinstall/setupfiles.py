@@ -136,7 +136,7 @@ except Exception as e:
   sys.exit("Invalid yaml in %s: %s "%(filename, str(e)))
 if y is not None:
   lnames=[x.values()[0]['local-name'] for x in y if x.values() is not None and x.keys()[0] != "setup-file"]
-  paths = [os.path.join(os.environ['ROS_WORKSPACE'], z) for z in lnames if not os.path.isfile(os.path.join(os.environ['ROS_WORKSPACE'], z))]
+  paths = [os.path.normpath(os.path.join(os.environ['ROS_WORKSPACE'], z)) for z in lnames if not os.path.isfile(os.path.join(os.environ['ROS_WORKSPACE'], z))]
   if len(paths) == 0:
     sys.exit("%s contains no valid path elements"%filename)
   print ':'.join(reversed(paths))
@@ -181,9 +181,15 @@ export OLDPWD=$OLDPWDBAK
 
 CATKIN_SHELL=%(shell)s
 
+%(script_path)s
+
 # Load the path of this particular setup.%(shell)s
 
-%(script_path)s
+if [ ! -f "$SCRIPT_PATH/setup.sh" ]; then
+  echo "Bug: shell script unable to determine its own location: $SCRIPT_PATH"
+  return 22
+fi
+
 
 # unset _ros_decode_path to check later whether setup.sh has sourced ros%(shell)s
 unset -f _ros_decode_path 1> /dev/null 2>&1

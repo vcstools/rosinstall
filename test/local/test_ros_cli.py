@@ -201,7 +201,6 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.assertTrue(os.path.exists(os.path.join(self.local_path, '.rosinstall')))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.local_path, 'setup.sh') , shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.local_path, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
-        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.local_path, 'setup.zsh') , shell=True, env=self.new_environ, executable='/bin/zsh'))
         
         self.assertEqual(0, cli.cmd_install(self.local_path, [self.ros_path, "-y"]))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
@@ -210,7 +209,6 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.assertTrue(os.path.exists(os.path.join(self.local_path, '.rosinstall')))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.local_path, 'setup.sh') , shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.local_path, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
-        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.local_path, 'setup.zsh') , shell=True, env=self.new_environ, executable='/bin/zsh'))
 
 
     def test_cmd_init_catkin(self):
@@ -341,19 +339,74 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         config = rosinstall.multiproject_cmd.get_config(basepath = self.local_path,                                                       config_filename = '.rosinstall')
         self.assertEqual(len(config.get_config_elements()), 2)
 
+    def execute_check_result_allshells(self, command, path, cwd = None, expect = ''):
+        """sources in turn each setup.*sh and runs command"""
+        # zsh has issues with SCRIPT_PATH
+        for shell in ['sh', 'bash']:
+            cmd = ". %s ; %s" %(os.path.join(path, 'setup.%s'%shell), command)
+            p = subprocess.Popen(cmd, shell=True, cwd=cwd, stdout=subprocess.PIPE, executable='/bin/%s'%shell)
+            output = p.communicate()[0]
+            self.assertEqual(expect, output.strip(), ("'%s' != '%s'"%(expect, output), cmd, cwd))
+            self.assertEqual(0, p.returncode)
+        
+        
     def test_setup_sh(self):
         self.local_path = os.path.join(self.test_root_path, "ws13")
         cli = RoswsCLI()
-        self.assertEqual(0, cli.cmd_init([self.local_path, self.ros_path]))
-        
-        command = ". %s ; echo $ROS_WORKSPACE" %os.path.join(self.local_path, 'setup.sh')
-        output = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()[0]
-        self.assertEqual(self.local_path, output.strip())
-        
-        command = ". %s ; echo $ROS_WORKSPACE" %'./setup.sh'
-        output = subprocess.Popen(command, shell=True, cwd=self.local_path, stdout=subprocess.PIPE).communicate()[0]
-        self.assertEqual(self.local_path, output.strip())
+        self.assertEqual(0, cli.cmd_init([self.local_path, self.simple_rosinstall]))
 
-        command = ". %s ; echo $ROS_WORKSPACE" %'ws13/setup.sh'
-        output = subprocess.Popen(command, shell=True, cwd=self.test_root_path, stdout=subprocess.PIPE).communicate()[0]
-        self.assertEqual(self.local_path, output.strip())
+        command = "echo $ROS_WORKSPACE"
+        self.execute_check_result_allshells(command, self.local_path, expect = self.local_path)
+        self.execute_check_result_allshells(command, '.', cwd=self.local_path, expect = self.local_path)
+        self.execute_check_result_allshells(command, 'ws13', cwd=self.test_root_path, expect = self.local_path)
+        
+        local_ros_path = os.path.join(self.local_path, "ros")
+        local_git_path = os.path.join(self.local_path, "gitrepo")
+        package_path = "%s:%s"%(local_git_path, local_ros_path)
+        command = "echo $ROS_PACKAGE_PATH"
+        self.execute_check_result_allshells(command, self.local_path, expect = package_path)
+        self.execute_check_result_allshells(command, '.', cwd=self.local_path, expect = package_path)
+        self.execute_check_result_allshells(command, 'ws13', cwd=self.test_root_path, expect = package_path)
+        
+    def test_setup_sh_relros(self):
+        self.local_path = os.path.join(self.test_root_path, "ws14")
+        cli = RoswsCLI()
+        simple_rel_rosinstall = os.path.join(self.test_root_path, "simple_rel.rosinstall")
+        _create_yaml_file([_create_config_elt_dict("git", "ros", "../ros")],
+                          simple_rel_rosinstall)
+        self.assertEqual(0, cli.cmd_init([self.local_path, simple_rel_rosinstall]))
+
+        command = "echo $ROS_WORKSPACE"
+        self.execute_check_result_allshells(command, self.local_path, expect = self.local_path)
+        self.execute_check_result_allshells(command, '.', cwd=self.local_path, expect = self.local_path)
+        self.execute_check_result_allshells(command, 'ws14', cwd=self.test_root_path, expect = self.local_path)
+        
+        package_path = os.path.join(self.local_path, "ros")
+        command = "echo $ROS_PACKAGE_PATH"
+        self.execute_check_result_allshells(command, self.local_path, expect = package_path)
+        self.execute_check_result_allshells(command, '.', cwd=self.local_path, expect = package_path)
+        self.execute_check_result_allshells(command, 'ws14', cwd=self.test_root_path, expect = package_path)
+        
+
+    def test_setup_sh_relother(self):
+        self.local_path = os.path.join(self.test_root_path, "ws15")
+        cli = RoswsCLI()
+        simple_rel_rosinstall = os.path.join(self.test_root_path, "simple_rel2.rosinstall")
+        _create_yaml_file([_create_config_elt_dict("git", "ros", "../ros"),
+                           _create_config_elt_dict("other", "../gitrepo")],
+                          simple_rel_rosinstall)
+        self.assertEqual(0, cli.cmd_init([self.local_path, simple_rel_rosinstall]))
+
+        command = "echo $ROS_WORKSPACE"
+        self.execute_check_result_allshells(command, self.local_path, expect = self.local_path)
+        self.execute_check_result_allshells(command, '.', cwd=self.local_path, expect = self.local_path)
+        self.execute_check_result_allshells(command, 'ws15', cwd=self.test_root_path, expect = self.local_path)
+        
+        local_ros_path = os.path.join(self.local_path, "ros")
+        package_path = "%s:%s"%(self.git_path, local_ros_path)
+        command = "echo $ROS_PACKAGE_PATH"
+        self.execute_check_result_allshells(command, self.local_path, expect = package_path)
+        self.execute_check_result_allshells(command, '.', cwd=self.local_path, expect = package_path)
+        self.execute_check_result_allshells(command, 'ws15', cwd=self.test_root_path, expect = package_path)
+        
+

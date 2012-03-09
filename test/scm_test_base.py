@@ -62,11 +62,13 @@ def _create_fake_ros_dir(root_path):
      _add_to_file(os.path.join(ros_path, "stack.xml"), u'<stack></stack>')
      _add_to_file(os.path.join(ros_path, "setup.sh"), u'export FOO_BAR=`pwd`')
      _add_to_file(os.path.join(bin_path, "rosmake"), u'#!/usr/bin/env sh')
+     _add_to_file(os.path.join(bin_path, "rospack"), u'#!/usr/bin/env sh')
      # even faking rosmake
      subprocess.check_call(["chmod", "u+x", os.path.join(bin_path, "rosmake")])
+     subprocess.check_call(["chmod", "u+x", os.path.join(bin_path, "rospack")])
      subprocess.check_call(["git", "add", "*"], cwd=ros_path)
      subprocess.check_call(["git", "commit", "-m", "initial"], cwd=ros_path)
-
+     
 def _create_yaml_file(config_elements, path):
      content = ''
      for elt in list(config_elements):

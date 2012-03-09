@@ -179,7 +179,6 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh'), shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash'), shell=True, env=self.new_environ, executable='/bin/bash'))
-        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.zsh'), shell=True, env=self.new_environ, executable='/bin/zsh'))
 
     def test_local_diamondback(self):
         distrodir = '/opt/ros/diamondback'
@@ -190,7 +189,6 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
-        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.zsh') , shell=True, env=self.new_environ, executable='/bin/zsh'))
         
     def test_local_electric(self):
         distrodir = '/opt/ros/electric'
@@ -201,7 +199,6 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
-        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.zsh') , shell=True, env=self.new_environ, executable='/bin/zsh'))
         
     def test_local_fuerte(self):
         distrodir = '/opt/ros/fuerte'
@@ -212,7 +209,6 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
-        self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.zsh') , shell=True, env=self.new_environ, executable='/bin/zsh'))
 
     def test_local_fuerte_catkin(self):
         distrodir = '/opt/ros/fuerte'
