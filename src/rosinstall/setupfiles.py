@@ -189,9 +189,9 @@ unset -f _roscmd 1> /dev/null 2>&1
 
 . $SCRIPT_PATH/setup.sh
 
-type _roscmd | grep function 1>/dev/null 2>&1
+type _roscmd 2> /dev/null | grep function 1>/dev/null 2>&1
 if [ ! $? -eq 0 ]; then
-  if rospack help > /dev/null 2>&1; then
+  if rospack help 1> /dev/null 2>&1; then
     ROSSHELL_PATH=`rospack find rosbash`/ros%(shell)s
     if [ -e $ROSSHELL_PATH ]; then
       . $ROSSHELL_PATH
