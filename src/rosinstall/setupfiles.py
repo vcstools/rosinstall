@@ -104,14 +104,14 @@ if [ -z "${ROS_DISTRO}" ]; then
   export ROS_ROOT=%s 
   export PATH=$ROS_ROOT/bin:$PATH
   export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH
-  if [ ! \"$ROS_MASTER_URI\" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
+  if [ ! "$ROS_MASTER_URI" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
 fi"""% ros_root
   else:
       text += """
  export ROS_ROOT=%s 
  export PATH=$ROS_ROOT/bin:$PATH
  export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH
- if [ ! \"$ROS_MASTER_URI\" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
+ if [ ! "$ROS_MASTER_URI" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
 """% ros_root
 
   text += "\nexport ROS_WORKSPACE=%s\n" % config.get_base_path()
@@ -142,7 +142,7 @@ if y is not None:
 else:
   sys.exit("%s contains no path elements"%filename)
 EOPYTHON`
-if [ -z $_ROS_PACKAGE_PATH_ROSINTALL ]; then
+if [ -z "$_ROS_PACKAGE_PATH_ROSINTALL" ]; then
     echo Error: Update of ROS_PACKAGE_PATH failed
     return 22
 fi
@@ -167,7 +167,7 @@ popd  > /dev/null
 export OLDPWD=$OLDPWDBAK
 """
   elif shell == 'zsh':
-    script_path = "SCRIPT_PATH=\"$(dirname $0)\";"
+    script_path = 'SCRIPT_PATH="$(dirname $0)"';
   else:
     raise ROSInstallException("%s shell unsupported."%shell);
 
@@ -190,10 +190,10 @@ unset -f _roscmd 1> /dev/null 2>&1
 . $SCRIPT_PATH/setup.sh
 
 type _roscmd 2> /dev/null | grep function 1>/dev/null 2>&1
-if [ ! $? -eq 0 ]; then
+if [ ! "$?" -eq 0 ]; then
   if rospack help 1> /dev/null 2>&1; then
     ROSSHELL_PATH=`rospack find rosbash`/ros%(shell)s
-    if [ -e $ROSSHELL_PATH ]; then
+    if [ -e "$ROSSHELL_PATH" ]; then
       . $ROSSHELL_PATH
     fi
   else
