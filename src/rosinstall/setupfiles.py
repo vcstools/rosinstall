@@ -135,10 +135,11 @@ try:
 except Exception as e:
   sys.exit("Invalid yaml in %s: %s "%(filename, str(e)))
 if y is not None:
-  lnames=[x.values()[0]['local-name'] for x in y if x.values() is not None and x.keys()[0] != "setup-file" and not os.path.isfile(x.values()[0]['local-name'])]
-  if len(lnames) == 0:
-    sys.exit("%s contains no path elements"%filename)
-  print ':'.join(reversed(lnames))
+  lnames=[x.values()[0]['local-name'] for x in y if x.values() is not None and x.keys()[0] != "setup-file"]
+  paths = [os.path.join(os.environ['ROS_WORKSPACE'], z) for z in lnames if not os.path.isfile(os.path.join(os.environ['ROS_WORKSPACE'], z))]
+  if len(paths) == 0:
+    sys.exit("%s contains no valid path elements"%filename)
+  print ':'.join(reversed(paths))
 else:
   sys.exit("%s contains no path elements"%filename)
 EOPYTHON`
