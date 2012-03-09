@@ -35,7 +35,7 @@ import os
 from urlparse import urlparse
 import config_elements
 from config_elements import AVCSConfigElement, OtherConfigElement, SetupConfigElement
-from common import MultiProjectException, normabspath, abspaths_overlap
+from common import MultiProjectException, normabspath, realpath_relation
 
 
 class Config:
@@ -152,7 +152,8 @@ class Config:
     replaced = False
     for index, loop_elt in enumerate (self.trees):
       # if paths are os.path.realpath, no symlink problems.
-      if loop_elt.get_path() == new_config_elt.get_path():
+      relationship = realpath_relation(loop_elt.get_path(), new_config_elt.get_path())
+      if relationship == 'SAME_AS':
         if os.path.normpath(loop_elt.get_local_name()) != os.path.normpath(new_config_elt.get_local_name()):
           raise MultiProjectException("Elements with different local_name target the same path: %s, %s"%(loop_elt, new_config_elt))
         else:
@@ -171,10 +172,13 @@ class Config:
             return 'MergeKeep'
           else:
             raise LookupError("No such merge strategy: %s"%str(merge_strategy))
-      else:
-        if new_config_elt.is_vcs_element() and loop_elt.is_vcs_element():
-          if abspaths_overlap(loop_elt.get_path(), new_config_elt.get_path()):
-            raise MultiProjectException("Managed Element paths overlap: %s, %s"%(loop_elt, new_config_elt))
+      elif ((relationship == 'CHILD_OF' and new_config_elt.is_vcs_element())
+            or (relationship == 'PARENT_OF' and loop_elt.is_vcs_element())):
+        # we do not allow any elements to be children of scm elements
+        # to allow for parallel updates and because rosinstall may
+        # delete scm folders on update, and thus subfolders can be
+        # deleted with their parents
+        raise MultiProjectException("Managed Element paths overlap: %s, %s"%(loop_elt, new_config_elt))
     if replaced:
       return 'MergeReplace'
     for loop_elt in removals:

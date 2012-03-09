@@ -76,17 +76,17 @@ class FunctionsTest(unittest.TestCase):
     def test_abspath_overlap(self):
         base = "/foo/bar"
         # simple
-        self.assertTrue(rosinstall.common.abspaths_overlap("/foo", "/foo"))
-        self.assertTrue(rosinstall.common.abspaths_overlap("/", "/"))
+        self.assertEqual('SAME_AS', rosinstall.common.realpath_relation("/foo", "/foo"))
+        self.assertEqual('SAME_AS', rosinstall.common.realpath_relation("/", "/"))
         # denormalized
-        self.assertTrue(rosinstall.common.abspaths_overlap("/foo/.", "/foo/bar/../"))
+        self.assertEqual('SAME_AS', rosinstall.common.realpath_relation("/foo/.", "/foo/bar/../"))
         # subdir
-        self.assertTrue(rosinstall.common.abspaths_overlap("/foo", "/foo/bar/baz/bam"))
+        self.assertEqual('PARENT_OF', rosinstall.common.realpath_relation("/foo", "/foo/bar/baz/bam"))
+        self.assertEqual('CHILD_OF', rosinstall.common.realpath_relation("/foo/bar/baz/bam", "/foo"))
         ## Negatives
-        # simple
-        self.assertFalse(rosinstall.common.abspaths_overlap("/foo", "/bar"))
-        self.assertFalse(rosinstall.common.abspaths_overlap("/foo", "/foo2"))
-        self.assertFalse(rosinstall.common.abspaths_overlap("/foo/bar", "/foo/ba"))
+        self.assertEqual(None, rosinstall.common.realpath_relation("/foo", "/bar"))
+        self.assertEqual(None, rosinstall.common.realpath_relation("/foo", "/foo2"))
+        self.assertEqual(None, rosinstall.common.realpath_relation("/foo/bar", "/foo/ba"))
 
     def test_select_element(self):
         class MockElement:
