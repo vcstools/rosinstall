@@ -414,8 +414,12 @@ When an element in an additional URI has the same local-name as an existing elem
     
     def cmd_switch(self, argv, config = None):
         parser = OptionParser(usage="usage: rosws switch [target_workspace]",
-                        description=__ROSWS_CMD_DICT__["switch"],
-                        epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+                              formatter = IndentedHelpFormatterWithNL(),
+                              description=__ROSWS_CMD_DICT__["switch"] + """
+
+The command also attempts to restore environment variables that are changed by ROS. To use this effectively, you must not source a setup.sh in your bashrc, but instead use the rosws switch command for the first time selection of a workspace.
+""",
+                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         (options, args) = parser.parse_args(argv)
         if len(args) > 1:
             parser.error("The switch command takes no more than one argument. It is only available after sourcing the rosws.shell extentions.")
