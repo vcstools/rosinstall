@@ -44,32 +44,149 @@ from rosinstall.common import MultiProjectException;\
 sys.exit(rosinstall.rosws_cli.rosws_main(sys.argv[0:]))" $*
 }
 
-rosws()
+_rosws_get_workspace()
 {
-    local i workspace
-    # _call_rosws
-
-    if [ "$#" -eq 1 ]; then
-        if [ "$1" = "reload" ]; then
-            workspace=`/usr/bin/env python << EOPYTHON
+echo `/usr/bin/env python << EOPYTHON
 import pkg_resources, sys, os
 import rosinstall.rosws_cli;
 try:
-  print(rosinstall.cli_common.get_workspace(sys.argv, os.getcwd(), config_filename = '.rosinstall', varname = "ROS_WORKSPACE"))
+  print(rosinstall.cli_common.get_workspace(sys.argv, os.getcwd(), config_filename = '.rosinstall'))
 except:
   pass
 
 EOPYTHON`
-            if [ ! -z $workspace ]; then
-                . $workspace/setup.sh
-                echo "Sourced $workspace/setup.sh"
+}
+
+# If $1 
+_rosws_maybe_reload()
+{
+  if [ "$?" -eq 0 ]; then
+      workspace=`_rosws_get_workspace $*`
+      if [ "$?" -eq 0 ]; then
+          workspace=`_rosws_abspath $workspace`
+          if [ $workspace = $ROS_WORKSPACE ]; then
+              rosws reload
+          fi
+      fi
+  fi
+
+}
+
+_rosws_abspath()
+{
+    local rosws_dirname rosws_basename abspath
+    rosws_dirname=`dirname "$1"`
+    rosws_basename=`basename "$1"`
+    if [ "$rosws_basename" = "." ]; then
+        rosws_basename=
+    else
+        rosws_basename=/$rosws_basename
+    fi
+    abspath="`cd \"$rosws_dirname\" 2>/dev/null && pwd || echo \"$rosws_dirname\"`$rosws_basename"
+    echo `realpath "$abspath"`
+}
+
+_rosws_leave()
+{
+  if [ ! -z "$ROS_WORKSPACE" ]; then
+      unset ROS_WORKSPACE
+      echo Unset var: ROS_WORKSPACE
+  fi
+  if [ ! -z "$ROS_PACKAGE_PATH" ]; then
+    unset ROS_PACKAGE_PATH
+    echo Unset var: ROS_PACKAGE_PATH
+  fi
+  if [ ! -z "$ROS_ROOT" ]; then
+    unset ROS_ROOT
+    echo Unset var: ROS_ROOT
+  fi
+}
+
+_rosws_source()
+{
+  . $1/setup.sh
+  echo "Sourced $1/setup.sh"
+}
+
+rosws()
+{
+    local i workspace workspace2
+    # _call_rosws
+
+    if [ "$#" -eq 0 ]; then
+      _rosws_main $*
+    else
+        if [ "$1" = "switch" ]; then
+            if [ "$#" -eq 1 ]; then
+                if [ ! -z "$_ROSWS_LAST_WORKSPACE" ]; then
+                    rosws switch $_ROSWS_LAST_WORKSPACE
+                else
+                    echo "No workspace in history, cannot switch back."
+                    return 1
+                fi
             else
-                echo "Could not determine current workspace from . and ROS_WORKSPACE=$ROS_WORKSPACE."
+                if [[ "$2" =~ \-\-.* ]]; then
+                    _rosws_main $*
+                else
+                    workspace=`_rosws_abspath $2`
+                    if [ ! -f "$workspace/.rosinstall" ]; then
+                        if [ "$workspace" = '.' ]; then
+                            workspace2=`dirname "$workspace"`
+                            if [ ! -f "$workspace2/.rosinstall" ]; then
+                                workspace2=`_rosws_get_workspace`
+                                if [ ! -f "$workspace2/.rosinstall" ]; then
+                                    echo "Did not find $workspace/.rosinstall"
+                                    return 1
+                                else
+                                    workspace=$workspace2
+                                fi
+                            else
+                                workspace=$workspace2
+                            fi
+                        else
+                            echo "Did not find $2/.rosinstall"
+                            return 1
+                        fi
+                    fi
+                    if [ ! "$workspace" = "$ROS_WORKSPACE" ]; then
+                        _ROSWS_LAST_WORKSPACE=$ROS_WORKSPACE
+                        _rosws_source $workspace
+                        ROS_WORKSPACE=$workspace
+                    else
+                        rosws reload
+                    fi
+                fi
             fi
+        elif [ "$1" = "reload" ]; then
+            if [[ ! "$#" -eq 1 ]]; then
+                _rosws_main $*
+            else
+                if [ ! -z "$ROS_WORKSPACE" ]; then
+                    _rosws_source $ROS_WORKSPACE
+                else
+                    echo "Could not determine current workspace from . and ROS_WORKSPACE='$ROS_WORKSPACE'"
+                fi
+            fi
+        elif [ "$1" = "leave" ]; then
+            if [[ ! "$#" -eq 1 ]]; then
+                _rosws_main $*
+            else
+                _rosws_leave
+             fi
         else
             _rosws_main $*
+            # autosource
+            if [ "$1" = "init" ]; then
+                if [ "$?" -eq 0 ]; then
+                    rosws switch $2
+                fi
+            elif [ "$1" = "install" ]; then
+                _rosws_maybe_reload $*
+            elif [ "$1" = "modify" ]; then
+                _rosws_maybe_reload $*
+            elif [ "$1" = "remove" ]; then
+                _rosws_maybe_reload $*
+            fi
         fi
-    else
-      _rosws_main $*
     fi
 }

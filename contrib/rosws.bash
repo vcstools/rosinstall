@@ -38,6 +38,19 @@
 # this file (or on some systems add it to ~/.bash_completion and start a new
 # shell) and bash's completion mechanism will know all about bzr's options!
 
+SCRIPT_PATH="${BASH_SOURCE[0]}";
+if([ -h "${SCRIPT_PATH}" ]) then
+  while([ -h "${SCRIPT_PATH}" ]) do SCRIPT_PATH=`readlink "${SCRIPT_PATH}"`; done
+fi
+export OLDPWDBAK=$OLDPWD
+pushd . > /dev/null
+cd `dirname ${SCRIPT_PATH}` > /dev/null
+SCRIPT_PATH=`pwd`;
+popd  > /dev/null
+export OLDPWD=$OLDPWDBAK
+
+. $SCRIPT_PATH/rosws.shell
+
 # Based originally on the bzr/svn bash completition scripts.
 _rosws_complete()
 {
@@ -46,7 +59,7 @@ _rosws_complete()
   COMPREPLY=()
   cur=${COMP_WORDS[COMP_CWORD]}
 
-  cmds='help init install info modify remove diff status snapshot reload --version'
+  cmds='help init install info modify remove diff status snapshot reload switch leave --version'
 
   if [[ $COMP_CWORD -eq 1 ]] ; then
     COMPREPLY=( $( compgen -W "$cmds" -- $cur ) )

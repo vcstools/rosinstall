@@ -57,7 +57,9 @@ from multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__, __MULTIPRO_
 ## specific output has to be generated. 
 
 # extend the commands of multiproject
-__ROSWS_CMD_DICT__ = { 'reload': 'sources the setup.sh of the current environment' }
+__ROSWS_CMD_DICT__ = { 'reload': 'sources the setup.sh of the current environment',
+                       'leave': 'undoes most changes to env that switch caused',
+                       'switch': 'sources the setup.sh of a different environment, and allows switching back.'}
 __ROSWS_CMD_DICT__.update(__MULTIPRO_CMD_DICT__)
 
 
@@ -399,6 +401,27 @@ When an element in an additional URI has the same local-name as an existing elem
     
         return 0
 
+    def cmd_leave(self, argv, config = None):
+        parser = OptionParser(usage="usage: rosws leave",
+                        description=__ROSWS_CMD_DICT__["leave"],
+                        epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+        (options, args) = parser.parse_args(argv)
+        if len(args) > 0:
+            parser.error("The leave command takes no options or further arguments. It is only available after sourcing the rosws.shell extentions.")
+        parser.error("The leave command is only available after sourcing the rosws.shell extentions.")
+    
+        return 0
+    
+    def cmd_switch(self, argv, config = None):
+        parser = OptionParser(usage="usage: rosws switch [target_workspace]",
+                        description=__ROSWS_CMD_DICT__["switch"],
+                        epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+        (options, args) = parser.parse_args(argv)
+        if len(args) > 1:
+            parser.error("The switch command takes no more than one argument. It is only available after sourcing the rosws.shell extentions.")
+        parser.error("The switch command is only available after sourcing the rosws.shell extentions.")
+    
+        return 0
    
     def cmd_info(self, target_path, argv, config = None):
         parser = OptionParser(usage="usage: rosws info [localname] [OPTIONS]",
@@ -543,6 +566,10 @@ def rosws_main(argv=None):
         return cli.cmd_init(args)
     if command == 'reload':
         return cli.cmd_reload(args)
+    if command == 'switch':
+        return cli.cmd_switch(args)
+    if command == 'leave':
+        return cli.cmd_leave(args)
     
     commands = {
       'snapshot'     : cli.cmd_snapshot,
