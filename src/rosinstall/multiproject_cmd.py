@@ -35,8 +35,8 @@ import pkg_resources
 
 import os
 from common import MultiProjectException, DistributedWork, select_element, normabspath
-from config import Config
-from config_yaml import aggregate_from_uris, generate_config_yaml
+from config import Config, realpath_relation
+from config_yaml import aggregate_from_uris, generate_config_yaml, get_path_specs_from_uri
 
 
 ## The _cmd python files attempt to provide a reasonably
@@ -73,25 +73,28 @@ def get_config(basepath, additional_uris = None, config_filename = None, merge_s
   if basepath is None:
     raise MultiProjectException("Need to provide a basepath for Config.")
     
-  path_specs = aggregate_from_uris(additional_uris, config_filename, basepath)
-
-  ## Could not get uri therefore error out
-  if len(path_specs) == 0:
-    raise MultiProjectException("no source config files found at %s or %s"%(
-        os.path.join(basepath, config_filename), additional_uris))
-
   #print("source...........................", path_specs)
 
+  
   ## Generate the config class with the uri and path
-  config = Config(path_specs, basepath,
+  if (config_filename is not None
+      and basepath is not None
+      and os.path.isfile(os.path.join(basepath, config_filename))):
+    base_path_specs = get_path_specs_from_uri(os.path.join(basepath, config_filename), as_is = True)
+  else:
+    base_path_specs = []
+    
+  config = Config(base_path_specs, basepath,
                   config_filename = config_filename,
                   merge_strategy = merge_strategy)
 
+  add_uris(config, additional_uris, merge_strategy)
+
   return config
 
-def add_uris(config, additional_uris, merge_strategy = None):
+def add_uris(config, additional_uris, merge_strategy = "KillAppend"):
   """
-  changes the given URI by merging with the additional_uris
+  changes the given config by merging with the additional_uris
   :param config: a Config objects
   :param additional_uris: the location of config specifications or folders
   :param config_filename: name of files which may be looked at for config information
@@ -105,13 +108,24 @@ def add_uris(config, additional_uris, merge_strategy = None):
   if additional_uris is None or len(additional_uris) == 0:
     return {}
 
-  path_specs = aggregate_from_uris(additional_uris, config.get_config_filename(), config.get_base_path())
-
-  ## Could not get uri therefore error out
-  if len(path_specs) == 0:
-    raise MultiProjectException("no source config files found at %s or %s"%(
-        os.path.join(config.get_base_path(), config.get_config_filename()), additional_uris))
-
+  add_uris = []
+  if config.get_config_filename() is not None:
+    for uri in additional_uris:
+      comp_uri = None
+      if (os.path.isfile(uri)
+              and os.path.basename(uri) == config.get_config_filename()):
+        comp_uri=os.path.dirname(uri)
+      if (os.path.isdir(uri)
+          and os.path.isfile(os.path.join(uri, config.get_config_filename()))):
+        comp_uri = uri
+      if (comp_uri is not None and
+          realpath_relation(os.path.abspath(comp_uri), os.path.abspath(config.get_base_path())) == 'SAME_AS'):
+        print('Warning: Discarding config basepath as additional uri: %s'%uri)
+        continue
+      add_uris.append(uri)
+  
+  path_specs = aggregate_from_uris(add_uris, config.get_config_filename(), config.get_base_path())
+  
   actions = {}
   for path_spec in path_specs:
     action = config.add_path_spec(path_spec, merge_strategy)

@@ -131,11 +131,6 @@ def aggregate_from_uris(config_uris, config_filename = None, basepath = None):
   """
   aggregate_source_yaml = []
   # build up a merged list of config elements from all given config_uris
-  if (config_filename is not None
-      and basepath is not None
-      and os.path.isfile(os.path.join(basepath, config_filename))):
-    source_path_specs = get_path_specs_from_uri(os.path.join(basepath, config_filename), as_is = True)
-    aggregate_source_yaml.extend(source_path_specs)
   if config_uris is not None:
     for loop_uri in config_uris:
       source_path_specs = get_path_specs_from_uri(loop_uri, config_filename)

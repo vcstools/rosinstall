@@ -410,3 +410,24 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.execute_check_result_allshells(command, 'ws15', cwd=self.test_root_path, expect = package_path)
         
 
+    def test_cmd_add_self(self):
+        # rosinstall to create dir
+        self.local_path = os.path.join(self.test_root_path, "ws16")
+        cli = RoswsCLI()
+        simple_rel_rosinstall = os.path.join(self.test_root_path, "simple_rel3.rosinstall")
+        _create_yaml_file([_create_config_elt_dict("git", os.path.join(self.test_root_path, "ws16", 'ros'), self.ros_path)],
+                          simple_rel_rosinstall)
+        self.assertEqual(0, cli.cmd_init([self.local_path, simple_rel_rosinstall]))
+        config = rosinstall.multiproject_cmd.get_config(basepath = self.local_path,                                                       config_filename = '.rosinstall')
+        self.assertEqual(len(config.get_config_elements()), 1)
+        self.assertEqual('git', config.get_config_elements()[0].get_path_spec().get_scmtype())
+        
+        rosinstall.multiproject_cmd.add_uris(config, [self.local_path])
+        self.assertEqual(len(config.get_config_elements()), 1, config)
+        self.assertEqual('git', config.get_config_elements()[0].get_path_spec().get_scmtype())
+
+        rosinstall.multiproject_cmd.add_uris(config, [os.path.join(self.local_path, '.rosinstall')])
+        self.assertEqual(len(config.get_config_elements()), 1, config)
+        self.assertEqual('git', config.get_config_elements()[0].get_path_spec().get_scmtype())
+
+        
