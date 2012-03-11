@@ -168,22 +168,26 @@ _rosws_leave()
 # sources setup.sh restoring env vars first
 _rosws_source()
 {
-  _rosws_leave
-
-  _var_undo_backup_var  PATH
-  _var_undo_backup_var  PYTHONPATH
-  _var_undo_backup_var  CMAKE_PREFIX_PATH
-  _var_undo_backup_var  LD_LIBRARY_PATH
-  _var_undo_backup_var  PKG_CONFIG_PATH
-
-  . $1/setup.sh
-  echo "Sourced $1/setup.sh"
-
-  _var_undo_backup_diff_var PATH
-  _var_undo_backup_diff_var PYTHONPATH
-  _var_undo_backup_diff_var CMAKE_PREFIX_PATH
-  _var_undo_backup_diff_var LD_LIBRARY_PATH
-  _var_undo_backup_diff_var PKG_CONFIG_PATH
+  if [ ! -f "$1/setup.sh" ]; then
+    echo "No such file to source '$1/setup.sh'"
+  else
+    _rosws_leave
+  
+    _var_undo_backup_var  PATH
+    _var_undo_backup_var  PYTHONPATH
+    _var_undo_backup_var  CMAKE_PREFIX_PATH
+    _var_undo_backup_var  LD_LIBRARY_PATH
+    _var_undo_backup_var  PKG_CONFIG_PATH
+  
+    . $1/setup.sh
+    echo "Sourced $1/setup.sh"
+  
+    _var_undo_backup_diff_var PATH
+    _var_undo_backup_diff_var PYTHONPATH
+    _var_undo_backup_diff_var CMAKE_PREFIX_PATH
+    _var_undo_backup_diff_var LD_LIBRARY_PATH
+    _var_undo_backup_diff_var PKG_CONFIG_PATH
+  fi
 }
 
 rosws()
@@ -253,17 +257,19 @@ rosws()
              fi
         else
             _rosws_main $*
-            # autosource
-            if [ "$1" = "init" ]; then
-                if [ "$?" -eq 0 ]; then
-                    rosws switch $2
+            if [ "$?" -eq 0 ]; then
+                # autosource
+                if [ "$1" = "init" ]; then
+                        rosws switch $2
+                elif [ "$1" = "install" ]; then
+                    _rosws_maybe_reload $*
+                elif [ "$1" = "modify" ]; then
+                    _rosws_maybe_reload $*
+                elif [ "$1" = "remove" ]; then
+                    _rosws_maybe_reload $*
                 fi
-            elif [ "$1" = "install" ]; then
-                _rosws_maybe_reload $*
-            elif [ "$1" = "modify" ]; then
-                _rosws_maybe_reload $*
-            elif [ "$1" = "remove" ]; then
-                _rosws_maybe_reload $*
+            else
+                return 1
             fi
         fi
     fi
