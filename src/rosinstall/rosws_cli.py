@@ -424,10 +424,10 @@ The Status (S) column shows
  L  for uncommited (local) changes
  V  for difference in version and/or remote URI
 
-Where status is V, the specified data (Spec) is shown next to the current data in the respective column.
-For SVN entries, the url is split up according to standard layout (trunk/tags/branches).
-The ROS_PACKAGE_PATH follows the order of the table, earlier entries overlay later entries.
-The info command may fetch changesets from remote repositories without affecting your local files.""",
+The 'Version-Spec' column shows what tag, branch or revision was given in the .rosinstall file. The 'UID' column shows the unique ID of the current (and specified) version. The 'URI' column shows the configured URL of the repo
+
+If status is V, the difference between what was specified and what is real is shown in the respective column. For SVN entries, the url is split up according to standard layout (trunk/tags/branches).
+The ROS_PACKAGE_PATH follows the order of the table, earlier entries overlay later entries.""",
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("--data-only", dest="data_only", default=False,
                           help="Does not provide explanations",
@@ -466,24 +466,28 @@ The info command may fetch changesets from remote repositories without affecting
             print(":".join(get_ros_package_path(config)))
             return False
 
+        if len(args) > 1:
+                print("Warning, ignoring extra arguments '%s'"%args[1:])
+
         localname = None
         if len(args) > 0:
             localname = args[0]
-            if len(args) > 1:
-                print("Warning, ignoring extra arguments %s."%args[1:])
-            outputs = multiproject_cmd.cmd_info(config, localname)
-            if len(outputs) == 0 or outputs[0] == None:
-                print("Unknown Localname: %s."%localname)
-                return 1
-            if options.uri_only:
-                if outputs[0]['uri'] is not None:
-                    print(outputs[0]['uri'])
-            elif options.version_only:
-                if outputs[0]['version'] is not None:
-                    print(outputs[0]['version'])
-            else:
-                print(cli_common.get_info_list(config.get_base_path(), outputs[0], options.data_only))
-            return 0
+            if (select_element(config.get_config_elements(), args[0]) is None):
+                print("Unknown Localname: '%s'"%localname)
+            else:                
+                outputs = multiproject_cmd.cmd_info(config, localname)
+                if len(outputs) == 0 or outputs[0] == None:
+                    print("Unknown Localname: '%s'"%localname)
+                    return 1
+                if options.uri_only:
+                    if outputs[0]['uri'] is not None:
+                        print(outputs[0]['uri'])
+                elif options.version_only:
+                    if outputs[0]['version'] is not None:
+                        print(outputs[0]['version'])
+                else:
+                    print(cli_common.get_info_list(config.get_base_path(), outputs[0], options.data_only))
+                return 0
         
         print("workspace: %s"%target_path)
         print("ROS_ROOT: %s\n"%get_ros_stack_path(config))
@@ -502,12 +506,17 @@ def usage():
   dvars = {'prog': 'rosws'}
   dvars.update(vars())
   print(__doc__%dvars)
-  keys=[]
-  for k in __ROSWS_CMD_DICT__.iterkeys():
-    keys.append(k)
-  keys.sort()
+  # keys=[]
+  # for k in __ROSWS_CMD_DICT__.iterkeys():
+  #   if k in gkeys:
+  #     keys.append(k)
+  # keys.sort()
+  keys=['help', 'init', None, 'modify', 'install', None, 'info', 'status', 'diff', None, 'reload', 'switch', 'leave']
   for k in keys:
-    print("  " + k.ljust(10)+'   \t'+__ROSWS_CMD_DICT__[k])
+    if k in __ROSWS_CMD_DICT__:
+      print("  " + k.ljust(10)+'   \t'+__ROSWS_CMD_DICT__[k])
+    else:
+      print('')
 
 def rosws_main(argv=None):
   """

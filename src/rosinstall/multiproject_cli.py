@@ -50,7 +50,7 @@ __MULTIPRO_CMD_DICT__={
   "help"     : "provides help for commands",
   "init"     : "sets up a directory as workspace",
   "info"     : "Overview of all or specific entries",
-  "install"  : "to update or also extend your workspace",
+  "install"  : "updates or also extends your workspace",
   "modify"   : "adds or changes one entry from your workspace config",
   "remove"   : "removes an entry from your workspace config, without deleting files",
   "snapshot" : "writes a file specifying repositories to have the version they currently have",
