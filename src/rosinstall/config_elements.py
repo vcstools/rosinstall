@@ -190,7 +190,7 @@ class VCSConfigElement(ConfigElement):
       else:
         # If robust ala continue-on-error, just error now and it will be continued at a higher level
         if robust:
-          raise MultiProjectException("Update Failed of %s"%self.path)
+          raise MultiProjectException("Update Failed of %s: %s"%(self.path, error_message))
         # prompt the user based on the error code
         if arg_mode == 'prompt':
           print("Prepare updating %s (%s) to %s"%(self.uri, self.version, self.path))
