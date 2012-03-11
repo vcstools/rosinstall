@@ -122,7 +122,16 @@ class WorkerThread(Process):
         result.update(result_dict)
       else:
         result.update({'error': MultiProjectException("worker returned None")})
+    except MultiProjectException as e:
+      result.update({'mp error': e})
+    except VcsError as e:
+      result.update({'vcs error': e})
+    except OSError as e:
+      result.update({'os error': e})
     except Exception as e:
+      # this would be a bug, and we need trace to find them in multithreaded cases.
+      import sys, traceback
+      traceback.print_exc(file=sys.stderr)
       result.update({'error': e})
     self.outlist[self.index] = result
 
@@ -191,7 +200,7 @@ class DistributedWork():
     for output in self.outputs:
       if "error" in output:
         if 'entry' in output:
-          message += "Error during install of '%s' : %s\n"%(output['entry'].get_local_name(), output["error"])
+          message += "Error processing '%s' : %s\n"%(output['entry'].get_local_name(), output["error"])
         else:
           message += "%s\n"%output["error"]
     if message != '':
