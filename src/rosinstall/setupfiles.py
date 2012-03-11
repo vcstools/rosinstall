@@ -87,6 +87,7 @@ def generate_setup_sh_text(config, ros_root):
 # USE THE rosinstall TOOL INSTEAD.
 # see: http://www.ros.org/wiki/rosinstall
 """
+
   distro_unset = False
   for t in config.get_config_elements():
     if isinstance(t, SetupConfigElement):
@@ -98,21 +99,24 @@ def generate_setup_sh_text(config, ros_root):
   # ROS_DISTRO is set by sourcing a setup.sh from fuerte (or later)
   # If we do not unset it, we must not check for it being unset.
 
-  if distro_unset:
-      text += """
+  if ros_root is not None:
+    if distro_unset:
+        text += """
 if [ -z "${ROS_DISTRO}" ]; then
   export ROS_ROOT=%s 
   export PATH=$ROS_ROOT/bin:$PATH
   export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH
   if [ ! "$ROS_MASTER_URI" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
 fi"""% ros_root
-  else:
-      text += """
+    else:
+        text += """
  export ROS_ROOT=%s 
  export PATH=$ROS_ROOT/bin:$PATH
  export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH
  if [ ! "$ROS_MASTER_URI" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
 """% ros_root
+  else:
+      text += """echo Warning, no ros configured for this environment"""
 
   text += "\nexport ROS_WORKSPACE=%s\n" % config.get_base_path()
     
@@ -144,8 +148,7 @@ else:
   sys.exit("%s contains no path elements"%filename)
 EOPYTHON`
 if [ -z "$_ROS_PACKAGE_PATH_ROSINTALL" ]; then
-    echo Error: Update of ROS_PACKAGE_PATH failed
-    return 22
+    echo Warning: Empty ROS_PACKAGE_PATH
 fi
 export ROS_PACKAGE_PATH=$_ROS_PACKAGE_PATH_ROSINTALL
 unset _ROS_PACKAGE_PATH_ROSINTALL
@@ -211,11 +214,11 @@ fi
   return text
 
 
-def generate_setup(config):
-  # simplest case first
+def generate_setup(config, no_ros_allowed = False):
   ros_root = helpers.get_ros_stack_path(config)
   if not ros_root:
-    raise ROSInstallException("No 'ros' stack detected in candidates %s.  The 'ros' stack is required in all rosinstall directories. Please add a definition of the 'ros' stack either manually in %s and then call 'rosinstall .' in the directory. Or add one on the command line 'rosinstall . http://www.ros.org/rosinstalls/boxturtle_ros.rosinstall'. Or reference an existing install like in /opt/ros/boxturtle with 'rosinstall . /opt/ros/boxturtle'.  Note: the above suggestions assume you are using boxturtle, if you are using latest or another distro please change the urls."%([t.get_path() for t in config.get_config_elements() if os.path.basename(t.get_local_name())=='ros'], ROSINSTALL_FILENAME) )
+    if not no_ros_allowed:
+      raise ROSInstallException("No 'ros' stack detected in candidates %s.  The 'ros' stack is required in all rosinstall directories. Please add a definition of the 'ros' stack either manually in %s and then call 'rosinstall .' in the directory. Or add one on the command line 'rosinstall . http://www.ros.org/rosinstalls/boxturtle_ros.rosinstall'. Or reference an existing install like in /opt/ros/boxturtle with 'rosinstall . /opt/ros/boxturtle'.  Note: the above suggestions assume you are using boxturtle, if you are using latest or another distro please change the urls."%([t.get_path() for t in config.get_config_elements() if os.path.basename(t.get_local_name())=='ros'], ROSINSTALL_FILENAME) )
   
   text = generate_setup_sh_text(config, ros_root)
   setup_path = os.path.join(config.get_base_path(), 'setup.sh')

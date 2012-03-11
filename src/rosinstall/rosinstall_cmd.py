@@ -58,7 +58,7 @@ def _ros_requires_boostrap(config):
         return True
   return False
   
-def cmd_generate_ros_files(config, path, nobuild = False, rosdep_yes = False, catkin = False, catkinpp = None):
+def cmd_generate_ros_files(config, path, nobuild = False, rosdep_yes = False, catkin = False, catkinpp = None, no_ros_allowed = False):
   """
   Generates ROS specific setup files
   """
@@ -74,7 +74,7 @@ def cmd_generate_ros_files(config, path, nobuild = False, rosdep_yes = False, ca
   else: # DRY install case
     ## Generate setup.sh and save
     print("(Over-)Writing setup.sh, setup.bash, and setup.zsh in %s"%config.get_base_path())
-    setupfiles.generate_setup(config)
+    setupfiles.generate_setup(config, no_ros_allowed)
 
     if _ros_requires_boostrap(config) and not nobuild:
       print("Bootstrapping ROS build")
