@@ -180,8 +180,10 @@ class VCSConfigElement(ConfigElement):
       if not present:
         error_message = "Failed to detect %s presence at %s."%(self._get_vcsc().get_vcs_type_name(), self.path)
       else:
-        cur_url = self._get_vcsc().get_url().rstrip('/')
-        if not cur_url or cur_url != self.uri:  #strip trailing slashes for #3269
+        cur_url = self._get_vcsc().get_url()
+        if cur_url is not None:
+          cur_url = cur_url.rstrip('/')  #strip trailing slashes for #3269
+        if not cur_url or cur_url != self.uri.rstrip('/'):
           # local repositories get absolute pathnames
           if not (os.path.isdir(self.uri) and os.path.isdir(cur_url) and os.path.samefile(cur_url, self.uri)):
             error_message = "Url %s does not match %s requested."%(cur_url, self.uri)
@@ -216,6 +218,12 @@ class VCSConfigElement(ConfigElement):
     return preparation_report
 
   def install(self, checkout = True, backup = True, backup_path = None):
+    """
+    Runs the equivalent of SCM checkout for new local repos or update for existing.
+    :param checkout: whether to use an update command or a checkout/clone command
+    :param backup: if checkout is True and folder exists, if backup is false folder will be DELETED.
+    :param backup_path: if checkout is true and backup is true, move folder to this location
+    """
     if checkout == True:
       print("[%s] Installing %s (%s) to %s"%(self.get_local_name(), self.uri, self.version, self.get_path()))
       if self._get_vcsc().path_exists():
