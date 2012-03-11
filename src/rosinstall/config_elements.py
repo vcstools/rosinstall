@@ -37,6 +37,7 @@ import datetime
 
 import vcstools
 from vcstools import VcsClient
+from vcstools.vcs_base import VcsError
 
 from common import MultiProjectException
 from config_yaml import PathSpec
@@ -281,5 +282,8 @@ class AVCSConfigElement(VCSConfigElement):
   def _get_vcsc(self):
     # lazy initializer
     if self.vcsc == None:
-      self.vcsc = VcsClient(self._scmtype, self.get_path())
+      try:
+        self.vcsc = VcsClient(self._scmtype, self.get_path())
+      except VcsError as e:
+        raise MultiProjectException("Unable to create vcs client of type %s for %s: %s"%(self._scmtype, self.get_path(), e))
     return self.vcsc
