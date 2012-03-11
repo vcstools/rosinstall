@@ -77,11 +77,11 @@ class Config:
       action = self.add_path_spec(path_spec, merge_strategy)
       # Usual action in init should be 'Append', anything else is unusual
       if action == 'KillAppend':
-        print("Delete existing entry %s and appended new one to the end"%path_spec.get_local_name)
+        print("Replace existing entry %s by appending."%path_spec.get_local_name())
       elif action == 'MergeReplace':
-        print("Replace existing entry %s"%path_spec.get_local_name)
+        print("Replace existing entry %s"%path_spec.get_local_name())
       elif action == 'MergeKeep':
-        print("Keep existing entry %s, discard later one"%path_spec.get_local_name)
+        print("Keep existing entry %s, discard later one"%path_spec.get_local_name())
 
   def __str__(self):
     return str([str(x) for x in self.trees])
