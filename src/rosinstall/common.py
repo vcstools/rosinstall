@@ -123,11 +123,11 @@ class WorkerThread(Process):
       else:
         result.update({'error': MultiProjectException("worker returned None")})
     except MultiProjectException as e:
-      result.update({'mp error': e})
+      result.update({'error': e})
     except VcsError as e:
-      result.update({'vcs error': e})
+      result.update({'error': e})
     except OSError as e:
-      result.update({'os error': e})
+      result.update({'error': e})
     except Exception as e:
       # this would be a bug, and we need trace to find them in multithreaded cases.
       import sys, traceback

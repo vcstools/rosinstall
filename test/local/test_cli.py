@@ -154,7 +154,7 @@ class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):
 
     def install(self, backup_path = None, arg_mode = 'abort', robust = False):
         if not self.install_success:
-            raise MultiProjectException("Unittest Mock says exception failed")
+            raise MultiProjectException("Unittest Mock says install failed")
 
     def _get_vcsc(self):
         return self.vcsc
