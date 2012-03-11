@@ -122,7 +122,7 @@ _rosws_maybe_reload()
       workspace=`_rosws_get_workspace $*`
       if [ "$?" -eq 0 ]; then
           workspace=`_rosws_abspath $workspace`
-          if [ $workspace = $ROS_WORKSPACE ]; then
+          if [ $workspace = "$ROS_WORKSPACE" ]; then
               rosws reload
           fi
       fi
