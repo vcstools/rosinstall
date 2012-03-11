@@ -172,11 +172,12 @@ class VCSConfigElement(ConfigElement):
   
   def prepare_install(self, backup_path = None, arg_mode = 'abort', robust = False):
     preparation_report = PreparationReport(self)
-    if self._get_vcsc().path_exists():
+    present = self._get_vcsc().detect_presence() 
+    if present or self._get_vcsc().path_exists():
       # Directory exists see what we need to do
       error_message = None
       
-      if not self._get_vcsc().detect_presence():
+      if not present:
         error_message = "Failed to detect %s presence at %s."%(self._get_vcsc().get_vcs_type_name(), self.path)
       else:
         cur_url = self._get_vcsc().get_url().rstrip('/')

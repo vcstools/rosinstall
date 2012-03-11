@@ -166,7 +166,7 @@ class MockVcsClient():
                  path_exists = False,
                  checkout_success = True,
                  update_success = True,
-                 vcs_presence = True,
+                 vcs_presence = False,
                  url = "mockurl",
                  actualversion = None,
                  specversion = None):
