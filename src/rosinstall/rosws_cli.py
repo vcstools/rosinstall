@@ -563,16 +563,15 @@ def rosws_main(argv=None):
     cli = RoswsCLI()
 
     # commands for which we do not infer target workspace
-    if command == 'init':
-        return cli.cmd_init(args)
-    if command == 'reload':
-        return cli.cmd_reload(args)
-    if command == 'switch':
-        return cli.cmd_switch(args)
-    if command == 'leave':
-        return cli.cmd_leave(args)
-    
     commands = {
+        'init': cli.cmd_init,
+        # just provide help for these
+        'reload': cli.cmd_reload,
+        'switch': cli.cmd_switch,
+        'leave': cli.cmd_leave
+        }
+    # commands which work on a workspace
+    ws_commands = {
       'snapshot'     : cli.cmd_snapshot,
       'info'         : cli.cmd_info,
       'install'      : cli.cmd_install,
@@ -581,7 +580,13 @@ def rosws_main(argv=None):
       'diff'         : cli.cmd_diff,
       'status'       : cli.cmd_status,
       }
-    if command not in commands:
+
+
+    # TODO remove
+    if command not in ['diff', 'status']:
+        print("(rosws and py-rosws are experimental scripts, please provide feedback to tfoote@willowgarage.com)")
+    
+    if command not in commands and command not in ws_commands:
       if os.path.exists(command):
         args = ['-t', command] + args
         command = 'info'
@@ -592,10 +597,13 @@ def rosws_main(argv=None):
           print("Error: unknown command: %s"%command)
         usage()
         return 1
-    if workspace is None and not '--help' in args and not '-h' in args:
-        
-      workspace = cli_common.get_workspace(args, os.getcwd(), config_filename = ROSINSTALL_FILENAME, varname = "ROS_WORKSPACE")
-    return commands[command](workspace, args)
+      
+    if command in commands:
+        return commands[command](args)
+    else:
+        if workspace is None and not '--help' in args and not '-h' in args:
+            workspace = cli_common.get_workspace(args, os.getcwd(), config_filename = ROSINSTALL_FILENAME, varname = "ROS_WORKSPACE")
+        return ws_commands[command](workspace, args)
 
   except KeyboardInterrupt:
     pass
