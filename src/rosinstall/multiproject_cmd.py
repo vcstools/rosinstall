@@ -362,6 +362,8 @@ def cmd_info(config, localname = None):
   if selected_element is not None:
     work.add_thread(InfoRetriever(selected_element, path))
   else:
-    map(lambda x: work.add_thread(InfoRetriever(x, path)), elements)
+    for element in elements:
+      if element.get_properties() is None or not 'setup-file' in element.get_properties():
+        work.add_thread(InfoRetriever(element, path))
   outputs = work.run()
   return outputs
