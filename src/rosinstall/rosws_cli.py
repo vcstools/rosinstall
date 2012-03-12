@@ -535,14 +535,15 @@ def rosws_main(argv=None):
     sys.exit(0)
   workspace = None
   if len(argv) < 2:
-    if '--help' in argv:
-      usage()
-      return 0
     try:
       workspace = cli_common.get_workspace(argv, os.getcwd(), config_filename = ROSINSTALL_FILENAME, varname = "ROS_WORKSPACE")
       argv.append('info')
     except MultiProjectException as e:
       print(str(e))
+      usage()
+      return 0
+    
+  if '--help' == argv[1]:
       usage()
       return 0
 
