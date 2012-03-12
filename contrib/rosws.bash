@@ -97,28 +97,28 @@ _rosws_complete()
   cmdOpts=
   case ${COMP_WORDS[1]} in
   status)
-    cmdOpts="-h --help -t --target-workspace --untracked"
+    cmdOpts="-t --target-workspace --untracked"
     ;;
   diff)
-    cmdOpts="-h --help -t --target-workspace"
+    cmdOpts="-t --target-workspace"
     ;;
   init)
-    cmdOpts="-h --help -c --catkin --cmake-prefix-path -t --target-workspace"
+    cmdOpts="-c --catkin --cmake-prefix-path -t --target-workspace"
     ;;
   install)
-    cmdOpts="-h --help -c --catkin --cmake-prefix-path -t --target-workspace --continue-on-error --delete-changed-uris --abort-changed-uris --backup-changed-uris --nocheckout --noupdates -y --confirm-all -m --merge-replace -k --merge-keep --merge-kill-append"
+    cmdOpts="-c --catkin --cmake-prefix-path -t --target-workspace --continue-on-error --delete-changed-uris --abort-changed-uris --backup-changed-uris --nocheckout --noupdates -y --confirm-all -m --merge-replace -k --merge-keep --merge-kill-append"
     ;;
   modify)
-    cmdOpts="-h --help -t --target-workspace --git --svn --bzr --hg --uri --version-new --dettach -y --confirm"
+    cmdOpts="-t --target-workspace --git --svn --bzr --hg --uri --version-new --detach -y --confirm"
     ;;
   remove)
-    cmdOpts="-h --help -t --target-workspace"
+    cmdOpts="-t --target-workspace"
     ;;
   snapshot)
-    cmdOpts="-h --help -t --target-workspace"
+    cmdOpts="-t --target-workspace"
     ;;
   info)
-    cmdOpts="-h --help -t --target-workspace --data-only --no-pkg-path --pkg-path-only --localnames-only"
+    cmdOpts="-t --target-workspace --data-only --no-pkg-path --pkg-path-only --localnames-only"
     ;;
   help|h|\?)
     cmdOpts="$cmds $qOpts"
@@ -165,5 +165,6 @@ _rosws_complete()
 
 }
 complete -F _rosws_complete -o default rosws
+complete -F _rosws_complete -o default py-rosws
 
 
