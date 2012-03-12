@@ -103,10 +103,10 @@ _rosws_complete()
     cmdOpts="-h --help -t --target-workspace"
     ;;
   init)
-    cmdOpts="-h --help -n --nobuild --rosdep-yes -c --catkin --cmake-prefix-path -t --target-workspace"
+    cmdOpts="-h --help -c --catkin --cmake-prefix-path -t --target-workspace"
     ;;
   install)
-    cmdOpts="-h --help -n --nobuild --rosdep-yes -c --catkin --cmake-prefix-path -t --target-workspace --continue-on-error --delete-changed-uris --abort-changed-uris --backup-changed-uris --nocheckout --noupdates -y --confirm-all -m --merge-replace -k --merge-keep --merge-kill-append"
+    cmdOpts="-h --help -c --catkin --cmake-prefix-path -t --target-workspace --continue-on-error --delete-changed-uris --abort-changed-uris --backup-changed-uris --nocheckout --noupdates -y --confirm-all -m --merge-replace -k --merge-keep --merge-kill-append"
     ;;
   modify)
     cmdOpts="-h --help -t --target-workspace --git --svn --bzr --hg --uri --version-new --dettach -y --confirm"

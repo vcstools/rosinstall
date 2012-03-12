@@ -49,7 +49,7 @@ import cli_common
 import rosinstall_cmd
 import multiproject_cmd
 
-from common import MultiProjectException
+from common import MultiProjectException, select_element
 from helpers import ROSInstallException, ROSINSTALL_FILENAME, get_ros_package_path, get_ros_stack_path
 from multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__, __MULTIPRO_VERSION__, IndentedHelpFormatterWithNL
 
@@ -103,18 +103,15 @@ If PATH is not given, uses current dir.
 """%self.config_filename,
                               description=__MULTIPRO_CMD_DICT__["init"],
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
-        parser.add_option("-n", "--nobuild", dest="nobuild", default=False,
-                          help="skip the build step for the ROS stack",
-                          action="store_true")
-        parser.add_option("--rosdep-yes", dest="rosdep_yes", default=False,
-                          help="Pass through --rosdep-yes to rosmake",
+        parser.add_option("-i", "--ignore-missing-ros", dest="ignore_ros", default=False,
+                          help="Do not query for ros root.",
                           action="store_true")
         parser.add_option("-c", "--catkin", dest="catkin", default=False,
-                        help="Declare this is a catkin build.",
-                        action="store_true")
+                          help="Declare this is a catkin build.",
+                          action="store_true")
         parser.add_option("--cmake-prefix-path", dest="catkinpp", default=None,
-                        help="Where to set the CMAKE_PREFIX_PATH, implies --catkin",
-                        action="store")
+                          help="Where to set the CMAKE_PREFIX_PATH",
+                          action="store")
         parser.add_option("--continue-on-error", dest="robust", default=False,
                           help="Continue despite checkout errors",
                           action="store_true")
@@ -140,24 +137,20 @@ If PATH is not given, uses current dir.
               print('Error: Cannot create in target path %s '%target_path)
                                 
         if os.path.exists(os.path.join(target_path, self.config_filename)):
-            print('Error: There already is a workspace config file %s at "%s". Use rosws install to modify.'%(self.config_filename, target_path))
+            print('Error: There already is a workspace config file %s at "%s". Use rosws install/modify.'%(self.config_filename, target_path))
             return 1
+        config_uris = []
         if len(args) < 2:
-            if 'ROS_ROOT' not in os.environ:
-                raise ROSInstallException('ROS_ROOT not set, and no arguments given to init')
-            print('No path to ros given; initializing from current environment')
-            config_uris = [os.environ['ROS_ROOT']]
-            print('Using ROS_ROOT: %s'%os.environ['ROS_ROOT'])
-            if 'ROS_WORKSPACE' in os.environ:
-                print('Using ROS_WORKSPACE: %s'%os.environ['ROS_ROOT'])
-                for p in os.environ['ROS_WORKSPACE'].split(':'):
-                    config_uris.append(os.environ['ROS_WORKSPACE'])
-            # TODO
-            # if 'ROS_PACKAGE_PATH' in os.environ:
-            #   for p in os.environ['ROS_PACKAGE_PATH'].split(':'):
-            #     self.init_args.append(p)
+            if not options.ignore_ros:
+                if 'ROS_ROOT' not in os.environ:
+                    raise ROSInstallException('ROS_ROOT not set, and no arguments given to init')
+                else:
+                    print('No path to ros given; initializing from current environment')
+                    config_uris = [os.environ['ROS_ROOT']]
         else:
-            config_uris = args[1:]
+            config_uris.extend(args[1:])
+        if len(config_uris) > 0:
+            print('Using ROS_ROOT: %s'%config_uris[0])
 
         config = multiproject_cmd.get_config(basepath = target_path,
                                                         additional_uris = config_uris,
@@ -172,10 +165,11 @@ If PATH is not given, uses current dir.
       
         rosinstall_cmd.cmd_generate_ros_files(config,
                                               target_path,
-                                              options.nobuild,
-                                              options.rosdep_yes,
-                                              options.catkin,
-                                              options.catkinpp)
+                                              nobuild = True,
+                                              rosdep_yes = False,
+                                              catkin = options.catkin,
+                                              catkinpp = options.catkinpp,
+                                              no_ros_allowed = True)
     
         if not install_success:
             print("Warning: installation encountered errors, but --continue-on-error was requested.  Look above for warnings.")
@@ -194,12 +188,6 @@ When an element in an additional URI has the same local-name as an existing elem
 """%self.config_filename,
                               description=__MULTIPRO_CMD_DICT__["init"],
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
-          parser.add_option("-n", "--nobuild", dest="nobuild", default=False,
-                            help="skip the build step for the ROS stack",
-                            action="store_true")
-          parser.add_option("--rosdep-yes", dest="rosdep_yes", default=False,
-                            help="Pass through --rosdep-yes to rosmake",
-                            action="store_true")
           parser.add_option("-c", "--catkin", dest="catkin", default=False,
                             help="Declare this is a catkin build.",
                             action="store_true")
@@ -318,8 +306,6 @@ When an element in an additional URI has the same local-name as an existing elem
               if len(vcs_es) > 0:
                   output += "\n     SCM update elements:\n %s\n"%", ".join(vcs_es)
                   
-          if not options.nobuild:
-              output += "\n     Call rosmake on ros and ros_comm (use -n to avoid that)\n"
                   
           if output != "":
               if options.confirm_all or not ask_user:
@@ -355,10 +341,11 @@ When an element in an additional URI has the same local-name as an existing elem
                   
           rosinstall_cmd.cmd_generate_ros_files(config,
                                                 target_path,
-                                                options.nobuild,
-                                                options.rosdep_yes,
-                                                options.catkin,
-                                                options.catkinpp)
+                                                nobuild = True,
+                                                rosdep_yes = False,
+                                                catkin = options.catkin,
+                                                catkinpp = options.catkinpp,
+                                                no_ros_allowed = True)
 
           print("\nrosws update complete.")
           if path_changed:

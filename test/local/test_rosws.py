@@ -55,7 +55,7 @@ class RosWsTest(AbstractFakeRosBasedTest):
     def test_init(self):
         workspace = os.path.join(self.test_root_path, 'ws1')
         cli = RoswsCLI()
-        self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall, '-n']))
+        self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall]))
         self.assertTrue(os.path.exists(workspace))
         self.assertTrue(os.path.exists(os.path.join(workspace, '.rosinstall')))
         self.assertTrue(os.path.exists(os.path.join(workspace, 'setup.sh')))
@@ -68,8 +68,8 @@ class RosWsTest(AbstractFakeRosBasedTest):
     def test_install(self):
         workspace = os.path.join(self.test_root_path, 'ws2')
         cli = RoswsCLI()
-        self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall, '-n']))
-        self.assertEqual(0, cli.cmd_install(workspace, [self.simple_changed_vcs_rosinstall, '-ny']))
+        self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall]))
+        self.assertEqual(0, cli.cmd_install(workspace, [self.simple_changed_vcs_rosinstall, '-y']))
         self.assertTrue(os.path.isdir(os.path.join(workspace, 'hgrepo')))
         self.assertTrue(os.path.isdir(os.path.join(workspace, 'hgrepo', '.hg')))
         config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
@@ -78,8 +78,8 @@ class RosWsTest(AbstractFakeRosBasedTest):
     def test_remove(self):
         workspace = os.path.join(self.test_root_path, 'ws3')
         cli = RoswsCLI()
-        self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall, '-n']))
-        self.assertEqual(0, cli.cmd_install(workspace, [self.simple_changed_vcs_rosinstall, '-ny']))
+        self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall]))
+        self.assertEqual(0, cli.cmd_install(workspace, [self.simple_changed_vcs_rosinstall, '-y']))
         config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
         self.assertEqual(3, len(config.get_config_elements()))
         self.assertEqual(0, cli.cmd_remove(workspace, ['hgrepo']))
@@ -89,8 +89,8 @@ class RosWsTest(AbstractFakeRosBasedTest):
     def test_modify(self):
         workspace = os.path.join(self.test_root_path, 'ws4')
         cli = RoswsCLI()
-        self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall, '-n']))
-        self.assertEqual(0, cli.cmd_install(workspace, [self.simple_changed_vcs_rosinstall, '-ny']))
+        self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall]))
+        self.assertEqual(0, cli.cmd_install(workspace, [self.simple_changed_vcs_rosinstall, '-y']))
         config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
         self.assertEqual(3, len(config.get_config_elements()))
         self.assertEqual('ros', config.get_config_elements()[0].get_local_name())
@@ -109,7 +109,7 @@ class RosWsTest(AbstractFakeRosBasedTest):
     def test_snapshot(self):
         workspace = os.path.join(self.test_root_path, 'ws5')
         cli = RoswsCLI()
-        self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall, '-n']))
-        self.assertEqual(0, cli.cmd_install(workspace, [self.simple_changed_vcs_rosinstall, '-ny']))
+        self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall]))
+        self.assertEqual(0, cli.cmd_install(workspace, [self.simple_changed_vcs_rosinstall, '-y']))
         self.assertEqual(0, cli.cmd_snapshot(workspace, [os.path.join(self.test_root_path, 'ws4.bak')]))
         self.assertTrue(os.path.exists(os.path.join(self.test_root_path, 'ws4.bak')))
