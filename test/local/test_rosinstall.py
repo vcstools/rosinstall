@@ -190,6 +190,13 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
+        p = subprocess.Popen('echo `set -e; . %s; echo $?`'%os.path.join(self.directory, 'setup.bash'),
+                             shell=True,
+                             stdout=subprocess.PIPE,
+                             env=self.new_environ,
+                             executable='/bin/bash')
+        output = p.communicate()
+        self.assertTrue(output[0].endswith('0\n'), output)
         
     def test_local_electric(self):
         distrodir = '/opt/ros/electric'
@@ -200,6 +207,13 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
+        p = subprocess.Popen('echo `set -e; . %s; echo $?`'%os.path.join(self.directory, 'setup.bash'),
+                             shell=True,
+                             stdout=subprocess.PIPE,
+                             env=self.new_environ,
+                             executable='/bin/bash')
+        output = p.communicate()
+        self.assertTrue(output[0].endswith('0\n'), (output, p.returncode))
         
     def test_local_fuerte(self):
         distrodir = '/opt/ros/fuerte'
@@ -210,6 +224,13 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
+        p = subprocess.Popen('echo `set -e; . %s; echo $?`'%os.path.join(self.directory, 'setup.bash'),
+                             shell=True,
+                             stdout=subprocess.PIPE,
+                             env=self.new_environ,
+                             executable='/bin/bash')
+        output = p.communicate()
+        self.assertTrue(output[0].endswith('0\n'), (output, p.returncode))
 
     def test_local_fuerte_catkin(self):
         distrodir = '/opt/ros/fuerte'
