@@ -183,13 +183,21 @@ class DistributedWork():
     # intentionally not used as a shrinking list because of al the
     # possible multithreading / interruption corner cases
     try:
-      for thread in self.threads:
-        thread.start()
-      running_threads = self.threads
-      while len(running_threads) > 0:
+      waiting_index = 0
+      maxthreads = 10
+      running_threads = []
+      missing_threads = copy.copy(self.threads)
+      while len(running_threads) > 0 or len(missing_threads) > 0:
+        if len(running_threads) < maxthreads:
+          to_index = min(waiting_index + maxthreads - len(running_threads), len(self.threads))
+          for i in range(waiting_index, to_index):
+            self.threads[i].start()
+          waiting_index = to_index
         running_threads = [t for t in self.threads if t is not None and t.is_alive()]
         for thread in running_threads:
-          t.join(1)
+          if thread in missing_threads:
+            missing_threads.remove(thread)
+          thread.join(1)
     except KeyboardInterrupt as k:
       for thread in self.threads:
         if thread is not None and thread.is_alive():
