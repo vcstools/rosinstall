@@ -147,7 +147,7 @@ class PathSpec:
                scmtype = None,
                uri = None,
                version = None,
-               tags = None,
+               tags = [],
                revision = None,
                currevision = None,
                path = None,
