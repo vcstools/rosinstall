@@ -354,7 +354,7 @@ When an element in an additional URI has the same local-name as an existing elem
 
 
     def cmd_remove(self, target_path, argv, config = None):
-        parser = OptionParser(usage="usage: rosws remove [PATH] localname",
+        parser = OptionParser(usage="usage: rosws remove [localname]*",
                         description=__MULTIPRO_CMD_DICT__["remove"],
                         epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         (options, args) = parser.parse_args(argv)
@@ -362,19 +362,28 @@ When an element in an additional URI has the same local-name as an existing elem
             print("Error: Too few arguments.")
             print(parser.usage)
             return -1
-        if len(args) > 1:
-            print("Error: Too many arguments.")
-            print(parser.usage)
-            return -1
-        uri = args[0]
+
         if config == None:
             config = multiproject_cmd.get_config(target_path, [], config_filename = self.config_filename)
         elif config.get_base_path() != target_path:
             raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
-        if config.remove_element(uri):
+        success = True
+        elements = config.get_config_elements()
+        for uri in args[0]:
+            element = select_element(elements, uri)
+            if (element is None):
+                success = False
+                print("No such element %s in config, aborting without changes"%(uri))
+                break
+            if not config.remove_element(element.get_local_name()):
+                success = False
+                print("Bug: No such element %s in config, aborting without changes"%(uri))
+                break
+        if success:
             print("Overwriting %s/%s"%(config.get_base_path(), self.config_filename))
             multiproject_cmd.cmd_persist_config(config, self.config_filename)
             print("Removed entry %s"%uri)
+            
         return 0
 
     def cmd_reload(self, argv, config = None):
