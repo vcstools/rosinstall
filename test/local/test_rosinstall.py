@@ -190,7 +190,7 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
         self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
-        p = subprocess.Popen("bash -c 'set -e; . %s'; echo $?"%os.path.join(self.directory, 'setup.bash'),
+        p = subprocess.Popen("bash -c 'set -e; . %s'"%os.path.join(self.directory, 'setup.bash'),
                              shell=True,
                              stdout=subprocess.PIPE,
                              env=self.new_environ)
@@ -211,7 +211,7 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
                              stdout=subprocess.PIPE,
                              env=self.new_environ)
         output = p.communicate()
-        self.assertEqual(0, p.returncode)
+        self.assertEqual(0, p.returncode, (output, p.returncode))
         
     def test_local_fuerte(self):
         distrodir = '/opt/ros/fuerte'
