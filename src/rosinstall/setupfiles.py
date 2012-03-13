@@ -222,8 +222,10 @@ def generate_setup(config, no_ros_allowed = False):
   ros_root = helpers.get_ros_stack_path(config)
   if not ros_root:
     if not no_ros_allowed:
-      raise ROSInstallException("""No 'ros' stack detected in candidates %s.
+      raise ROSInstallException("""
+No 'ros' stack detected in candidates %s.
 Please add the location of a ros distribution to this command.
+
 See http://ros.org/wiki/rosinstall."""%([t.get_path() for t in config.get_config_elements() if os.path.basename(t.get_local_name())=='ros']) )
   
   text = generate_setup_sh_text(config, ros_root)

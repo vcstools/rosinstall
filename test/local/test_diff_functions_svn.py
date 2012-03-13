@@ -215,9 +215,10 @@ class RosinstallInfoSvnTest(AbstractSCMTest):
 
 
 	cmd = [ROSWS_CMD]
-	cmd.extend(["install", "-y"])
+	cmd.extend(["update"])
 	call = subprocess.Popen(cmd, cwd=self.local_path, stdout=subprocess.PIPE)
 	output=call.communicate()[0]
+        self.assertEqual(0, call.returncode, output)
 
 
     def test_rosinstall_detailed_locapath_info(self):

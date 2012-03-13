@@ -43,6 +43,7 @@ Type '%(prog)s help' for usage.
 from __future__ import print_function
 import os
 import sys
+import yaml
 from optparse import OptionParser
 
 import cli_common
@@ -57,26 +58,11 @@ from multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__, __MULTIPRO_
 ## specific output has to be generated. 
 
 # extend the commands of multiproject
-__ROSWS_CMD_DICT__ = {}
+__ROSWS_CMD_DICT__ = {
+      "regenerate"     : "create ROS workspace specific setup files"
+      }
 __ROSWS_CMD_DICT__.update(__MULTIPRO_CMD_DICT__)
 
-
-def _get_mode_from_options(parser, options):
-    mode = 'prompt'
-    if options.delete_changed:
-        mode = 'delete'
-    if options.abort_changed:
-        if mode == 'delete':
-            parser.error("delete-changed-uris is mutually exclusive with abort-changed-uris")
-        mode = 'abort'
-    if options.backup_changed != '':
-        if mode == 'delete':
-            parser.error("delete-changed-uris is mutually exclusive with backup-changed-uris")
-        if mode == 'abort':
-            parser.error("abort-changed-uris is mutually exclusive with backup-changed-uris")
-        mode = 'backup'
-    return mode
-        
 
 class RoswsCLI(MultiprojectCLI):
 
@@ -87,23 +73,17 @@ class RoswsCLI(MultiprojectCLI):
         if self.config_filename == None:
             print('Error: Bug: config filename required for init')
             return 1
-        parser = OptionParser(usage="""usage: rosws init [PATH [PATH_TO_ROS [URIs]]]\n
+        parser = OptionParser(usage="""usage: rosws init [TARGET_PATH [SOURCE_PATH]]?\n
 rosws init does the following:
-  1. Reads folder/file/web-uri PATH_TO_ROS looking for ROS
-  2. Adds entries from any further URI provided
-  2. Creates new %s file at PATH configured for the given ros distro
-  3. Checks out and builds ros if necessary
-  4. Generates setup files
+  1. Reads folder/file/web-uri SOURCE_PATH looking for a rosinstall yaml to copy
+  2. Creates new %s file at TARGET-PATH configured for the given ros distro
+  3. Generates ROS setup files, provided a SOURCE_PATH pointing to a ROS was provided
 
-PATH_TO_ROS can e.g. be a folder like /opt/ros/electric
-If PATH_TO_ROS is not given, uses the current ROS_ROOT and ROS_WORKSPACE
+SOURCE_PATH can e.g. be a folder like /opt/ros/electric
 If PATH is not given, uses current dir.
 """%self.config_filename,
                               description=__MULTIPRO_CMD_DICT__["init"],
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
-        parser.add_option("-i", "--ignore-missing-ros", dest="ignore_ros", default=False,
-                          help="Do not query for ros root.",
-                          action="store_true")
         parser.add_option("-c", "--catkin", dest="catkin", default=False,
                           help="Declare this is a catkin build.",
                           action="store_true")
@@ -113,15 +93,6 @@ If PATH is not given, uses current dir.
         parser.add_option("--continue-on-error", dest="robust", default=False,
                           help="Continue despite checkout errors",
                           action="store_true")
-        parser.add_option("--delete-changed-uris", dest="delete_changed", default=False,
-                          help="Delete the local copy of a directory before changing uri.",
-                          action="store_true")
-        parser.add_option("--abort-changed-uris", dest="abort_changed", default=False,
-                          help="Abort if changed uri detected",
-                          action="store_true")
-        parser.add_option("--backup-changed-uris", dest="backup_changed", default='',
-                          help="backup the local copy of a directory before changing uri to this directory.",
-                          action="store")
         (options, args) = parser.parse_args(argv)
         if len(args) < 1:
             target_path = '.'
@@ -137,16 +108,11 @@ If PATH is not given, uses current dir.
         if os.path.exists(os.path.join(target_path, self.config_filename)):
             print('Error: There already is a workspace config file %s at "%s". Use rosws install/modify.'%(self.config_filename, target_path))
             return 1
+        if len(args) > 2:
+            parser.error('Too many arguments')
         config_uris = []
-        if len(args) < 2:
-            if not options.ignore_ros:
-                if 'ROS_ROOT' not in os.environ:
-                    raise ROSInstallException('ROS_ROOT not set, and no arguments given to init')
-                else:
-                    print('No path to ros given; initializing from current environment')
-                    config_uris = [os.environ['ROS_ROOT']]
-        else:
-            config_uris.extend(args[1:])
+        if len(args) == 2:
+            config_uris.append(args[1])
         if len(config_uris) > 0:
             print('Using ROS_ROOT: %s'%config_uris[0])
 
@@ -157,9 +123,9 @@ If PATH is not given, uses current dir.
         # includes ROS specific files
         print("Writing %s/%s"%(config.get_base_path(), self.config_filename))
         rosinstall_cmd.cmd_persist_config(config)
-        mode = _get_mode_from_options(parser, options)
+
         ## install or update each element
-        install_success = multiproject_cmd.cmd_install_or_update(config, backup_path = options.backup_changed, mode = 'abort', robust = False)
+        install_success = multiproject_cmd.cmd_install_or_update(config, robust = False)
       
         rosinstall_cmd.cmd_generate_ros_files(config,
                                               target_path,
@@ -174,37 +140,16 @@ If PATH is not given, uses current dir.
         print("\nrosws init complete.\n\nAdd 'source %s/setup.bash' to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % target_path)
         return 0
 
-    def cmd_install(self, target_path, argv, config = None):
-          parser = OptionParser(usage="""usage: rosws install [URI]* [OPTIONS]
+    def cmd_merge(self, target_path, argv, config = None):
+          parser = OptionParser(usage="""usage: rosws merge [URI]* [OPTIONS] [type]
 
-rosws install does the following:
-  1. Updates %s file with all additional URIs
-  2. Checks out or updates all version controlled URIs
-  3. Regenerates setup files
+Merges config with given other rosinstall element sets, from files or web uris.
 
-When an element in an additional URI has the same local-name as an existing element, the exiting element will be REMOVED, and the new entry APPENDED at the end. This can change the order of entries.
-"""%self.config_filename,
+By default, when an element in an additional URI has the same local-name as an existing element, the exiting element will be REMOVED, and the new entry APPENDED at the end. This can change the order of entries.
+""",
                               description=__MULTIPRO_CMD_DICT__["init"],
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
-          parser.add_option("-c", "--catkin", dest="catkin", default=False,
-                            help="Declare this is a catkin build.",
-                            action="store_true")
-          parser.add_option("--cmake-prefix-path", dest="catkinpp", default=None,
-                          help="Where to set the CMAKE_PREFIX_PATH, implies --catkin",
-                            action="store")
           # same options as for multiproject
-          parser.add_option("--continue-on-error", dest="robust", default=False,
-                            help="Continue despite checkout errors",
-                            action="store_true")
-          parser.add_option("--delete-changed-uris", dest="delete_changed", default=False,
-                            help="Delete the local copy of a directory before changing uri.",
-                            action="store_true")
-          parser.add_option("--abort-changed-uris", dest="abort_changed", default=False,
-                            help="Abort if changed uri detected",
-                            action="store_true")
-          parser.add_option("--backup-changed-uris", dest="backup_changed", default='',
-                            help="backup the local copy of a directory before changing uri to this directory.",
-                            action="store")
           parser.add_option("--merge-kill-append", dest="merge_kill_append", default='',
                             help="(default) merge by deleting given entry and appending new one",
                             action="store_true")
@@ -217,17 +162,12 @@ When an element in an additional URI has the same local-name as an existing elem
           parser.add_option("-y", "--confirm-all", dest="confirm_all", default='',
                             help="Do not ask for confirmation unless strictly necessary",
                             action="store_true")
-          parser.add_option("--noupdates", dest="noupdates", default=False,
-                            help="do not perform any SCM action (e.g. when no network connectivity)",
-                            action="store_true")
           # required here but used one layer above
           parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
                             help="which workspace to use",
                             action="store")
           (options, args) = parser.parse_args(argv)
-          
-          mode = _get_mode_from_options(parser, options)
-        
+      
           config_uris = args
 
           if config == None:
@@ -297,14 +237,6 @@ When an element in an additional URI has the same local-name as an existing elem
               output += "\n     ROS_PACKAGE_PATH order changed (Use --merge-keep or --merge-replace to prevent) from\n %s\n     to\n %s\n\n"%(old_order, new_order)
               ask_user = True
 
-          if not options.noupdates:
-              vcs_es = []
-              for element in [x for x in config.get_config_elements() if x.is_vcs_element()]:
-                  vcs_es.append(element.get_local_name())
-              if len(vcs_es) > 0:
-                  output += "\n     SCM update elements:\n %s\n"%", ".join(vcs_es)
-                  
-                  
           if output != "":
               if options.confirm_all or not ask_user:
                   print("     Performing actions: ")
@@ -323,27 +255,8 @@ When an element in an additional URI has the same local-name as an existing elem
                       print("No changes made.")
                       return 0
           
-          # includes ROS specific files
           print("Overwriting %s/%s"%(config.get_base_path(), self.config_filename))
           rosinstall_cmd.cmd_persist_config(config)
-
-          # install or update each element
-
-          if not options.noupdates:
-              install_success = multiproject_cmd.cmd_install_or_update(config,
-                                                                       backup_path = options.backup_changed,
-                                                                       mode = 'abort',
-                                                                       robust = False)
-              if not install_success:
-                  print("Warning: installation encountered errors, but --continue-on-error was requested.  Look above for warnings.")
-                  
-          rosinstall_cmd.cmd_generate_ros_files(config,
-                                                target_path,
-                                                nobuild = True,
-                                                rosdep_yes = False,
-                                                catkin = options.catkin,
-                                                catkinpp = options.catkinpp,
-                                                no_ros_allowed = True)
 
           print("\nrosws update complete.")
           if path_changed:
@@ -351,13 +264,19 @@ When an element in an additional URI has the same local-name as an existing elem
           return 0
 
 
-    def cmd_remove(self, target_path, argv, config = None):
-        parser = OptionParser(usage="usage: rosws remove [localname]*",
+    def cmd_regenerate(self, target_path, argv, config = None):
+        parser = OptionParser(usage="usage: rosws regenerate",
                         description=__MULTIPRO_CMD_DICT__["remove"],
                         epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+        parser.add_option("-c", "--catkin", dest="catkin", default=False,
+                          help="Declare this is a catkin build.",
+                          action="store_true")
+        parser.add_option("--cmake-prefix-path", dest="catkinpp", default=None,
+                          help="Where to set the CMAKE_PREFIX_PATH",
+                          action="store")
         (options, args) = parser.parse_args(argv)
-        if len(args) < 1:
-            print("Error: Too few arguments.")
+        if len(args) > 0:
+            print("Error: Too many arguments.")
             print(parser.usage)
             return -1
 
@@ -365,28 +284,18 @@ When an element in an additional URI has the same local-name as an existing elem
             config = multiproject_cmd.get_config(target_path, [], config_filename = self.config_filename)
         elif config.get_base_path() != target_path:
             raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
-        success = True
-        elements = config.get_config_elements()
-        for uri in args[0]:
-            element = select_element(elements, uri)
-            if (element is None):
-                success = False
-                print("No such element %s in config, aborting without changes"%(uri))
-                break
-            if not config.remove_element(element.get_local_name()):
-                success = False
-                print("Bug: No such element %s in config, aborting without changes"%(uri))
-                break
-        if success:
-            print("Overwriting %s/%s"%(config.get_base_path(), self.config_filename))
-            multiproject_cmd.cmd_persist_config(config, self.config_filename)
-            print("Removed entry %s"%uri)
-            
+        rosinstall_cmd.cmd_generate_ros_files(config,
+                                              target_path,
+                                              nobuild = True,
+                                              rosdep_yes = False,
+                                              catkin = options.catkin,
+                                              catkinpp = options.catkinpp,
+                                              no_ros_allowed = True)
         return 0
 
    
     def cmd_info(self, target_path, argv, config = None):
-        parser = OptionParser(usage="usage: rosws info [localname] [OPTIONS]",
+        parser = OptionParser(usage="usage: rosws info [localname]* [OPTIONS]",
                               formatter = IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["info"] + """
 
@@ -415,6 +324,9 @@ The ROS_PACKAGE_PATH follows the order of the table, earlier entries overlay lat
         parser.add_option("--version-only", dest="version_only", default=False,
                           help="Shows only version of single entry. Intended for scripting.",
                           action="store_true")
+        parser.add_option("--yaml", dest="yaml", default=False,
+                          help="Shows only version of single entry. Intended for scripting.",
+                          action="store_true")
         parser.add_option("--uri-only", dest="uri_only", default=False,
                           help="Shows only uri of single entry.  Intended for scripting.",
                           action="store_true")
@@ -428,43 +340,37 @@ The ROS_PACKAGE_PATH follows the order of the table, earlier entries overlay lat
             config = multiproject_cmd.get_config(target_path, [], config_filename = self.config_filename)
         elif config.get_base_path() != target_path:
             raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
-
+        if args == []:
+            args = None
         # relevant for code completion, so these should yield quick response:
         if options.local_names_only:
             print(" ".join(map(lambda x : x.get_local_name(), config.get_config_elements())))
-            return False
+            return 0
         if options.pkg_path_only:
             print(":".join(get_ros_package_path(config)))
-            return False
+            return 0
+        if options.yaml:
+            source_aggregate = multiproject_cmd.cmd_snapshot(config, localnames = args)
+            print(yaml.safe_dump(source_aggregate))
+            return 0
 
-        if len(args) > 1:
-                print("Warning, ignoring extra arguments '%s'"%args[1:])
-
-        localname = None
-        if len(args) > 0:
-            localname = args[0]
-            if (select_element(config.get_config_elements(), args[0]) is None):
-                print("Unknown Localname: '%s'"%localname)
-            else:                
-                outputs = multiproject_cmd.cmd_info(config, localname)
-                if len(outputs) == 0 or outputs[0] == None:
-                    print("Unknown Localname: '%s'"%localname)
-                    return 1
-                if options.uri_only:
-                    if outputs[0]['uri'] is not None:
-                        print(outputs[0]['uri'])
-                elif options.version_only:
-                    if outputs[0]['version'] is not None:
-                        print(outputs[0]['version'])
-                else:
-                    print(cli_common.get_info_list(config.get_base_path(), outputs[0], options.data_only))
-                return 0
-        
+        outputs = multiproject_cmd.cmd_info(config, localnames = args)
+        if args is not None and len(outputs) == 1:
+            # consider not using table display
+            if options.uri_only:
+                if outputs[0]['uri'] is not None:
+                    print(outputs[0]['uri'])
+            elif options.version_only:
+                if outputs[0]['version'] is not None:
+                    print(outputs[0]['version'])
+            else:
+                print(cli_common.get_info_list(config.get_base_path(), outputs[0], options.data_only))
+            return 0
+                
         print("workspace: %s"%target_path)
         print("ROS_ROOT: %s\n"%get_ros_stack_path(config))
-    
+
         if not options.no_pkg_path:
-            outputs = multiproject_cmd.cmd_info(config)
             print(cli_common.get_info_table(config.get_base_path(), outputs, options.data_only, reverse = True))
       
         return 0
@@ -482,7 +388,7 @@ def usage():
   #   if k in gkeys:
   #     keys.append(k)
   # keys.sort()
-  keys=['help', 'init', None, 'modify', 'install', None, 'info', 'status', 'diff']
+  keys=['help', 'init', None, 'set', 'merge', None, 'update', None, 'info', 'status', 'diff', None, 'regenerate']
   for k in keys:
     if k in __ROSWS_CMD_DICT__:
       print("  " + k.ljust(10)+'   \t'+__ROSWS_CMD_DICT__[k])
@@ -537,18 +443,19 @@ def rosws_main(argv=None):
     commands = {'init': cli.cmd_init}
     # commands which work on a workspace
     ws_commands = {
-      'snapshot'     : cli.cmd_snapshot,
       'info'         : cli.cmd_info,
-      'install'      : cli.cmd_install,
       'remove'       : cli.cmd_remove,
-      'modify'       : cli.cmd_modify,
+      'regenerate'   : cli.cmd_regenerate,
+      'set'          : cli.cmd_set,
+      'merge'        : cli.cmd_merge,
       'diff'         : cli.cmd_diff,
       'status'       : cli.cmd_status,
+      'update'       : cli.cmd_update,
       }
 
 
     # TODO remove
-    if command not in ['diff', 'status']:
+    if command not in ['diff', 'status', 'info']:
         print("(rosws and py-rosws are experimental scripts, please provide feedback to tfoote@willowgarage.com)")
     
     if command not in commands and command not in ws_commands:

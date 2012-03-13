@@ -96,6 +96,38 @@ def select_element(elements, localname):
         path_candidate = element
   return path_candidate
 
+
+def select_elements(config, localnames):
+  """
+  selects config elements with given localnames, returns in the order given in config
+  If localnames has one element which is path of the config, return all elements
+  """
+  if config is None:
+    return []
+  if localnames is None:
+    return config.get_config_elements()
+  elements = config.get_config_elements()
+  selected = []
+  notfound = []
+  for localname in localnames:
+    element = select_element(elements, localname)
+    if element is not None:
+      selected.append(element)
+    else:
+      notfound.append(localname)
+  if notfound != []:
+    raise MultiProjectException("Unknown elements '%s'"%notfound)
+  result = []
+  # select in order and remove duplicates
+  for element in config.get_config_elements():
+    if element in selected:
+      result.append(element)
+  if result == []:
+      if (len(localnames) == 1
+          and os.path.realpath(localnames[0]) == os.path.realpath(config.get_base_path())):
+        return config.get_elements()
+  return result
+  
   
 ## Multithreading The following classes help with distributing work
 ## over several instances, providing wrapping for starting, joining,
@@ -178,10 +210,13 @@ class DistributedWork():
     """
     Execute all collected workers, terminate all on KeyboardInterrupt
     """
+    if self.threads == []:
+      return []
     # The following code is rather delicate and may behave differently
     # using threading or multiprocessing. running_threads is
     # intentionally not used as a shrinking list because of al the
     # possible multithreading / interruption corner cases
+    # Not using Pool because of KeyboardInterrupt cases
     try:
       waiting_index = 0
       maxthreads = 10

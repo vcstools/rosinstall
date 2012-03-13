@@ -36,6 +36,7 @@ import copy
 import tempfile
 import unittest
 import subprocess
+import shutil
 import rosinstall.rosws_cli
 from test.scm_test_base import AbstractFakeRosBasedTest, _create_yaml_file, _create_config_elt_dict
 from rosinstall.config_yaml import PathSpec
@@ -65,52 +66,6 @@ class MockConfigElement():
         return self.scmtype
     def get_path(self):
         return self.path
-
-class FunctionsTest(unittest.TestCase):
-
-    def test_get_mode(self):
-        class FakeOpts:
-            def __init__(self, dele, ab, back):
-                self.delete_changed = dele
-                self.backup_changed = back
-                self.abort_changed = ab
-        class FakeErrors:
-            def __init__(self):
-                self.rerror = None
-            def error(self, foo):
-                self.rerror = foo
-
-        opts = FakeOpts(dele = False, ab = False, back = '')
-        ferr = FakeErrors()
-        self.assertEqual("prompt", rosinstall.rosws_cli._get_mode_from_options(ferr, opts))
-        self.assertEqual(None, ferr.rerror)
-        opts = FakeOpts(dele = True, ab = False, back = '')
-        ferr = FakeErrors()
-        self.assertEqual("delete", rosinstall.rosws_cli._get_mode_from_options(ferr, opts))
-        self.assertEqual(None, ferr.rerror)
-        opts = FakeOpts(dele = False, ab = True, back = '')
-        ferr = FakeErrors()
-        self.assertEqual("abort", rosinstall.rosws_cli._get_mode_from_options(ferr, opts))
-        self.assertEqual(None, ferr.rerror)
-        opts = FakeOpts(dele = False, ab = False, back = 'Foo')
-        ferr = FakeErrors()
-        self.assertEqual("backup", rosinstall.rosws_cli._get_mode_from_options(ferr, opts))
-        self.assertEqual(None, ferr.rerror)
-
-        opts = FakeOpts(dele = True, ab = True, back = '')
-        ferr = FakeErrors()
-        rosinstall.rosws_cli._get_mode_from_options(ferr, opts)
-        self.assertFalse(None is ferr.rerror)
-
-        opts = FakeOpts(dele = False, ab = True, back = 'Foo')
-        ferr = FakeErrors()
-        rosinstall.rosws_cli._get_mode_from_options(ferr, opts)
-        self.assertFalse(None is ferr.rerror)
-
-        opts = FakeOpts(dele = True, ab = False, back = 'Foo')
-        ferr = FakeErrors()
-        rosinstall.rosws_cli._get_mode_from_options(ferr, opts)
-        self.assertFalse(None is ferr.rerror)
 
 class RosinstallUsagetest(unittest.TestCase):
     def test_usage(self):
@@ -202,7 +157,7 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.local_path, 'setup.sh') , shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.local_path, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
         
-        self.assertEqual(0, cli.cmd_install(self.local_path, [self.ros_path, "-y"]))
+        self.assertEqual(0, cli.cmd_merge(self.local_path, [self.ros_path, "-y"]))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.bash')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.zsh')))
@@ -223,12 +178,6 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.assertTrue(os.path.exists(os.path.join(self.local_path, '.rosinstall')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'CMakeLists.txt')))
 
-        self.assertEqual(0, cli.cmd_install(self.local_path, [self.ros_path, "-cy"]))
-        self.assertFalse(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
-        self.assertFalse(os.path.exists(os.path.join(self.local_path, 'setup.bash')))
-        self.assertFalse(os.path.exists(os.path.join(self.local_path, 'setup.zsh')))
-        self.assertTrue(os.path.exists(os.path.join(self.local_path, '.rosinstall')))
-        self.assertTrue(os.path.exists(os.path.join(self.local_path, 'CMakeLists.txt')))
 
     def test_cmd_init_catkin2(self):
         self.local_path = os.path.join(self.test_root_path, "ws7")
@@ -242,12 +191,6 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.assertTrue(os.path.exists(os.path.join(self.local_path, '.rosinstall')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'CMakeLists.txt')))
         
-        self.assertEqual(0, cli.cmd_install(self.local_path, [self.ros_path, "-y", "--catkin"]))
-        self.assertFalse(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
-        self.assertFalse(os.path.exists(os.path.join(self.local_path, 'setup.bash')))
-        self.assertFalse(os.path.exists(os.path.join(self.local_path, 'setup.zsh')))
-        self.assertTrue(os.path.exists(os.path.join(self.local_path, '.rosinstall')))
-        self.assertTrue(os.path.exists(os.path.join(self.local_path, 'CMakeLists.txt')))
 
     def test_cmd_init_catkinpp(self):
         self.local_path = os.path.join(self.test_root_path, "ws8")
@@ -262,13 +205,6 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'CMakeLists.txt')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'workspace-config.cmake')))
 
-        self.assertEqual(0, cli.cmd_install(self.local_path, [self.ros_path, "-y", "--catkin", "--cmake-prefix-path=foo"]))
-        self.assertFalse(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
-        self.assertFalse(os.path.exists(os.path.join(self.local_path, 'setup.bash')))
-        self.assertFalse(os.path.exists(os.path.join(self.local_path, 'setup.zsh')))
-        self.assertTrue(os.path.exists(os.path.join(self.local_path, '.rosinstall')))
-        self.assertTrue(os.path.exists(os.path.join(self.local_path, 'CMakeLists.txt')))
-        self.assertTrue(os.path.exists(os.path.join(self.local_path, 'workspace-config.cmake')))
 
     def test_cmd_init_makedir(self):
         # rosinstall to create dir
@@ -288,12 +224,11 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
             ros_root_existed = True
             oldros = os.environ.pop('ROS_ROOT')
         cli = RoswsCLI()
-        try:
-            self.assertEqual(0, cli.cmd_init([self.local_path]))
-            self.fail("expected Exception")
-        except ROSInstallException:
-            pass
+        self.assertEqual(0, cli.cmd_init([self.local_path]))
+
+        shutil.rmtree(self.local_path)
         os.environ['ROS_ROOT'] = self.ros_path
+
         self.assertEqual(0, cli.cmd_init([self.local_path]))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.bash')))
@@ -332,7 +267,7 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.local_path = os.path.join(self.test_root_path, "ws12")
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_init([self.local_path, self.ros_path]))
-        self.assertEqual(0, cli.cmd_install(self.local_path, [self.git_path, self.hg_path, "-y"]))
+        self.assertEqual(0, cli.cmd_merge(self.local_path, [self.git_path, self.hg_path, "-y"]))
         config = rosinstall.multiproject_cmd.get_config(basepath = self.local_path,                                                       config_filename = '.rosinstall')
         self.assertEqual(len(config.get_config_elements()), 3)
         self.assertEqual(0, cli.cmd_remove(self.local_path, [self.git_path]))

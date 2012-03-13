@@ -47,7 +47,7 @@ _rosws_complete()
   COMPREPLY=()
   cur=${COMP_WORDS[COMP_CWORD]}
 
-  cmds='help init install info modify remove diff status snapshot  --version'
+  cmds='help init set merge info remove regenerate diff status update  --version'
 
   if [[ $COMP_CWORD -eq 1 ]] ; then
     COMPREPLY=( $( compgen -W "$cmds" -- $cur ) )
@@ -60,20 +60,20 @@ _rosws_complete()
   if [[ ${COMP_WORDS[1]} != @($helpCmds) ]] && \
      [[ "$cur" != -* ]] ; then
     case ${COMP_WORDS[1]} in
-    info|diff|status|remove)
+    info|diff|status|remove|update)
       cmdOpts=`rosws info --localnames-only 2> /dev/null | sed -s 's,:, ,g'`
       COMPREPLY=( $( compgen -W "$cmdOpts" -- $cur ) )
     ;;
-    modify)
-      if [[ ${COMP_WORDS[$(( $COMP_CWORD - 1 ))]} == "--uri" ]]; then
+    set)
+      if [[ $COMP_CWORD -eq 2 ]]; then
+          cmdOpts=`rosws info --localnames-only 2> /dev/null | sed -s 's,:, ,g'`
+          COMPREPLY=( $( compgen -W "$cmdOpts" -- $cur ) )
+      elif [[ $COMP_CWORD -eq 3 ]]; then
           cmdOpts=`rosws info ${COMP_WORDS[2]} --uri-only 2> /dev/null`
           COMPREPLY=( $( compgen -W "$cmdOpts" -- $cur ) )
       else
-          if [[ ${COMP_WORDS[$(( $COMP_CWORD - 1 ))]} == "--version" ]]; then
+          if [[ ${COMP_WORDS[$(( $COMP_CWORD - 1 ))]} == "--version-new" ]]; then
               cmdOpts=`rosws info ${COMP_WORDS[2]} --version-only 2> /dev/null`
-              COMPREPLY=( $( compgen -W "$cmdOpts" -- $cur ) )
-          else
-              cmdOpts=`rosws info --localnames-only 2> /dev/null | sed -s 's,:, ,g'`
               COMPREPLY=( $( compgen -W "$cmdOpts" -- $cur ) )
           fi
       fi
@@ -91,16 +91,22 @@ _rosws_complete()
     cmdOpts="-t --target-workspace"
     ;;
   init)
-    cmdOpts="-c --catkin --cmake-prefix-path -t --target-workspace"
+    cmdOpts="-c --catkin --cmake-prefix-path -t --target-workspace --continue-on-error"
     ;;
-  install)
-    cmdOpts="-c --catkin --cmake-prefix-path -t --target-workspace --continue-on-error --delete-changed-uris --abort-changed-uris --backup-changed-uris --nocheckout --noupdates -y --confirm-all -m --merge-replace -k --merge-keep --merge-kill-append"
+  merge)
+    cmdOpts="-t --target-workspace -y --confirm-all -m --merge-replace -k --merge-keep --merge-kill-append"
     ;;
-  modify)
-    cmdOpts="-t --target-workspace --git --svn --bzr --hg --uri --version-new --detach -y --confirm"
+  set)
+    cmdOpts="-t --target-workspace --git --svn --bzr --hg --uri -v --version-new --detached -y --confirm"
     ;;
   remove)
     cmdOpts="-t --target-workspace"
+    ;;
+  update)
+    cmdOpts="-t --target-workspace  --delete-changed-uris --abort-changed-uris --backup-changed-uris"
+    ;;
+  regenerate)
+    cmdOpts="-t --target-workspace -c --catkin --cmake-prefix-path"
     ;;
   snapshot)
     cmdOpts="-t --target-workspace"
@@ -139,6 +145,7 @@ _rosws_complete()
     --catkin)           cmdOpts=${cmdOpts/ -c / } ;;
     -n)                 cmdOpts=${cmdOpts/ --nobuild / } ;;
     --nobuild)          cmdOpts=${cmdOpts/ -n / } ;;
+
     esac
 
     # skip next option if this one requires a parameter

@@ -119,7 +119,7 @@ def _nth_line_split(n, output):
 	  return []
     
 ROSINSTALL_CMD = os.path.join(os.getcwd(), 'scripts/rosinstall')
-ROSWS_CMD = os.path.join(os.getcwd(), 'scripts/py-rosws')
+ROSWS_CMD = os.path.join(os.getcwd(), 'scripts/rosws')
 
 
 class AbstractRosinstallCLITest(unittest.TestCase):

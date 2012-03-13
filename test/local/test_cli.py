@@ -131,6 +131,55 @@ class GetWorkspaceTest(unittest.TestCase):
         except MultiProjectException: pass
 
 
+
+class FunctionsTest(unittest.TestCase):
+
+    def test_get_mode(self):
+        class FakeOpts:
+            def __init__(self, dele, ab, back):
+                self.delete_changed = dele
+                self.backup_changed = back
+                self.abort_changed = ab
+        class FakeErrors:
+            def __init__(self):
+                self.rerror = None
+            def error(self, foo):
+                self.rerror = foo
+
+        opts = FakeOpts(dele = False, ab = False, back = '')
+        ferr = FakeErrors()
+        self.assertEqual("prompt", rosinstall.multiproject_cli._get_mode_from_options(ferr, opts))
+        self.assertEqual(None, ferr.rerror)
+        opts = FakeOpts(dele = True, ab = False, back = '')
+        ferr = FakeErrors()
+        self.assertEqual("delete", rosinstall.multiproject_cli._get_mode_from_options(ferr, opts))
+        self.assertEqual(None, ferr.rerror)
+        opts = FakeOpts(dele = False, ab = True, back = '')
+        ferr = FakeErrors()
+        self.assertEqual("abort", rosinstall.multiproject_cli._get_mode_from_options(ferr, opts))
+        self.assertEqual(None, ferr.rerror)
+        opts = FakeOpts(dele = False, ab = False, back = 'Foo')
+        ferr = FakeErrors()
+        self.assertEqual("backup", rosinstall.multiproject_cli._get_mode_from_options(ferr, opts))
+        self.assertEqual(None, ferr.rerror)
+
+        opts = FakeOpts(dele = True, ab = True, back = '')
+        ferr = FakeErrors()
+        rosinstall.multiproject_cli._get_mode_from_options(ferr, opts)
+        self.assertFalse(None is ferr.rerror)
+
+        opts = FakeOpts(dele = False, ab = True, back = 'Foo')
+        ferr = FakeErrors()
+        rosinstall.multiproject_cli._get_mode_from_options(ferr, opts)
+        self.assertFalse(None is ferr.rerror)
+
+        opts = FakeOpts(dele = True, ab = False, back = 'Foo')
+        ferr = FakeErrors()
+        rosinstall.multiproject_cli._get_mode_from_options(ferr, opts)
+        self.assertFalse(None is ferr.rerror)
+
+
+        
 class FakeConfig():
     def __init__(self, elts = [], path = ''):
         self.elts = elts
@@ -279,7 +328,7 @@ class GetStatusDiffCmdTest(unittest.TestCase):
         self.assertTrue(len(result) == 0)
         self.mock_config = FakeConfig([MockVcsConfigElement('git', 'gitpath', 'gitname', None)])
         result = rosinstall.multiproject_cmd.cmd_diff(self.mock_config)
-        self.assertTrue(len(result) == 1)
+        self.assertEqual(1, len(result))
         self.assertTrue(result[0]['diff'] is not None)
         self.assertTrue(result[0]['entry'] is not None)
         self.mock_config = FakeConfig([MockVcsConfigElement('git', 'gitpath', None, None),

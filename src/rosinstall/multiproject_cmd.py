@@ -34,7 +34,7 @@ from __future__ import print_function
 import pkg_resources
 
 import os
-from common import MultiProjectException, DistributedWork, select_element, normabspath
+from common import MultiProjectException, DistributedWork, select_elements, normabspath
 from config import Config, realpath_relation
 from config_yaml import aggregate_from_uris, generate_config_yaml, get_path_specs_from_uri
 
@@ -157,7 +157,7 @@ Bzr:       %s
      prettyversion(vcstools.TarClient.get_environment_metadata()),
      prettyversion(vcstools.BzrClient.get_environment_metadata()))
 
-def cmd_status(config, localname = None, untracked = False):
+def cmd_status(config, localnames = None, untracked = False):
   """
   calls SCM status for all SCM entries in config, relative to path
   :returns: List of dict {element: ConfigElement, diff: diffstring}
@@ -192,18 +192,15 @@ def cmd_status(config, localname = None, untracked = False):
   # call SCM info in separate threads
   elements = config.get_config_elements()
   work = DistributedWork(len(elements))
-  selected_element = select_element(elements, localname)
-  if selected_element is not None:
-    work.add_thread(StatusRetriever(selected_element, path, untracked))
-  else:
-    for element in elements:
-      if element.is_vcs_element():
-        work.add_thread(StatusRetriever(element, path, untracked))
+  elements = select_elements(config, localnames)
+  for element in elements:
+    if element.is_vcs_element():
+      work.add_thread(StatusRetriever(element, path, untracked))
   outputs = work.run()
   return outputs
 
 
-def cmd_diff(config, localname = None):
+def cmd_diff(config, localnames = None):
   """
   calls SCM diff for all SCM entries in config, relative to path
   :returns: List of dict {element: ConfigElement, diff: diffstring}
@@ -219,17 +216,14 @@ def cmd_diff(config, localname = None):
   path = config.get_base_path()
   elements = config.get_config_elements()
   work = DistributedWork(len(elements))
-  selected_element = select_element(elements, localname)
-  if selected_element is not None:
-    work.add_thread(DiffRetriever(selected_element, path))
-  else:
-    for element in elements:
-      if element.is_vcs_element():
-        work.add_thread(DiffRetriever(element, path))
+  elements = select_elements(config, localnames)
+  for element in elements:
+    if element.is_vcs_element():
+      work.add_thread(DiffRetriever(element, path))
   outputs = work.run()
   return outputs
 
-def cmd_install_or_update(config, backup_path = None, mode = 'abort', robust = False):
+def cmd_install_or_update(config, backup_path = None, mode = 'abort', robust = False, localnames = None):
   """
   performs many things, generally attempting to make
   the local filesystem look like what the config specifies,
@@ -295,7 +289,15 @@ def cmd_install_or_update(config, backup_path = None, mode = 'abort', robust = F
   # TODO go back and make sure that everything in options.path is described
   # in the yaml, and offer to delete otherwise? not sure, but it could go here
 
-def cmd_info(config, localname = None):
+def cmd_snapshot(config, localnames = None):
+  elements = select_elements(config, localnames)
+  source_aggregate = []
+  for element in elements:
+    source = element.get_versioned_path_spec().get_legacy_yaml()
+    source_aggregate.append(source)
+  return source_aggregate
+
+def cmd_info(config, localnames = None):
   """This function compares what should be (config_file) with what is
   (directories) and returns a list of dictionary giving each local
   path and all the state information about it available.
@@ -358,12 +360,9 @@ def cmd_info(config, localname = None):
   # call SCM info in separate threads
   elements = config.get_config_elements()
   work = DistributedWork(len(elements))
-  selected_element = select_element(elements, localname)
-  if selected_element is not None:
-    work.add_thread(InfoRetriever(selected_element, path))
-  else:
-    for element in elements:
-      if element.get_properties() is None or not 'setup-file' in element.get_properties():
-        work.add_thread(InfoRetriever(element, path))
+  elements = select_elements(config, localnames)
+  for element in elements:
+    if element.get_properties() is None or not 'setup-file' in element.get_properties():
+      work.add_thread(InfoRetriever(element, path))
   outputs = work.run()
   return outputs

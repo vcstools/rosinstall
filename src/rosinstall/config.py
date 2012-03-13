@@ -216,13 +216,6 @@ class Config:
   def get_config_filename(self):
     return self.config_filename
   
-  def get_version_locked_source(self):
-    source_aggregate = []
-    for t in self.trees:
-      source = t.get_versioned_path_spec().get_legacy_yaml()
-      source_aggregate.append(source)
-    return source_aggregate
-
 
   def get_source(self):
     """
