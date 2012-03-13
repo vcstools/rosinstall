@@ -57,9 +57,7 @@ from multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__, __MULTIPRO_
 ## specific output has to be generated. 
 
 # extend the commands of multiproject
-__ROSWS_CMD_DICT__ = { 'reload': 'sources the setup.sh of the current environment',
-                       'leave': 'undoes most changes to env that switch caused',
-                       'switch': 'sources the setup.sh of a different environment, and allows switching back.'}
+__ROSWS_CMD_DICT__ = {}
 __ROSWS_CMD_DICT__.update(__MULTIPRO_CMD_DICT__)
 
 
@@ -386,42 +384,6 @@ When an element in an additional URI has the same local-name as an existing elem
             
         return 0
 
-    def cmd_reload(self, argv, config = None):
-        parser = OptionParser(usage="usage: rosws reload",
-                        description=__ROSWS_CMD_DICT__["reload"],
-                        epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
-        (options, args) = parser.parse_args(argv)
-        if len(args) > 0:
-            parser.error("The reload command takes no options or further arguments. It is only available after sourcing the rosws.shell extentions.")
-        parser.error("The reload command is only available after sourcing the rosws.shell extentions.")
-    
-        return 0
-
-    def cmd_leave(self, argv, config = None):
-        parser = OptionParser(usage="usage: rosws leave",
-                        description=__ROSWS_CMD_DICT__["leave"],
-                        epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
-        (options, args) = parser.parse_args(argv)
-        if len(args) > 0:
-            parser.error("The leave command takes no options or further arguments. It is only available after sourcing the rosws.shell extentions.")
-        parser.error("The leave command is only available after sourcing the rosws.shell extentions.")
-    
-        return 0
-    
-    def cmd_switch(self, argv, config = None):
-        parser = OptionParser(usage="usage: rosws switch [target_workspace]",
-                              formatter = IndentedHelpFormatterWithNL(),
-                              description=__ROSWS_CMD_DICT__["switch"] + """
-
-The command also attempts to restore environment variables that are changed by ROS. To use this effectively, you must not source a setup.sh in your bashrc, but instead use the rosws switch command for the first time selection of a workspace.
-""",
-                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
-        (options, args) = parser.parse_args(argv)
-        if len(args) > 1:
-            parser.error("The switch command takes no more than one argument. It is only available after sourcing the rosws.shell extentions.")
-        parser.error("The switch command is only available after sourcing the rosws.shell extentions.")
-    
-        return 0
    
     def cmd_info(self, target_path, argv, config = None):
         parser = OptionParser(usage="usage: rosws info [localname] [OPTIONS]",
@@ -520,7 +482,7 @@ def usage():
   #   if k in gkeys:
   #     keys.append(k)
   # keys.sort()
-  keys=['help', 'init', None, 'modify', 'install', None, 'info', 'status', 'diff', None, 'reload', 'switch', 'leave']
+  keys=['help', 'init', None, 'modify', 'install', None, 'info', 'status', 'diff']
   for k in keys:
     if k in __ROSWS_CMD_DICT__:
       print("  " + k.ljust(10)+'   \t'+__ROSWS_CMD_DICT__[k])
@@ -572,13 +534,7 @@ def rosws_main(argv=None):
     cli = RoswsCLI()
 
     # commands for which we do not infer target workspace
-    commands = {
-        'init': cli.cmd_init,
-        # just provide help for these
-        'reload': cli.cmd_reload,
-        'switch': cli.cmd_switch,
-        'leave': cli.cmd_leave
-        }
+    commands = {'init': cli.cmd_init}
     # commands which work on a workspace
     ws_commands = {
       'snapshot'     : cli.cmd_snapshot,
