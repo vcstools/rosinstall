@@ -39,6 +39,7 @@ import tempfile
 
 import rosinstall
 import rosinstall.helpers
+from rosinstall.rosinstall_cli import rosinstall_main
 from nose.plugins.skip import SkipTest
 
 from test.scm_test_base import AbstractRosinstallBaseDirTest, AbstractFakeRosBasedTest, _create_yaml_file, _create_config_elt_dict
@@ -54,8 +55,7 @@ class RosinstallCommandlineOverlays(AbstractFakeRosBasedTest):
         # setup a rosinstall env as base for further tests
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.simple_rosinstall])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
-
+        self.assertTrue(rosinstall_main(cmd))
         self.new_directory = tempfile.mkdtemp()
         self.directories["new_ros_env"] = self.new_directory
 
@@ -64,7 +64,7 @@ class RosinstallCommandlineOverlays(AbstractFakeRosBasedTest):
                           
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.new_directory, self.directory])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertTrue(rosinstall_main(cmd))
         stream = open(os.path.join(self.new_directory, '.rosinstall'), 'r')
         yamlsrc = yaml.load(stream)
         stream.close()
@@ -80,7 +80,7 @@ class RosinstallCommandlineOverlays(AbstractFakeRosBasedTest):
                           
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.new_directory, self.ros_path, local_rosinstall])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertTrue(rosinstall_main(cmd))
         stream = open(os.path.join(self.new_directory, '.rosinstall'), 'r')
         yamlsrc = yaml.load(stream)
         stream.close()
@@ -97,7 +97,7 @@ class RosinstallCommandlineOverlays(AbstractFakeRosBasedTest):
                           
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.new_directory, self.ros_path, local_rosinstall])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertTrue(rosinstall_main(cmd))
         stream = open(os.path.join(self.new_directory, '.rosinstall'), 'r')
         yamlsrc = yaml.load(stream)
         stream.close()
@@ -109,7 +109,7 @@ class RosinstallCommandlineOverlays(AbstractFakeRosBasedTest):
         """Use a folder as a remote rosinstall location"""
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.new_directory, self.ros_path, self.directory])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ), cmd)
+        self.assertTrue(rosinstall_main(cmd))
 
 
 class RosinstallCommandlineOverlaysWithSetup(AbstractFakeRosBasedTest):
@@ -129,7 +129,7 @@ class RosinstallCommandlineOverlaysWithSetup(AbstractFakeRosBasedTest):
         # setup a rosinstall env as base for further tests
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.simple_fuerte_rosinstall])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertTrue(rosinstall_main(cmd))
 
         self.new_directory = tempfile.mkdtemp()
         self.directories["new_ros_env"] = self.new_directory
@@ -142,7 +142,7 @@ class RosinstallCommandlineOverlaysWithSetup(AbstractFakeRosBasedTest):
                           
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.new_directory, self.ros_path, local_rosinstall])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertTrue(rosinstall_main(cmd))
         stream = open(os.path.join(self.new_directory, '.rosinstall'), 'r')
         yamlsrc = yaml.load(stream)
         stream.close()
@@ -154,7 +154,7 @@ class RosinstallCommandlineOverlaysWithSetup(AbstractFakeRosBasedTest):
     def test_Rosinstall_ros_with_folder_and_setupfile(self):
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.new_directory, self.directory])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ), cmd)
+        self.assertTrue(rosinstall_main(cmd))
         stream = open(os.path.join(self.new_directory, '.rosinstall'), 'r')
         yamlsrc = yaml.load(stream)
         stream.close()
@@ -177,7 +177,7 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
             raise SkipTest("Cturtle Test is skipped")
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, distrodir])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertTrue(rosinstall_main(cmd))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh'), shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash'), shell=True, env=self.new_environ, executable='/bin/bash'))
 
@@ -187,7 +187,7 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
             raise SkipTest("Diamondback Test is skipped")
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, distrodir])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertTrue(rosinstall_main(cmd))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
         p = subprocess.Popen("bash -c 'set -e; . %s'"%os.path.join(self.directory, 'setup.bash'),
@@ -203,7 +203,7 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
             raise SkipTest("Electric Test is skipped")
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, distrodir])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertTrue(rosinstall_main(cmd))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
         p = subprocess.Popen("bash -c 'set -e; . %s'"%os.path.join(self.directory, 'setup.bash'),
@@ -219,7 +219,7 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
             raise SkipTest("Fuerte Test is skipped")
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, distrodir])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertTrue(rosinstall_main(cmd))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
         p = subprocess.Popen("bash -c 'set -e; . %s'"%os.path.join(self.directory, 'setup.bash'),
@@ -235,5 +235,5 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
             raise SkipTest("Fuerte Test is skipped")
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, distrodir, '--catkin'])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertTrue(rosinstall_main(cmd))
         self.assertTrue(os.path.exists(os.path.join(self.directory, 'CMakeLists.txt')))

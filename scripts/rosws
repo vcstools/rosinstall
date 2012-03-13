@@ -37,7 +37,7 @@
 """%(prog)s is a command to manipulate ROS workspaces.
 
 Official usage:
-  %(prog)s CMD [INSTALL_PATH] [ROSINSTALL FILES OR DIRECTORIES] [OPTIONS]
+  %(prog)s CMD [ARGS] [OPTIONS]
 
 rosws will try to infer install path from context
 "rosws install" replaces the rosinstall command

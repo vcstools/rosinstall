@@ -42,12 +42,13 @@ import shutil
 
 import rosinstall.cli_common
 import rosinstall.multiproject_cmd
+import rosinstall.multiproject_cli
 import rosinstall.config
 from rosinstall.common import MultiProjectException
 from rosinstall.config import MultiProjectException, Config
 from rosinstall.config_yaml import PathSpec
 
-from test.scm_test_base import AbstractSCMTest, _add_to_file, ROSINSTALL_CMD, ROSWS_CMD, _nth_line_split
+from test.scm_test_base import AbstractSCMTest, _add_to_file, _nth_line_split
 
 def _add_to_file(path, content):
     """Util function to append to file to get a modification"""

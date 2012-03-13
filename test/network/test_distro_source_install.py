@@ -39,6 +39,7 @@ import tempfile
 import rosinstall
 import rosinstall.helpers
 import rosinstall.config
+from rosinstall.rosinstall_cli import rosinstall_main
 from rosinstall.common import MultiProjectException
 from rosinstall.config_yaml import get_yaml_from_uri, get_path_specs_from_uri
 from nose.plugins.skip import SkipTest
@@ -118,7 +119,7 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
                            _create_config_elt_dict("svn", "ros_release", 'https://code.ros.org/svn/ros/stacks/ros_release/trunk')],
                           self.simple_rosinstall)
         cmd.extend([self.directory, self.simple_rosinstall])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertTrue(rosinstall_main(cmd))
         generated_rosinstall_filename = os.path.join(self.directory, ".rosinstall")
         self.assertTrue(os.path.exists(generated_rosinstall_filename))
         self.assertTrue(os.path.exists(os.path.join(self.directory, "ros")))

@@ -32,6 +32,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import sys
+from StringIO import StringIO
 import unittest
 import subprocess
 import tempfile
@@ -40,9 +42,11 @@ import rosinstall
 import rosinstall.helpers
 import rosinstall.rosws_cli
 from rosinstall.rosws_cli import RoswsCLI
+from rosinstall.rosinstall_cli import rosinstall_main
+from rosinstall.rosws_cli import rosws_main
 
 import test.scm_test_base
-from test.scm_test_base import AbstractSCMTest, _add_to_file, ROSINSTALL_CMD, ROSWS_CMD, _nth_line_split
+from test.scm_test_base import AbstractSCMTest, _add_to_file, _nth_line_split
 
 class RosinstallDiffHgTest(AbstractSCMTest):
 
@@ -69,9 +73,9 @@ class RosinstallDiffHgTest(AbstractSCMTest):
         # rosinstall the remote repo and fake ros
         _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- hg: {local-name: clone, uri: ../remote}")
 
-        cmd = [ROSINSTALL_CMD, "ws", "-n"]
-        call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
-        output=call.communicate()[0]
+        cmd = ["rosinstall", "ws", "-n"]
+        os.chdir(self.test_root_path)
+        rosinstall_main(cmd)
 
         clone_path = os.path.join(self.local_path, "clone")
 
@@ -90,14 +94,20 @@ class RosinstallDiffHgTest(AbstractSCMTest):
 
     def test_Rosinstall_diff_hg_outside(self):
         """Test diff output for hg when run outside workspace"""
-        cmd = [ROSINSTALL_CMD, "ws", "--diff"]
-        call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
-        output=call.communicate()[0]
+        cmd = ["rosinstall", "ws", "--diff"]
+        os.chdir(self.test_root_path)
+        sys.stdout = output = StringIO();
+        rosinstall_main(cmd)
+        sys.stdout = sys.__stdout__
+        output = output.getvalue()
         self.check_diff_output(output)
 
-        cmd = [ROSWS_CMD, "diff", "-t", "ws"]
-        call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
-        output=call.communicate()[0]
+        cmd = ["rosws", "diff", "-t", "ws"]
+        os.chdir(self.test_root_path)
+        sys.stdout = output = StringIO();
+        rosws_main(cmd)
+        sys.stdout = sys.__stdout__
+        output = output.getvalue()
         self.check_diff_output(output)
 
         cli = RoswsCLI()
@@ -106,14 +116,19 @@ class RosinstallDiffHgTest(AbstractSCMTest):
     def test_Rosinstall_diff_hg_inside(self):
         """Test diff output for hg when run inside workspace"""
         directory = self.test_root_path + "/ws"
-        cmd = [ROSINSTALL_CMD, ".", "--diff"]
-        call = subprocess.Popen(cmd, cwd=directory, stdout=subprocess.PIPE)
-        output=call.communicate()[0]
+        cmd = ["rosinstall", ".", "--diff"]
+        os.chdir(directory)
+        sys.stdout = output = StringIO();
+        rosinstall_main(cmd)
+        output = output.getvalue()
         self.check_diff_output(output)
 
-        cmd = [ROSWS_CMD, "diff"]
-        call = subprocess.Popen(cmd, cwd=directory, stdout=subprocess.PIPE)
-        output=call.communicate()[0]
+        cmd = ["rosws", "diff"]
+        os.chdir(directory)
+        sys.stdout = output = StringIO();
+        rosws_main(cmd)
+        output = output.getvalue()
+        sys.stdout = sys.__stdout__
         self.check_diff_output(output)
 
         cli = RoswsCLI()
@@ -123,14 +138,19 @@ class RosinstallDiffHgTest(AbstractSCMTest):
     def test_Rosinstall_status_hg_inside(self):
         """Test status output for hg when run inside workspace"""
         directory = self.test_root_path + "/ws"
-        cmd = [ROSINSTALL_CMD, ".", "--status"]
-        call = subprocess.Popen(cmd, cwd=directory, stdout=subprocess.PIPE)
-        output=call.communicate()[0]
+        cmd = ["rosinstall", ".", "--status"]
+        os.chdir(directory)
+        sys.stdout = output = StringIO();
+        rosinstall_main(cmd)
+        output = output.getvalue()
         self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n\n', output)
 
-        cmd = [ROSWS_CMD, "status"]
-        call = subprocess.Popen(cmd, cwd=directory, stdout=subprocess.PIPE)
-        output=call.communicate()[0]
+        cmd = ["rosws", "status"]
+        os.chdir(directory)
+        sys.stdout = output = StringIO();
+        rosws_main(cmd)
+        output = output.getvalue()
+        sys.stdout = sys.__stdout__
         self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n\n', output)
 
         cli = RoswsCLI()
@@ -138,14 +158,22 @@ class RosinstallDiffHgTest(AbstractSCMTest):
 
     def test_Rosinstall_status_hg_outside(self):
         """Test status output for hg when run outside workspace"""
-        cmd = [ROSINSTALL_CMD, "ws", "--status"]
-        call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
-        output=call.communicate()[0]
+        cmd = ["rosinstall", "ws", "--status"]
+        os.chdir(self.test_root_path)
+        sys.stdout = output = StringIO();
+        rosinstall_main(cmd)
+        sys.stdout = output = StringIO();
+        rosinstall_main(cmd)
+        sys.stdout = sys.__stdout__
+        output = output.getvalue()
         self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n\n', output)
 
-        cmd = [ROSWS_CMD, "status", "-t", "ws"]
-        call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
-        output=call.communicate()[0]
+        cmd = ["rosws", "status", "-t", "ws"]
+        os.chdir(self.test_root_path)
+        sys.stdout = output = StringIO();
+        rosws_main(cmd)
+        sys.stdout = sys.__stdout__
+        output = output.getvalue()
         self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n\n', output)
 
         cli = RoswsCLI()
@@ -153,14 +181,20 @@ class RosinstallDiffHgTest(AbstractSCMTest):
 
     def test_Rosinstall_status_hg_untracked(self):
         """Test untracked status output for hg when run outside workspace"""
-        cmd = [ROSINSTALL_CMD, "ws", "--status-untracked"]
-        call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
-        output=call.communicate()[0]
+        cmd = ["rosinstall", "ws", "--status-untracked"]
+        os.chdir(self.test_root_path)
+        sys.stdout = output = StringIO();
+        rosinstall_main(cmd)
+        sys.stdout = sys.__stdout__
+        output = output.getvalue()
         self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n?       clone/added-fs.txt\n\n', output)
 
-        cmd = [ROSWS_CMD, "status", "-t", "ws", "--untracked"]
-        call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
-        output=call.communicate()[0]
+        cmd = ["rosws", "status", "-t", "ws", "--untracked"]
+        os.chdir(self.test_root_path)
+        sys.stdout = output = StringIO();
+        rosws_main(cmd)
+        sys.stdout = sys.__stdout__
+        output = output.getvalue()
         self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n?       clone/added-fs.txt\n\n', output)
 
         cli = RoswsCLI()
@@ -168,10 +202,11 @@ class RosinstallDiffHgTest(AbstractSCMTest):
 
     def test_rosws_info_hg(self):
         """Test untracked status output for hg"""
-
-        cmd = [ROSWS_CMD, "info", "-t", "ws"]
-        call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
-        output = call.communicate()[0]
+        cmd = ["rosws", "info", "-t", "ws"]
+        os.chdir(self.test_root_path)
+        sys.stdout = output = StringIO();
+        rosws_main(cmd)
+        output = output.getvalue()
         tokens = _nth_line_split(-2, output)
         self.assertEqual(['clone', 'M', 'hg'], tokens[0:3], output)
 
@@ -202,34 +237,45 @@ class RosinstallInfoHgTest(AbstractSCMTest):
         # rosinstall the remote repo and fake ros
         _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- hg: {local-name: clone, uri: ../remote}")
 
-	cmd = [ROSWS_CMD]
-	cmd.extend(["update"])
-	call = subprocess.Popen(cmd, cwd=self.local_path, stdout=subprocess.PIPE)
-	output=call.communicate()[0]
-        self.assertEqual(0, call.returncode, output)
+	cmd = ["rosws", "update"]
+        os.chdir(self.local_path)
+        sys.stdout = output = StringIO();
+        rosws_main(cmd)
+        output = output.getvalue()
+	sys.stdout = sys.__stdout__
 
     def test_rosinstall_detailed_locapath_info(self):
-        cmd = [ROSWS_CMD]
-        cmd.extend(["info", '-t', 'ws'])
-        call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
-        output = call.communicate()[0]
+	cmd = ["rosws", "info", "-t", "ws"]
+        os.chdir(self.test_root_path)
+        sys.stdout = output = StringIO();
+        rosws_main(cmd)
+        output = output.getvalue()
         tokens = _nth_line_split(-2, output)
         self.assertEqual(['clone', 'hg', self.version_end, os.path.join(self.test_root_path, 'remote')], tokens, output)
 
         clone_path = os.path.join(self.local_path, "clone")
         # make local modifications check
         subprocess.check_call(["hg", "rm", "test2.txt"], cwd=clone_path)
-        call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
-        tokens = _nth_line_split(-2, call.communicate()[0])
+        os.chdir(self.test_root_path)
+        sys.stdout = output = StringIO();
+        rosws_main(cmd)
+        output = output.getvalue()
+        tokens = _nth_line_split(-2, output)
         self.assertEqual(['clone', 'M', 'hg', self.version_end, os.path.join(self.test_root_path, 'remote')], tokens)
 
         subprocess.check_call(["rm", ".rosinstall"], cwd=self.local_path)
         _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- hg: {local-name: clone, uri: ../remote, version: \"footag\"}")
-        call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
-        tokens = _nth_line_split(-2, call.communicate()[0])
+        os.chdir(self.test_root_path)
+        sys.stdout = output = StringIO();
+        rosws_main(cmd)
+        output = output.getvalue()
+        tokens = _nth_line_split(-2, output)
         self.assertEqual(['clone', 'MV', 'hg', 'footag', self.version_end, "(%s)"%self.version_init, os.path.join(self.test_root_path, 'remote')], tokens)
 
         subprocess.check_call(["rm", "-rf", "clone"], cwd=self.local_path)
-        call = subprocess.Popen(cmd, cwd=self.test_root_path, stdout=subprocess.PIPE)
-        tokens = _nth_line_split(-2, call.communicate()[0])
+        os.chdir(self.test_root_path)
+        sys.stdout = output = StringIO();
+        rosws_main(cmd)
+        output = output.getvalue()
+        tokens = _nth_line_split(-2, output)
         self.assertEqual(['clone', 'x', 'hg', 'footag', os.path.join(self.test_root_path, 'remote')], tokens)

@@ -6,6 +6,7 @@ import tempfile
 
 import rosinstall
 import rosinstall.helpers
+from rosinstall.rosinstall_cli import rosinstall_main
 
 from test.scm_test_base import AbstractFakeRosBasedTest, _create_yaml_file, _create_config_elt_dict, _create_tar_file
 
@@ -31,7 +32,8 @@ class RosinstallTarTest(AbstractFakeRosBasedTest):
     def test_install(self):
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.simple_tar_rosinstall])
-        self.assertEqual(0, subprocess.call(cmd, env=self.new_environ))
+        self.assertTrue(rosinstall_main(cmd))
+        
         self.assertTrue(os.path.isdir(os.path.join(self.directory, "temptar")))
         self.assertTrue(os.path.isfile(os.path.join(self.directory, ".rosinstall")))
         stream = open(os.path.join(self.directory, '.rosinstall'), 'r')

@@ -118,8 +118,8 @@ def _nth_line_split(n, output):
      else: 
 	  return []
     
-ROSINSTALL_CMD = os.path.join(os.getcwd(), 'scripts/rosinstall')
-ROSWS_CMD = os.path.join(os.getcwd(), 'scripts/rosws')
+# ROSINSTALL_CMD = os.path.join(os.getcwd(), 'scripts/rosinstall')
+# ROSWS_CMD = os.path.join(os.getcwd(), 'scripts/rosws')
 
 
 class AbstractRosinstallCLITest(unittest.TestCase):
@@ -140,7 +140,7 @@ class AbstractRosinstallBaseDirTest(AbstractRosinstallCLITest):
           self.directories = {}
           self.directory = tempfile.mkdtemp()
           self.directories["base"] = self.directory
-          self.rosinstall_fn = [ROSINSTALL_CMD, "-n"]
+          self.rosinstall_fn = ["rosinstall", "-n"]
 
      def tearDown(self):
         for d in self.directories:
@@ -198,9 +198,11 @@ class AbstractSCMTest(AbstractRosinstallCLITest):
           _create_fake_ros_dir(self.test_root_path)
           self.local_path = os.path.join(self.test_root_path, "ws")
           os.makedirs(self.local_path)
+          self.curdir = os.getcwd()
 
      @classmethod
      def tearDownClass(self):
+          os.chdir(self.curdir)
           for d in self.directories:
                shutil.rmtree(self.directories[d])
         
