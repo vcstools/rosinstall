@@ -336,7 +336,7 @@ ask whether to delete or backup the folder.
 
 Examples:
 $ rosws update -t ~/fuerte
-$ rosws update robot_model
+$ rosws update robot_model geometry
 """,
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("--delete-changed-uris", dest="delete_changed", default=False,

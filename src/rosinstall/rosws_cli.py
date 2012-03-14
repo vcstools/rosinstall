@@ -50,7 +50,7 @@ import cli_common
 import rosinstall_cmd
 import multiproject_cmd
 
-from common import MultiProjectException, select_element
+from common import MultiProjectException, select_elements
 from helpers import ROSInstallException, ROSINSTALL_FILENAME, get_ros_package_path, get_ros_stack_path
 from multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__, IndentedHelpFormatterWithNL
 from config_yaml import get_path_spec_from_yaml
@@ -154,9 +154,9 @@ The command merges config with given other rosinstall element sets, from files o
 The default workspace will be inferred from context, you can specify one using -t.
 
 By default, when an element in an additional URI has the same
-local-name as an existing element, the exiting element will be
-REMOVED, and the new entry APPENDED at the end. This can change the
-order of entries.
+local-name as an existing element, the existing element will be
+replaced. In order to ensure the ordering of elements is as
+provided in the URI, use the option --merge-kill-append.
 
 Examples:
 $ rosws merge someother.rosinstall
@@ -167,10 +167,10 @@ roslocate info robot_mode | rosws merge -
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         # same options as for multiproject
         parser.add_option("--merge-kill-append", dest="merge_kill_append", default='',
-                          help="(default) merge by deleting given entry and appending new one",
+                          help="merge by deleting given entry and appending new one",
                           action="store_true")
         parser.add_option("-k", "--merge-keep", dest="merge_keep", default='',
-                          help="merge by keeping existing entry and discarding new one",
+                          help="(default) merge by keeping existing entry and discarding new one",
                           action="store_true")
         parser.add_option("-m", "--merge-replace", dest="merge_replace", default='',
                           help="merge by replacing given entry with new one maintaining ordering",
@@ -278,6 +278,7 @@ accidentally.
 
    
     def cmd_info(self, target_path, argv, config = None):
+        only_option_valid_attrs=['path', 'localname', 'version', 'revision', 'cur_revision', 'uri', 'cur_uri']
         parser = OptionParser(usage="usage: rosws info [localname]* [OPTIONS]",
                               formatter = IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["info"] + """
@@ -301,10 +302,14 @@ overlay later entries.
 When giving a localname, the diplay just shows the data of one element in list form.
 This also has the generic properties element which is usually empty.
 
+The --only option accepts keywords: %s
+
 Examples:
 $ rosws info -t ~/ros/fuerte
 $ rosws info robot_model
-""",
+$ rosws info --yaml
+$ rosws info --only=path,cur_uri,cur_revision robot_model geometry
+"""%only_option_valid_attrs,
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("--data-only", dest="data_only", default=False,
                           help="Does not provide explanations",
@@ -315,18 +320,13 @@ $ rosws info robot_model
         parser.add_option("--pkg-path-only", dest="pkg_path_only", default=False,
                           help="Shows only ROS_PACKAGE_PATH separated by ':'. Supercedes all other options.",
                           action="store_true")
-        parser.add_option("--localnames-only", dest="local_names_only", default=False,
-                          help="Shows only local names separated by ' '. Supercedes all except --pkg-path-only ",
-                          action="store_true")
-        parser.add_option("--version-only", dest="version_only", default=False,
-                          help="Shows only version of single entry. Intended for scripting.",
-                          action="store_true")
+        parser.add_option("--only", dest="only", default=False,
+                          help="Shows comma-separated lists of only given comma-separated attribute(s).",
+                          action="store")
         parser.add_option("--yaml", dest="yaml", default=False,
                           help="Shows only version of single entry. Intended for scripting.",
                           action="store_true")
-        parser.add_option("--uri-only", dest="uri_only", default=False,
-                          help="Shows only uri of single entry.  Intended for scripting.",
-                          action="store_true")
+
         # -t option required here for help but used one layer above, see cli_common
         parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
                           help="which workspace to use",
@@ -340,29 +340,56 @@ $ rosws info robot_model
         if args == []:
             args = None
         # relevant for code completion, so these should yield quick response:
-        if options.local_names_only:
-            print(" ".join(map(lambda x : x.get_local_name(), config.get_config_elements())))
-            return 0
         if options.pkg_path_only:
             print(":".join(get_ros_package_path(config)))
+            return 0
+        elif options.only:
+            only_options = options.only.split(",")
+            if only_options == '':
+                parser.error('No valid options given')
+
+            lookup_required = False
+            for attr in only_options:
+                if not attr in only_option_valid_attrs:
+                    parser.error("Invalid --only option '%s', valids are %s"%(attr, only_option_valid_attrs))
+                if attr in ['cur_revision', 'cur_uri', 'revision']:
+                    lookup_required=True
+            elements = select_elements(config, args)
+            for element in elements:
+                if lookup_required and element.is_vcs_element():
+                    spec = element.get_versioned_path_spec()
+                else:
+                    spec = element.get_path_spec()
+                output = []
+                for attr in only_options:
+                    if 'localname' == attr:
+                        output.append(spec.get_local_name() or '')
+                    if 'path' == attr:
+                        output.append(spec.get_path() or '')
+                    if 'scmtype' == attr:
+                        output.append(spec.get_scmtype() or '')
+                    if 'uri' == attr:
+                        output.append(spec.get_uri() or '')
+                    if 'version' == attr:
+                        output.append(spec.get_version() or '')
+                    if 'revision' == attr:
+                        output.append(spec.get_revision() or '')
+                    if 'cur_uri' == attr:
+                        output.append(spec.get_curr_uri() or '')
+                    if 'cur_revision' == attr:
+                        output.append(spec.get_current_revision() or '')
+                print(','.join(output))
             return 0
         if options.yaml:
             source_aggregate = multiproject_cmd.cmd_snapshot(config, localnames = args)
             print(yaml.safe_dump(source_aggregate))
             return 0
 
+        # this call takes long, as it invokes scms.
         outputs = multiproject_cmd.cmd_info(config, localnames = args)
         if args is not None and len(outputs) == 1:
-            # consider not using table display
-            if options.uri_only:
-                if outputs[0]['uri'] is not None:
-                    print(outputs[0]['uri'])
-            elif options.version_only:
-                if outputs[0]['version'] is not None:
-                    print(outputs[0]['version'])
-            else:
                 print(cli_common.get_info_list(config.get_base_path(), outputs[0], options.data_only))
-            return 0
+                return 0
                 
         print("workspace: %s"%target_path)
         print("ROS_ROOT: %s\n"%get_ros_stack_path(config))

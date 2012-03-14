@@ -61,19 +61,19 @@ _rosws_complete()
      [[ "$cur" != -* ]] ; then
     case ${COMP_WORDS[1]} in
     info|diff|status|remove|update)
-      cmdOpts=`rosws info --localnames-only 2> /dev/null | sed -s 's,:, ,g'`
+      cmdOpts=`rosws info --only=localname 2> /dev/null | sed -s 's,:, ,g'`
       COMPREPLY=( $( compgen -W "$cmdOpts" -- $cur ) )
     ;;
     set)
       if [[ $COMP_CWORD -eq 2 ]]; then
-          cmdOpts=`rosws info --localnames-only 2> /dev/null | sed -s 's,:, ,g'`
+          cmdOpts=`rosws info --only=localname 2> /dev/null | sed -s 's,:, ,g'`
           COMPREPLY=( $( compgen -W "$cmdOpts" -- $cur ) )
       elif [[ $COMP_CWORD -eq 3 ]]; then
-          cmdOpts=`rosws info ${COMP_WORDS[2]} --uri-only 2> /dev/null`
+          cmdOpts=`rosws info ${COMP_WORDS[2]} --only=uri 2> /dev/null`
           COMPREPLY=( $( compgen -W "$cmdOpts" -- $cur ) )
       else
           if [[ ${COMP_WORDS[$(( $COMP_CWORD - 1 ))]} == "--version-new" ]]; then
-              cmdOpts=`rosws info ${COMP_WORDS[2]} --version-only 2> /dev/null`
+              cmdOpts=`rosws info ${COMP_WORDS[2]} --only=version 2> /dev/null|sed -s 's/,$//'`
               COMPREPLY=( $( compgen -W "$cmdOpts" -- $cur ) )
           fi
       fi
@@ -112,7 +112,7 @@ _rosws_complete()
     cmdOpts="-t --target-workspace"
     ;;
   info)
-    cmdOpts="-t --target-workspace --data-only --no-pkg-path --pkg-path-only --localnames-only"
+    cmdOpts="-t --target-workspace --data-only --no-pkg-path --pkg-path-only --localnames-only --paths-only"
     ;;
   help|h|\?)
     cmdOpts="$cmds $qOpts"
