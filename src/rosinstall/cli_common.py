@@ -263,11 +263,12 @@ def get_info_list(basepath, line, data_only = False):
     'version'       : "Version-Spec:",
     'status'        : "Status:",
     'specversion'   : "Spec-Revision:",
-    'actualversion' : "Current-Revision:"
+    'actualversion' : "Current-Revision:",
+    'properties'    : "Other Properties:"
     }
 
   # table design
-  selected_headers=['localname', 'path', 'status', 'scm', 'uri', 'curr_uri', 'version', 'specversion', 'actualversion' ]
+  selected_headers=['localname', 'path', 'status', 'scm', 'uri', 'curr_uri', 'version', 'specversion', 'actualversion', 'properties' ]
 
   line['status'] = _get_status_flags(basepath, line)
 
@@ -280,7 +281,8 @@ def get_info_list(basepath, line, data_only = False):
       title = "%s  "%headers[header].ljust(header_length)
     else:
       title = ''
-    output = line[header]
+    if header in line:
+      output = line[header]
     if output == None:
       output = ''
     result += "%s\n"%"%s%s"%(title, output)

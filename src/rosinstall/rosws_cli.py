@@ -265,10 +265,13 @@ The Status (S) column shows
  L  for uncommited (local) changes
  V  for difference in version and/or remote URI
 
-The 'Version-Spec' column shows what tag, branch or revision was given in the .rosinstall file. The 'UID' column shows the unique ID of the current (and specified) version. The 'URI' column shows the configured URL of the repo
+The 'Version-Spec' column shows what tag, branch or revision was given in the .rosinstall file. The 'UID' column shows the unique ID of the current (and specified) version. The 'URI' column shows the configured URL of the repo.
 
 If status is V, the difference between what was specified and what is real is shown in the respective column. For SVN entries, the url is split up according to standard layout (trunk/tags/branches).
-The ROS_PACKAGE_PATH follows the order of the table, earlier entries overlay later entries.""",
+The ROS_PACKAGE_PATH follows the order of the table, earlier entries overlay later entries.
+
+When giving a localname, the diplay just shows the data of one element in list form.
+This also has the generic properties element which is usually empty.""",
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("--data-only", dest="data_only", default=False,
                           help="Does not provide explanations",

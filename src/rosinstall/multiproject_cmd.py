@@ -359,7 +359,8 @@ def cmd_info(config, localnames = None):
               'version': version,
               'specversion': specversion,
               'actualversion': actualversion,
-              'modified': modified}
+              'modified': modified,
+              'properties': self.element.get_properties()}
   path = config.get_base_path()
   # call SCM info in separate threads
   elements = config.get_config_elements()
