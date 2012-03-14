@@ -141,128 +141,75 @@ If PATH is not given, uses current dir.
         return 0
 
     def cmd_merge(self, target_path, argv, config = None):
-          parser = OptionParser(usage="""usage: rosws merge [URI]* [OPTIONS] [type]
+        parser = OptionParser(usage="""usage: rosws merge [URI] [OPTIONS]
 
 Merges config with given other rosinstall element sets, from files or web uris.
 
 By default, when an element in an additional URI has the same local-name as an existing element, the exiting element will be REMOVED, and the new entry APPENDED at the end. This can change the order of entries.
 """,
-                              description=__MULTIPRO_CMD_DICT__["init"],
-                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
-          # same options as for multiproject
-          parser.add_option("--merge-kill-append", dest="merge_kill_append", default='',
-                            help="(default) merge by deleting given entry and appending new one",
-                            action="store_true")
-          parser.add_option("-k", "--merge-keep", dest="merge_keep", default='',
-                            help="merge by keeping existing entry and discarding new one",
-                            action="store_true")
-          parser.add_option("-m", "--merge-replace", dest="merge_replace", default='',
-                            help="merge by replacing given entry with new one maintaining ordering",
-                            action="store_true")
-          parser.add_option("-y", "--confirm-all", dest="confirm_all", default='',
-                            help="Do not ask for confirmation unless strictly necessary",
-                            action="store_true")
-          # required here but used one layer above
-          parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
-                            help="which workspace to use",
-                            action="store")
-          (options, args) = parser.parse_args(argv)
-      
-          config_uris = args
+                            description=__MULTIPRO_CMD_DICT__["init"],
+                            epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+        # same options as for multiproject
+        parser.add_option("--merge-kill-append", dest="merge_kill_append", default='',
+                          help="(default) merge by deleting given entry and appending new one",
+                          action="store_true")
+        parser.add_option("-k", "--merge-keep", dest="merge_keep", default='',
+                          help="merge by keeping existing entry and discarding new one",
+                          action="store_true")
+        parser.add_option("-m", "--merge-replace", dest="merge_replace", default='',
+                          help="merge by replacing given entry with new one maintaining ordering",
+                          action="store_true")
+        parser.add_option("-y", "--confirm-all", dest="confirm_all", default='',
+                          help="Do not ask for confirmation unless strictly necessary",
+                          action="store_true")
+        # required here but used one layer above
+        parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
+                          help="which workspace to use",
+                          action="store")
+        (options, args) = parser.parse_args(argv)
 
-          if config == None:
-              config = multiproject_cmd.get_config(target_path, additional_uris = [], config_filename = self.config_filename)
-          elif config.get_base_path() != target_path:
-              raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
+        if len(args) > 1:
+            print("Error: Too many arguments.")
+            print(parser.usage)
+            return -1
+        if len(args) == 0:
+            print("Error: Too few arguments.")
+            print(parser.usage)
+            return -1
+        
+        config_uris = args
 
-          merge_strategy = None
-          count_mergeoptions = 0
-          if options.merge_kill_append:
-              merge_strategy = 'KillAppend'
-              count_mergeoptions +=1
-          if options.merge_keep:
-              merge_strategy = 'MergeKeep'
-              count_mergeoptions +=1
-          if options.merge_replace:
-              merge_strategy = 'MergeReplace'
-              count_mergeoptions +=1
-          if count_mergeoptions > 1:
-              parser.error("You can only provide one merge-strategy")
-          if count_mergeoptions == 0:
-              merge_strategy = 'KillAppend'
+        merge_strategy = None
+        count_mergeoptions = 0
+        if options.merge_kill_append:
+            merge_strategy = 'KillAppend'
+            count_mergeoptions +=1
+        if options.merge_keep:
+            merge_strategy = 'MergeKeep'
+            count_mergeoptions +=1
+        if options.merge_replace:
+            merge_strategy = 'MergeReplace'
+            count_mergeoptions +=1
+        if count_mergeoptions > 1:
+            parser.error("You can only provide one merge-strategy")
+        if count_mergeoptions == 0:
+            merge_strategy = 'KillAppend'
 
-          local_names_old = [x.get_local_name() for x in config.get_config_elements()]
-          
-          config_actions = multiproject_cmd.add_uris(config,
+        (newconfig, path_changed) = self.prompt_merge(target_path,
                                                      additional_uris = config_uris,
-                                                     merge_strategy = merge_strategy)
-          local_names_new = [x.get_local_name() for x in config.get_config_elements()]
-          
-          path_changed = False
-          ask_user = False
-          output = ""
-          new_elements = []
-          changed_elements = []
-          discard_elements = []
-          for localname, (action, path_spec) in config_actions.items():
-              index = -1
-              if localname in local_names_old:
-                  index = local_names_old.index(localname)
-              if action == 'KillAppend':
-                  ask_user = True
-                  if (index > -1 and local_names_old[:index+1] == local_names_new[:index+1]):
-                      action = 'MergeReplace'
-                  else:
-                      changed_elements.append(localname)
-                      path_changed = True
+                                                     path_change_message = "ROS_PACKAGE_PATH order changed",
+                                                     merge_strategy = merge_strategy,
+                                                     confirmed = options.confirm_all)
+        if newconfig is not None:
+            print("Overwriting %s/%s"%(newconfig.get_base_path(), self.config_filename))
+            rosinstall_cmd.cmd_persist_config(newconfig)
+       
+            print("\nrosws update complete.")
+            if path_changed:
+                print("\nDo not forget to do ...\n$ source %s/setup.sh\n... in every open terminal." % target_path)
+        return 0
 
-              if action == 'Append':
-                  path_changed = True
-                  new_elements.append(localname)
-              elif action == 'MergeReplace':
-                  changed_elements.append(localname)
-                  ask_user = True
-              elif action == 'MergeKeep':
-                  discard_elements.append(localname)
-                  ask_user = True
-          if len(changed_elements) > 0:
-              output += "\n     Change version of element (Use --merge-keep or --merge-replace to change):\n %s\n"%", ".join(changed_elements)
-          if len(new_elements) > 0:
-              output += "\n     Add new elements:\n %s\n"%", ".join(new_elements)
-              
-
-          if local_names_old != local_names_new[:len(local_names_old)]:
-              old_order = ' '.join(reversed(local_names_old))
-              new_order = ' '.join(reversed(local_names_new))
-              output += "\n     ROS_PACKAGE_PATH order changed (Use --merge-keep or --merge-replace to prevent) from\n %s\n     to\n %s\n\n"%(old_order, new_order)
-              ask_user = True
-
-          if output != "":
-              if options.confirm_all or not ask_user:
-                  print("     Performing actions: ")
-                  print(output)
-              else:
-                  print(output)
-                  abort = None
-                  prompt = "Continue(y/n): "
-                  while abort == None:
-                      mode_input = raw_input(prompt)
-                      if mode_input == 'y':
-                          abort = False
-                      elif mode_input == 'n':
-                          abort = True
-                  if abort:
-                      print("No changes made.")
-                      return 0
-          
-          print("Overwriting %s/%s"%(config.get_base_path(), self.config_filename))
-          rosinstall_cmd.cmd_persist_config(config)
-
-          print("\nrosws update complete.")
-          if path_changed:
-              print("\nDo not forget to do ...\n$ source %s/setup.sh\n... in every open terminal." % target_path)
-          return 0
-
+    
 
     def cmd_regenerate(self, target_path, argv, config = None):
         parser = OptionParser(usage="usage: rosws regenerate",

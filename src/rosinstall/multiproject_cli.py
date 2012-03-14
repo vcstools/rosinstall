@@ -388,4 +388,177 @@ The command will infer whether you want to add or modify an entry. If you modify
         # TODO enable when making multiproject an independent CLI
 
 
+    def _get_element_diff(self, new_path_spec, config_old, extra_verbose = False):
+        """
+        returns a string telling what changed for element compared to old config
+        """
+        if new_path_spec is None or config_old is None:
+            return ''
+        output = ' %s'%new_path_spec.get_local_name()
+        if extra_verbose:
+            old_element = None
+            if config_old is not None:
+                old_element = select_element(config_old.get_config_elements(), new_path_spec.get_local_name())
 
+            if old_element is None:
+                if new_path_spec.get_scmtype() is not None:
+                  output += "   \t%s  %s   %s"%(new_path_spec.get_scmtype(), new_path_spec.get_uri(), new_path_spec.get_version() or '')
+            else:
+                old_path_spec = old_element.get_path_spec()
+                for attr in new_path_spec.__dict__:
+                    if (attr in old_path_spec.__dict__
+                        and old_path_spec.__dict__[attr] != new_path_spec.__dict__[attr]
+                        and attr[1:] not in ['local_name', 'path']):
+                      old_val = old_path_spec.__dict__[attr]
+                      new_val = new_path_spec.__dict__[attr]
+                      
+                      commonprefix = new_val[:[x[0]==x[1] for x in zip(str(new_val), str(old_val))].index(0)]
+                      if len(commonprefix) > 11:
+                          new_val = "...%s"%new_val[len(commonprefix)-7:]
+                      output += "  \t%s: %s -> %s;"%(attr[1:], old_val, new_val)
+                    else:
+                      if (attr not in old_path_spec.__dict__
+                          and new_path_spec.__dict__[attr] is not None
+                          and new_path_spec.__dict__[attr] != ""
+                          and new_path_spec.__dict__[attr] != []
+                          and attr[1:] not in ['local_name', 'path']):
+                        output += "  %s = %s"%(attr[1:], new_path_spec.__dict__[attr])
+        return output
+          
+
+    def prompt_merge(self,
+                     target_path,
+                     additional_uris,
+                     path_change_message = None,
+                     merge_strategy = 'KillAppend',
+                     confirmed = False,
+                     config = None):
+        """
+        Prompts the user for the resolution of a merge
+        :param target_path: Location of the config workspace
+        :additional_uris: what needs merging in
+        """
+        if config == None:
+            config = multiproject_cmd.get_config(target_path, additional_uris = [], config_filename = self.config_filename)
+        elif config.get_base_path() != target_path:
+            raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
+        local_names_old = [x.get_local_name() for x in config.get_config_elements()]
+
+        extra_verbose = False
+        abort = None
+        last_merge_strategy = None
+        while abort == None:
+
+            if (last_merge_strategy is None
+                or last_merge_strategy != merge_strategy):
+              newconfig = multiproject_cmd.get_config(target_path, additional_uris = [], config_filename = self.config_filename)
+              config_actions = multiproject_cmd.add_uris(newconfig,
+                                                         additional_uris = additional_uris,
+                                                         merge_strategy = merge_strategy)
+              last_merge_strategy = merge_strategy
+            
+            local_names_new = [x.get_local_name() for x in newconfig.get_config_elements()]
+            
+            path_changed = False
+            ask_user = False
+            output = ""
+            new_elements = []
+            changed_elements = []
+            discard_elements = []
+            for localname, (action, new_path_spec) in config_actions.items():
+                index = -1
+                if localname in local_names_old:
+                    index = local_names_old.index(localname)
+                if action == 'KillAppend':
+                    ask_user = True
+                    if (index > -1 and local_names_old[:index+1] == local_names_new[:index+1]):
+                        action = 'MergeReplace'
+                    else:
+                        changed_elements.append(self._get_element_diff(new_path_spec, config, extra_verbose))
+                        path_changed = True
+     
+                if action == 'Append':
+                    path_changed = True
+                    new_elements.append(self._get_element_diff(new_path_spec, config, extra_verbose))
+                elif action == 'MergeReplace':
+                    changed_elements.append(self._get_element_diff(new_path_spec, config, extra_verbose))
+                    ask_user = True
+                elif action == 'MergeKeep':
+                    discard_elements.append(self._get_element_diff(new_path_spec, config, extra_verbose))
+                    ask_user = True
+            if len(changed_elements) > 0:
+              output += "\n     Change details of element (Use --merge-keep or --merge-replace to change):\n"
+              if extra_verbose:
+                output += " %s\n"%"\n".join(changed_elements)
+              else:
+                output += " %s\n"%", ".join(changed_elements)
+            if len(new_elements) > 0:
+                output += "\n     Add new elements:\n"
+                if extra_verbose:
+                  output += " %s\n"%"\n".join(new_elements)
+                else:
+                  output += " %s\n"%", ".join(new_elements)
+                
+     
+            if local_names_old != local_names_new[:len(local_names_old)]:
+                old_order = ' '.join(reversed(local_names_old))
+                new_order = ' '.join(reversed(local_names_new))
+                output += "\n     %s (Use --merge-keep or --merge-replace to prevent) from\n %s\n     to\n %s\n\n"%(path_change_message or "Element Order change", old_order, new_order)
+                ask_user = True
+     
+            if output == "":
+                return (None, None)
+            if confirmed or not ask_user:
+                print("     Performing actions: ")
+                print(output)
+                return (newconfig, path_changed)
+            else:
+                print(output)
+                help = "(h)elp"
+                showhelp = True
+                while(showhelp == True):
+                    showhelp = False
+                    prompt = "Continue: (y)es, (n)o, (v)erbosity, (a)dvance options: "
+                    mode_input = raw_input(prompt)
+                    if mode_input == 'y':
+                        return (newconfig, path_changed)
+                    elif mode_input == 'n':
+                        abort = True
+                    elif mode_input == 'a':
+                         strategies = {'MergeKeep': "(k)eep",
+                                       'MergeReplace': "(s)witch in",
+                                       'KillAppend': "(a)ppending"}
+                         unselected = [strategies[x] for x in strategies if x != merge_strategy]
+                         print( """New entries will just be appended to the config and
+appear at the beginning of your ROS_PACKAGE_PATH. The merge strategy
+decides how to deal with entries having a duplicate localname or path.
+
+"(k)eep" means the existing entry will stay as it is, the new one will
+be discarded. Useful for getting additional elements from other
+workspaces without affecting your setup.
+
+"(s)witch in" means that the new entry will replace the old in the
+same position. Useful for upgrading/downgrading.
+
+"switch (a)ppend" means that the existing entry will be removed, and
+the new entry appended to the end of the list. This maintains order
+of elements in the order they were given.
+
+Switch append is the default.
+""")
+                         prompt = """Change Strategy %s: """%", ".join(unselected)
+                         mode_input = raw_input(prompt)
+                         if mode_input == 's':
+                             merge_strategy = 'MergeReplace'
+                         elif mode_input == 'k':
+                             merge_strategy = 'MergeKeep'
+                         elif mode_input == 'a':
+                             merge_strategy = 'KillAppend'
+                         
+                    elif mode_input == 'v':
+                      extra_verbose = not extra_verbose
+            if abort:
+                print("No changes made.")
+                return (None, None)
+            print('==========================================')
+          
