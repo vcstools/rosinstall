@@ -74,11 +74,14 @@ class RoswsCLI(MultiprojectCLI):
         if self.config_filename == None:
             print('Error: Bug: config filename required for init')
             return 1
-        parser = OptionParser(usage="""usage: rosws init [TARGET_PATH [SOURCE_PATH]]?\n
+        parser = OptionParser(usage="""usage: rosws init [TARGET_PATH [SOURCE_PATH]]?""",
+                              formatter = IndentedHelpFormatterWithNL(),
+                              description=__MULTIPRO_CMD_DICT__["init"] + """
+
 rosws init does the following:
-  1. Reads folder/file/web-uri SOURCE_PATH looking for a rosinstall yaml to copy
-  2. Creates new %s file at TARGET-PATH configured for the given ros distro
-  3. Generates ROS setup files, provided a SOURCE_PATH pointing to a ROS was provided
+  1. Reads folder/file/web-uri SOURCE_PATH looking for a rosinstall yaml
+  2. Creates new %s file at TARGET-PATH
+  3. Generates ROS setup files
 
 SOURCE_PATH can e.g. be a folder like /opt/ros/electric
 If PATH is not given, uses current dir.
@@ -86,7 +89,6 @@ If PATH is not given, uses current dir.
 Examples:
 $ rosws init ~/fuerte /opt/ros/fuerte
 """%self.config_filename,
-                              description=__MULTIPRO_CMD_DICT__["init"],
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("-c", "--catkin", dest="catkin", default=False,
                           help="Declare this is a catkin build.",
@@ -147,7 +149,7 @@ $ rosws init ~/fuerte /opt/ros/fuerte
     def cmd_merge(self, target_path, argv, config = None):
         parser = OptionParser(usage="usage: rosws merge [URI] [OPTIONS]",
                               formatter = IndentedHelpFormatterWithNL(),
-                              description=__MULTIPRO_CMD_DICT__["init"] +""".
+                              description=__MULTIPRO_CMD_DICT__["merge"] +""".
 
 The command merges config with given other rosinstall element sets, from files or web uris.
 
@@ -162,7 +164,7 @@ Examples:
 $ rosws merge someother.rosinstall
 
 You can use '-' to pipe in input, as an example:
-roslocate info robot_mode | rosws merge -
+$ roslocate info robot_mode | rosws merge -
 """,
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         # same options as for multiproject
@@ -299,7 +301,7 @@ split up according to standard layout (trunk/tags/branches).  The
 ROS_PACKAGE_PATH follows the order of the table, earlier entries
 overlay later entries.
 
-When giving a localname, the diplay just shows the data of one element in list form.
+When given one localname, just show the data of one element in list form.
 This also has the generic properties element which is usually empty.
 
 The --only option accepts keywords: %s
