@@ -82,6 +82,9 @@ rosws init does the following:
 
 SOURCE_PATH can e.g. be a folder like /opt/ros/electric
 If PATH is not given, uses current dir.
+
+Examples:
+$ rosws init ~/fuerte /opt/ros/fuerte
 """%self.config_filename,
                               description=__MULTIPRO_CMD_DICT__["init"],
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
@@ -142,17 +145,26 @@ If PATH is not given, uses current dir.
         return 0
 
     def cmd_merge(self, target_path, argv, config = None):
-        parser = OptionParser(usage="""usage: rosws merge [URI] [OPTIONS]
+        parser = OptionParser(usage="usage: rosws merge [URI] [OPTIONS]",
+                              formatter = IndentedHelpFormatterWithNL(),
+                              description=__MULTIPRO_CMD_DICT__["init"] +""".
 
-Merges config with given other rosinstall element sets, from files or web uris.
+The command merges config with given other rosinstall element sets, from files or web uris.
 
-By default, when an element in an additional URI has the same local-name as an existing element, the exiting element will be REMOVED, and the new entry APPENDED at the end. This can change the order of entries.
+The default workspace will be inferred from context, you can specify one using -t.
+
+By default, when an element in an additional URI has the same
+local-name as an existing element, the exiting element will be
+REMOVED, and the new entry APPENDED at the end. This can change the
+order of entries.
+
+Examples:
+$ rosws merge someother.rosinstall
 
 You can use '-' to pipe in input, as an example:
 roslocate info robot_mode | rosws merge -
 """,
-                            description=__MULTIPRO_CMD_DICT__["init"],
-                            epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         # same options as for multiproject
         parser.add_option("--merge-kill-append", dest="merge_kill_append", default='',
                           help="(default) merge by deleting given entry and appending new one",
@@ -221,14 +233,24 @@ roslocate info robot_mode | rosws merge -
             print("\nrosws update complete.")
             if path_changed:
                 print("\nDo not forget to do ...\n$ source %s/setup.sh\n... in every open terminal." % target_path)
+        print("Config changed, remember to run rosws update to update the tree")
         return 0
 
     
 
     def cmd_regenerate(self, target_path, argv, config = None):
         parser = OptionParser(usage="usage: rosws regenerate",
-                        description=__MULTIPRO_CMD_DICT__["remove"],
-                        epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+                              formatter = IndentedHelpFormatterWithNL(),
+                              description=__MULTIPRO_CMD_DICT__["remove"] + """
+
+this command without options generates files setup.sh, setup.bash and
+setup.zsh. Note that doing this is unnecessary in general, as these
+files do not change anymore, unless you change from one ROS distro to
+another (which you should never do like this, create a separate new
+workspace instead), or you deleted or modified any of those files
+accidentally.
+""",
+                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("-c", "--catkin", dest="catkin", default=False,
                           help="Declare this is a catkin build.",
                           action="store_true")
@@ -265,13 +287,24 @@ The Status (S) column shows
  L  for uncommited (local) changes
  V  for difference in version and/or remote URI
 
-The 'Version-Spec' column shows what tag, branch or revision was given in the .rosinstall file. The 'UID' column shows the unique ID of the current (and specified) version. The 'URI' column shows the configured URL of the repo.
+The 'Version-Spec' column shows what tag, branch or revision was given
+in the .rosinstall file. The 'UID' column shows the unique ID of the
+current (and specified) version. The 'URI' column shows the configured
+URL of the repo.
 
-If status is V, the difference between what was specified and what is real is shown in the respective column. For SVN entries, the url is split up according to standard layout (trunk/tags/branches).
-The ROS_PACKAGE_PATH follows the order of the table, earlier entries overlay later entries.
+If status is V, the difference between what was specified and what is
+real is shown in the respective column. For SVN entries, the url is
+split up according to standard layout (trunk/tags/branches).  The
+ROS_PACKAGE_PATH follows the order of the table, earlier entries
+overlay later entries.
 
 When giving a localname, the diplay just shows the data of one element in list form.
-This also has the generic properties element which is usually empty.""",
+This also has the generic properties element which is usually empty.
+
+Examples:
+$ rosws info -t ~/ros/fuerte
+$ rosws info robot_model
+""",
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("--data-only", dest="data_only", default=False,
                           help="Does not provide explanations",

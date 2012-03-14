@@ -177,7 +177,18 @@ class MultiprojectCLI:
         parser = OptionParser(usage="usage: rosws set [localname] [SCM-URI]?  [--(detached|svn|hg|git|bzr)] [--version=VERSION]]",
                               formatter = IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["set"] + """
-The command will infer whether you want to add or modify an entry. If you modify, it will only change the details you provide, keeping those you did not provide. if you only provide a uri, will use the basename of it as localname unless such an element already exists.
+The command will infer whether you want to add or modify an entry. If
+you modify, it will only change the details you provide, keeping
+those you did not provide. if you only provide a uri, will use the
+basename of it as localname unless such an element already exists.
+
+The command only changes the configuration, to checkout or update
+the element, run rosws update afterwards.
+
+Examples:
+$ rosws set robot_model --hg https://kforge.ros.org/robotmodel/robot_model
+$ rosws set robot_model --version robot_model-1.7.1
+$ rosws set robot_model --detached
 """,
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("--detached", dest="detach", default=False,
@@ -304,6 +315,8 @@ The command will infer whether you want to add or modify an entry. If you modify
                 return 0
         print("Overwriting %s/%s"%(config.get_base_path(), self.config_filename))
         multiproject_cmd.cmd_persist_config(config, self.config_filename)
+
+        print("Config changed, remember to run rosws update %s to update the tree"%spec.get_local_name())
         # for element in config.get_config_elements():
         #   if element.get_local_name() == spec.get_local_name():
         #     if element.is_vcs_element():
@@ -314,8 +327,18 @@ The command will infer whether you want to add or modify an entry. If you modify
 
     def cmd_update(self, target_path, argv, config = None):
         parser = OptionParser(usage="usage: rosws update [localname]*",
-                        description=__MULTIPRO_CMD_DICT__["update"],
-                        epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+                              formatter = IndentedHelpFormatterWithNL(),
+                              description=__MULTIPRO_CMD_DICT__["update"] + """
+
+This command calls the SCM provider to pull changes from remote to
+your local filesystem. In case the url has changed, the command will
+ask whether to delete or backup the folder.
+
+Examples:
+$ rosws update -t ~/fuerte
+$ rosws update robot_model
+""",
+                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("--delete-changed-uris", dest="delete_changed", default=False,
                           help="Delete the local copy of a directory before changing uri.",
                           action="store_true")
@@ -350,8 +373,11 @@ The command will infer whether you want to add or modify an entry. If you modify
 
     def cmd_remove(self, target_path, argv, config = None):
         parser = OptionParser(usage="usage: rosws remove [localname]*",
-                        description=__MULTIPRO_CMD_DICT__["remove"],
-                        epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+                              formatter = IndentedHelpFormatterWithNL(),
+                              description=__MULTIPRO_CMD_DICT__["remove"] + """
+The command removes entries from your configuration file, it does not affect your filesystem.
+""",
+                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         (options, args) = parser.parse_args(argv)
         if len(args) < 1:
             print("Error: Too few arguments.")
