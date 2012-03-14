@@ -7,8 +7,8 @@ ROS installation tools
 The rosinstall package provides a Python API for interacting with a source code workspace as well as a group of command line tools.  Rosinstall leverages the :mod:`vcstools` module for source control and stores its state in .rosinstall files.
 
   
-Contents:
-
+Command Line Tools:
+===================
 .. toctree::
    :maxdepth: 2
 
@@ -16,7 +16,14 @@ Contents:
    roslocate
    rosco
    rosws
-   
+
+
+Rosinstall File Format:
+=======================
+.. toctree::
+   :maxdepth: 2
+
+   rosinstall_file_format   
 
 Installation
 ============
@@ -33,8 +40,10 @@ or ``easy_install``:
     easy_install -U rosinstall
 
 
-Advanced: vcstools developers/contributors
-========================================
+
+
+Advanced: rosinstall developers/contributors
+============================================
 
 .. toctree::
    :maxdepth: 2
