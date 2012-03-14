@@ -52,7 +52,7 @@ import multiproject_cmd
 
 from common import MultiProjectException, select_element
 from helpers import ROSInstallException, ROSINSTALL_FILENAME, get_ros_package_path, get_ros_stack_path
-from multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__, __MULTIPRO_VERSION__, IndentedHelpFormatterWithNL
+from multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__, IndentedHelpFormatterWithNL
 
 ## This file adds or extends commands from multiproject_cli where ROS
 ## specific output has to be generated. 
@@ -352,7 +352,8 @@ def rosws_main(argv=None):
   if (sys.argv[0] == '-c'):
       sys.argv = ['rosws'] + sys.argv[1:]
   if '--version' in argv:
-    print("rosws: \t%s\n%s"%(__MULTIPRO_VERSION__, multiproject_cmd.cmd_version()))
+    import __version__
+    print("rosws: \t%s\n%s"%(__version__.version, multiproject_cmd.cmd_version()))
     sys.exit(0)
   workspace = None
   if len(argv) < 2:

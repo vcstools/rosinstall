@@ -111,7 +111,8 @@ Later URIs will shadow packages of earlier URIs.\n",
   #  parser.error("rosinstall no longer bootstraps the build, it will not call rosmake or pass it rosdep options") 
 
   if options.version:
-    print("rosinstall 0.6.6\n%s"%multiproject_cmd.cmd_version())
+    import __version__
+    print("rosinstall %s\n%s"%(__version__.version, multiproject_cmd.cmd_version()))
     sys.exit(0)
   
   if len(args) < 1:

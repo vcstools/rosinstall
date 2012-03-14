@@ -44,8 +44,6 @@ import multiproject_cmd
 
 # implementation of single CLI commands (extracted for use in several overlapping scripts)
 
-__MULTIPRO_VERSION__ = '0.6.01'
-
 __MULTIPRO_CMD_DICT__={
   "help"     : "provide help for commands",
   "init"     : "set up a directory as workspace",

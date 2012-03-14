@@ -1,15 +1,12 @@
 .PHONY: all setup clean_dist distro clean install dsc source_deb upload
 
-VERSION='0.6.6'
+VERSION=$(shell grep version= ./src/rosinstall/__version__.py | sed -s 's,version=,,')
 
 
 all:
 	echo "noop for debbuild"
 
 setup:
-	echo "confirming version numbers are all consistent"
-	grep ${VERSION} scripts/rosinstall
-	grep ${VERSION} setup.py
 	echo "building version ${VERSION}"
 
 clean_dist:
