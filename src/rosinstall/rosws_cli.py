@@ -192,8 +192,9 @@ By default, when an element in an additional URI has the same local-name as an e
             count_mergeoptions +=1
         if count_mergeoptions > 1:
             parser.error("You can only provide one merge-strategy")
+        # default option
         if count_mergeoptions == 0:
-            merge_strategy = 'KillAppend'
+            merge_strategy = 'MergeReplace'
 
         (newconfig, path_changed) = self.prompt_merge(target_path,
                                                      additional_uris = config_uris,
