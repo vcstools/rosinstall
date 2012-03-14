@@ -152,8 +152,8 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertTrue(vcsc.is_vcs_element())
         self.assertEqual("mockdiffNone", vcsc.get_diff())
         self.assertEqual("mockstatusNone,False", vcsc.get_status())
-        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri'}}, vcsc.get_path_spec().get_legacy_yaml())
-        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri', }}, vcsc.get_versioned_path_spec().get_legacy_yaml())
+        self.assertEqual({'mock': {'local-name': 'some/local/name', 'uri': 'some/uri'}}, vcsc.get_path_spec().get_legacy_yaml())
+        self.assertEqual({'mock': {'local-name': 'some/local/name', 'uri': 'some/uri', }}, vcsc.get_versioned_path_spec().get_legacy_yaml())
         
         vcsc = rosinstall.config_elements.AVCSConfigElement("mock", path, localname, uri, None, vcsc = MockVcsClient())
         self.assertEqual(path, vcsc.get_path())
@@ -162,8 +162,8 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertTrue(vcsc.is_vcs_element())
         self.assertEqual("mockdiffNone", vcsc.get_diff())
         self.assertEqual("mockstatusNone,False", vcsc.get_status())
-        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri'}}, vcsc.get_path_spec().get_legacy_yaml())
-        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'uri': 'some/uri', }}, vcsc.get_versioned_path_spec().get_legacy_yaml())
+        self.assertEqual({'mock': {'local-name': 'some/local/name', 'uri': 'some/uri'}}, vcsc.get_path_spec().get_legacy_yaml())
+        self.assertEqual({'mock': {'local-name': 'some/local/name', 'uri': 'some/uri', }}, vcsc.get_versioned_path_spec().get_legacy_yaml())
 
         vcsc = rosinstall.config_elements.AVCSConfigElement("mock", path, localname, uri, version, vcsc = MockVcsClient())
         self.assertEqual(path, vcsc.get_path())
@@ -172,8 +172,8 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertTrue(vcsc.is_vcs_element())
         self.assertEqual("mockdiffNone", vcsc.get_diff())
         self.assertEqual("mockstatusNone,False", vcsc.get_status())
-        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri'}}, vcsc.get_path_spec().get_legacy_yaml())
-        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri'}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
+        self.assertEqual({'mock': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri'}}, vcsc.get_path_spec().get_legacy_yaml())
+        self.assertEqual({'mock': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri'}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
 
         vcsc = rosinstall.config_elements.AVCSConfigElement("mock", path, localname, uri, version, vcsc = MockVcsClient(), properties = [{'meta': {'repo-name': 'skynetish-ros-pkg'}}])
         self.assertEqual(path, vcsc.get_path())
@@ -182,8 +182,8 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertTrue(vcsc.is_vcs_element())
         self.assertEqual("mockdiffNone", vcsc.get_diff())
         self.assertEqual("mockstatusNone,False", vcsc.get_status())
-        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri', 'meta': {'repo-name': 'skynetish-ros-pkg'}}}, vcsc.get_path_spec().get_legacy_yaml())
-        self.assertEqual({'mocktype': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri', 'meta': {'repo-name': 'skynetish-ros-pkg'}}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
+        self.assertEqual({'mock': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri', 'meta': {'repo-name': 'skynetish-ros-pkg'}}}, vcsc.get_path_spec().get_legacy_yaml())
+        self.assertEqual({'mock': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri', 'meta': {'repo-name': 'skynetish-ros-pkg'}}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
         
 
     def test_mock_install(self):
@@ -198,27 +198,6 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertFalse(mockclient.updated)
         # checkout failure
         mockclient = MockVcsClient(url = uri, checkout_success = False )
-        try:
-            vcsc = rosinstall.config_elements.AVCSConfigElement("mock", path, localname, uri, None, vcsc = mockclient)
-            vcsc.install()
-            self.fail("should have raised Exception")
-        except MultiProjectException: pass
-        # path exists no vcs, robust
-        mockclient = MockVcsClient(url = uri, path_exists = True, vcs_presence = False )
-        try:
-            vcsc = rosinstall.config_elements.AVCSConfigElement("mock", path, localname, uri, None, vcsc = mockclient)
-            vcsc.install()
-            self.fail("should have raised Exception")
-        except MultiProjectException: pass
-        # uri mismatch, robust
-        mockclient = MockVcsClient(url = uri + "invalid", path_exists = True)
-        try:
-            vcsc = rosinstall.config_elements.AVCSConfigElement("mock", path, localname, uri, None, vcsc = mockclient)
-            vcsc.install()
-            self.fail("should have raised Exception")
-        except MultiProjectException: pass
-        # update failure
-        mockclient = MockVcsClient(url = uri, path_exists = True, update_success = False )
         try:
             vcsc = rosinstall.config_elements.AVCSConfigElement("mock", path, localname, uri, None, vcsc = mockclient)
             vcsc.install()

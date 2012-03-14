@@ -169,16 +169,29 @@ class VCSConfigElement(ConfigElement):
   
   def is_vcs_element(self):
     return True
+
+  def get_vcs_type_name(self):
+    # also see override in AVCSConfigElement
+    return self._get_vcsc().get_vcs_type_name()
+
+  def detect_presence(self):
+    # also see override in AVCSConfigElement
+    return self._get_vcsc().detect_presence()
+
+  def path_exists(self):
+    # we could use _get_vcsc().path_exit(), but this causes a time penalty for initializing
+    # this is crucial for bash tab completion
+    return os.path.isdir(self.path)
   
   def prepare_install(self, backup_path = None, arg_mode = 'abort', robust = False):
     preparation_report = PreparationReport(self)
-    present = self._get_vcsc().detect_presence() 
-    if present or self._get_vcsc().path_exists():
+    present = self.detect_presence()
+    if present or self.path_exists():
       # Directory exists see what we need to do
       error_message = None
       
       if not present:
-        error_message = "Failed to detect %s presence at %s."%(self._get_vcsc().get_vcs_type_name(), self.path)
+        error_message = "Failed to detect %s presence at %s."%(self.get_vcs_type_name(), self.path)
       else:
         cur_url = self._get_vcsc().get_url()
         if cur_url is not None:
@@ -226,7 +239,7 @@ class VCSConfigElement(ConfigElement):
     """
     if checkout == True:
       print("[%s] Installing %s (%s) to %s"%(self.get_local_name(), self.uri, self.version, self.get_path()))
-      if self._get_vcsc().path_exists():
+      if self.path_exists():
         if (backup == False):
           shutil.rmtree(self.path)
         else:
@@ -245,7 +258,7 @@ class VCSConfigElement(ConfigElement):
     if version == '': version = None
     return PathSpec(local_name = self.get_local_name(),
                     path = self.get_path(),
-                    scmtype = self._get_vcsc().get_vcs_type_name(),
+                    scmtype = self.get_vcs_type_name(),
                     uri = self.uri,
                     version = version,
                     tags = self.get_properties())
@@ -261,7 +274,7 @@ class VCSConfigElement(ConfigElement):
     currevision = self._get_vcsc().get_version()
     return PathSpec(local_name = self.get_local_name(),
                     path = self.get_path(),
-                    scmtype = self._get_vcsc().get_vcs_type_name(),
+                    scmtype = self.get_vcs_type_name(),
                     uri = self.uri,
                     version = version,
                     revision = revision,
@@ -288,6 +301,9 @@ class AVCSConfigElement(VCSConfigElement):
     self.vcsc = vcsc
     self._scmtype = scmtype
 
+  def get_vcs_type_name(self):
+    return self._scmtype
+    
   def _get_vcsc(self):
     # lazy initializer
     if self.vcsc == None:
@@ -296,3 +312,17 @@ class AVCSConfigElement(VCSConfigElement):
       except VcsError as e:
         raise MultiProjectException("Unable to create vcs client of type %s for %s: %s"%(self._scmtype, self.get_path(), e))
     return self.vcsc
+
+  def detect_presence(self):
+    # to make more use of lazy initializer, do not instantiate client for just this
+    # this is crucial for bash tab completion
+    if self.get_vcs_type_name() == 'git':
+      return os.path.isdir(os.path.join(self.path, '.git'))
+    elif self.get_vcs_type_name() == 'svn':
+      return os.path.isdir(os.path.join(self.path, '.svn'))
+    elif self.get_vcs_type_name() == 'hg':
+      return os.path.isdir(os.path.join(self.path, '.hg'))
+    elif self.get_vcs_type_name() == 'bzr':
+      return os.path.isdir(os.path.join(self.path, '.bzr'))
+    else:
+      return self._get_vcsc().detect_presence()
