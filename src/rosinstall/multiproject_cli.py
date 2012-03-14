@@ -176,7 +176,7 @@ class MultiprojectCLI:
         :param target_path: where to look for config
         :param config: config to use instead of parsing file anew
         """
-        parser = OptionParser(usage="usage: rosws set [localname] [URI]  [--(detached|svn|hg|git|bzr)] [--version=VERSION]]",
+        parser = OptionParser(usage="usage: rosws set [localname] [SCM-URI]?  [--(detached|svn|hg|git|bzr)] [--version=VERSION]]",
                               formatter = IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["set"] + """
 The command will infer whether you want to add or modify an entry. If you modify, it will only change the details you provide, keeping those you did not provide. if you only provide a uri, will use the basename of it as localname unless such an element already exists.
@@ -316,7 +316,7 @@ The command will infer whether you want to add or modify an entry. If you modify
 
     def cmd_update(self, target_path, argv, config = None):
         parser = OptionParser(usage="usage: rosws update [localname]*",
-                        description=__MULTIPRO_CMD_DICT__["remove"],
+                        description=__MULTIPRO_CMD_DICT__["update"],
                         epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("--delete-changed-uris", dest="delete_changed", default=False,
                           help="Delete the local copy of a directory before changing uri.",
