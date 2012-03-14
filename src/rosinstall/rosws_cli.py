@@ -53,6 +53,7 @@ import multiproject_cmd
 from common import MultiProjectException, select_element
 from helpers import ROSInstallException, ROSINSTALL_FILENAME, get_ros_package_path, get_ros_stack_path
 from multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__, IndentedHelpFormatterWithNL
+from config_yaml import get_path_spec_from_yaml
 
 ## This file adds or extends commands from multiproject_cli where ROS
 ## specific output has to be generated. 
@@ -146,6 +147,9 @@ If PATH is not given, uses current dir.
 Merges config with given other rosinstall element sets, from files or web uris.
 
 By default, when an element in an additional URI has the same local-name as an existing element, the exiting element will be REMOVED, and the new entry APPENDED at the end. This can change the order of entries.
+
+You can use '-' to pipe in input, as an example:
+roslocate info robot_mode | rosws merge -
 """,
                             description=__MULTIPRO_CMD_DICT__["init"],
                             epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
@@ -160,7 +164,7 @@ By default, when an element in an additional URI has the same local-name as an e
                           help="merge by replacing given entry with new one maintaining ordering",
                           action="store_true")
         parser.add_option("-y", "--confirm-all", dest="confirm_all", default='',
-                          help="Do not ask for confirmation unless strictly necessary",
+                          help="do not ask for confirmation unless strictly necessary",
                           action="store_true")
         # required here but used one layer above
         parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
@@ -178,6 +182,14 @@ By default, when an element in an additional URI has the same local-name as an e
             return -1
         
         config_uris = args
+
+        specs = []
+        if config_uris[0] == '-':
+            pipedata = "".join(sys.stdin.readlines())
+            yamldicts = yaml.load(pipedata)
+            options.confirm_all = True # cant have user interaction and piped input
+            specs.extend([get_path_spec_from_yaml(x) for x in yamldicts])
+            config_uris = []
 
         merge_strategy = None
         count_mergeoptions = 0
@@ -197,10 +209,11 @@ By default, when an element in an additional URI has the same local-name as an e
             merge_strategy = 'MergeReplace'
 
         (newconfig, path_changed) = self.prompt_merge(target_path,
-                                                     additional_uris = config_uris,
-                                                     path_change_message = "ROS_PACKAGE_PATH order changed",
-                                                     merge_strategy = merge_strategy,
-                                                     confirmed = options.confirm_all)
+                                                      additional_uris = config_uris,
+                                                      additional_specs = specs,
+                                                      path_change_message = "ROS_PACKAGE_PATH order changed",
+                                                      merge_strategy = merge_strategy,
+                                                      confirmed = options.confirm_all)
         if newconfig is not None:
             print("Overwriting %s/%s"%(newconfig.get_base_path(), self.config_filename))
             rosinstall_cmd.cmd_persist_config(newconfig)

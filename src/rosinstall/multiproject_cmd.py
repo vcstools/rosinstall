@@ -51,7 +51,11 @@ from config_yaml import aggregate_from_uris, generate_config_yaml, get_path_spec
 import vcstools
 from vcstools import VcsClient
 
-def get_config(basepath, additional_uris = None, config_filename = None, merge_strategy = 'KillAppend'):
+def get_config(basepath,
+               additional_uris = None,
+               additional_specs = None,
+               config_filename = None,
+               merge_strategy = 'KillAppend'):
   """
   Create a Config element necessary for all other commands.
   The command will look at the uris in sequence, each

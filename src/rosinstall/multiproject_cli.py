@@ -427,6 +427,7 @@ The command will infer whether you want to add or modify an entry. If you modify
     def prompt_merge(self,
                      target_path,
                      additional_uris,
+                     additional_specs,
                      path_change_message = None,
                      merge_strategy = 'KillAppend',
                      confirmed = False,
@@ -442,7 +443,7 @@ The command will infer whether you want to add or modify an entry. If you modify
             raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
         local_names_old = [x.get_local_name() for x in config.get_config_elements()]
 
-        extra_verbose = False
+        extra_verbose = confirmed
         abort = None
         last_merge_strategy = None
         while abort == None:
@@ -453,6 +454,9 @@ The command will infer whether you want to add or modify an entry. If you modify
               config_actions = multiproject_cmd.add_uris(newconfig,
                                                          additional_uris = additional_uris,
                                                          merge_strategy = merge_strategy)
+              for path_spec in additional_specs:
+                  action = newconfig.add_path_spec(path_spec, merge_strategy)
+                  config_actions[path_spec.get_local_name()] = (action, path_spec)
               last_merge_strategy = merge_strategy
             
             local_names_new = [x.get_local_name() for x in newconfig.get_config_elements()]
