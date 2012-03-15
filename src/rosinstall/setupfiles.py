@@ -115,14 +115,12 @@ fi"""% ros_root
  export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH
  if [ ! "$ROS_MASTER_URI" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
 """% ros_root
-  else:
-      text += """echo Warning, no ros configured for this environment"""
 
   text += "\nexport ROS_WORKSPACE=%s\n" % config.get_base_path()
     
   text += """
 # python script to read .rosinstall even when rosnistall is not installed
-export _ROS_PACKAGE_PATH_ROSINTALL=`/usr/bin/env python << EOPYTHON
+export _ROS_PACKAGE_PATH_ROSINSTALL=`/usr/bin/env python << EOPYTHON
 import sys, os, yaml;
 filename = '.rosinstall'
 if 'ROS_WORKSPACE' in os.environ:
@@ -141,22 +139,16 @@ except Exception as e:
 if y is not None:
   lnames=[x.values()[0]['local-name'] for x in y if x.values() is not None and x.keys()[0] != "setup-file"]
   paths = [os.path.normpath(os.path.join(os.environ['ROS_WORKSPACE'], z)) for z in lnames if not os.path.isfile(os.path.join(os.environ['ROS_WORKSPACE'], z))]
-  if len(paths) == 0:
-    sys.exit("%s contains no valid path elements"%filename)
-  print ':'.join(reversed(paths))
-else:
-  sys.exit("%s contains no path elements"%filename)
+  if len(paths) > 0:
+    print ':'.join(reversed(paths))
 EOPYTHON`
-if [ -z "$_ROS_PACKAGE_PATH_ROSINTALL" ]; then
-    echo Warning: Empty ROS_PACKAGE_PATH
-fi
-export ROS_PACKAGE_PATH=$_ROS_PACKAGE_PATH_ROSINTALL
-unset _ROS_PACKAGE_PATH_ROSINTALL
+export ROS_PACKAGE_PATH=$_ROS_PACKAGE_PATH_ROSINSTALL
+unset _ROS_PACKAGE_PATH_ROSINSTALL
 """
 
   return text
 
-def generate_setup_bash_text(shell):
+def generate_setup_bash_text(shell, no_ros = False):
   if shell == 'bash':
     script_path = """
 SCRIPT_PATH="${BASH_SOURCE[0]}";
@@ -197,8 +189,10 @@ fi
 # unset _ros_decode_path to check later whether setup.sh has sourced ros%(shell)s
 unset -f _ros_decode_path 1> /dev/null 2>&1
 
-. $SCRIPT_PATH/setup.sh
+. $SCRIPT_PATH/setup.sh"""%locals()
 
+  if not no_ros:
+    text += """
 # Cannot rely on $? due to set -o errexit in build scripts
 RETURNCODE=`type _ros_decode_path 2> /dev/null | grep function 1>/dev/null 2>&1 || echo error`
 
@@ -233,9 +227,9 @@ See http://ros.org/wiki/rosinstall."""%([t.get_path() for t in config.get_config
   with open(setup_path, 'w') as f:
     f.write(text)
 
-  for shell in ['bash', 'zsh']:
 
-    text = generate_setup_bash_text(shell)
+  for shell in ['bash', 'zsh']:
+    text = generate_setup_bash_text(shell, ros_root is None)
     setup_path = os.path.join(config.get_base_path(), 'setup.%s'%shell)
     with open(setup_path, 'w') as f:
       f.write(text)
