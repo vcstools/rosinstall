@@ -67,6 +67,7 @@ def get_config(basepath,
   the input to Config is an expanded list of config elements. Config
   takes this list and consolidates duplicate paths by keeping the last
   one in the list.
+  
   :param basepath: where relative paths shall be resolved against
   :param additional_uris: the location of config specifications or folders
   :param config_filename: name of files which may be looked at for config information
@@ -99,6 +100,7 @@ def get_config(basepath,
 def add_uris(config, additional_uris, merge_strategy = "KillAppend"):
   """
   changes the given config by merging with the additional_uris
+  
   :param config: a Config objects
   :param additional_uris: the location of config specifications or folders
   :param config_filename: name of files which may be looked at for config information
@@ -164,6 +166,7 @@ Bzr:       %s
 def cmd_status(config, localnames = None, untracked = False):
   """
   calls SCM status for all SCM entries in config, relative to path
+  
   :returns: List of dict {element: ConfigElement, diff: diffstring}
   :param untracked: also show files not added to the SCM
   :raises MultiProjectException: on plenty of errors
@@ -207,6 +210,7 @@ def cmd_status(config, localnames = None, untracked = False):
 def cmd_diff(config, localnames = None):
   """
   calls SCM diff for all SCM entries in config, relative to path
+  
   :returns: List of dict {element: ConfigElement, diff: diffstring}
   :raises MultiProjectException: on plenty of errors
   """
@@ -234,6 +238,7 @@ def cmd_install_or_update(config, backup_path = None, mode = 'abort', robust = F
   pulling from remote sources the most recent changes.
   
   The command may have stdin user interaction (TODO abstract)
+  
   :param backup_path: if and where to backup trees before deleting them
   :param robust: proceed to next element even when one element fails
   :returns: True on Success

@@ -6,6 +6,9 @@ information about a ROS package or stack.  The main use is to locate
 the source-control repository of a resource, though it can also
 provide additional metadata about that resource. 
 
+The roslocate script was suggested in [REP115]_.
+
+
 .. contents::
    :depth: 3
 
@@ -184,4 +187,6 @@ individual rosinstall file in the ``repos`` directory.
 See also
 --------
 
-`REP 115: rosco and roslocate tools for rosinstall <http://www.ros.org/reps/rep-0115.html>`_
+.. [REP115] rosco and roslocate tools for rosinstall
+  (http://www.ros.org/reps/rep-0115.html)
+

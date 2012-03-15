@@ -22,6 +22,8 @@ For example, you want to add a stack to an existing checkout, you may have to:
 If you have multiple entries in the rosinstall configuration, you will have to
 wait as rosinstall examines each entry for updates.
 
+The roslocate script was suggested in [REP115]_.
+
 
 Usage
 -----
@@ -80,4 +82,5 @@ distribution specific.
 See also
 --------
 
-`REP 115: rosco and roslocate tools for rosinstall <http://www.ros.org/reps/rep-0115.html>`_
+.. [REP115] rosco and roslocate tools for rosinstall
+  (http://www.ros.org/reps/rep-0115.html)

@@ -4,9 +4,7 @@ rosinstall file format
 REP 126
 -------
 
-The rosinstall file format is defined in `REP 126`_.
-
-.. _REP 126: http://www.ros.org/reps/rep-0126.html
+The rosinstall file format was changed in [REP126]_.
 
 
 Format
@@ -29,7 +27,7 @@ Each key represents a form of version control system to use.  These are supporte
 
 The ``other`` key is used to add a path to the workspace without associating a version control system.  
 
-In `REP 126`_ the key ``setup-file`` was added to support the Fuerte
+In [REP126]_ the key ``setup-file`` was added to support the Fuerte
 release.
 
 Example rosinstall syntax:
@@ -55,3 +53,9 @@ Things to note are:
  - Absolute or relative paths are valid for ``local-name``
  - ``setup-file`` and ``other`` do not take any keys besides ``local-name``
  - ``uri`` can be a local file path to a repository. 
+
+See also
+--------
+
+.. [REP126] setup-file root element
+  (http://www.ros.org/reps/rep-0126.html)

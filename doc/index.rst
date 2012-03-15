@@ -12,10 +12,11 @@ Command Line Tools:
 .. toctree::
    :maxdepth: 2
 
-   rosinstall
+   rosinstall_usage
+   rosws
    roslocate
    rosco
-   rosws
+
 
 
 Rosinstall File Format:
@@ -31,15 +32,13 @@ Installation
 rosinstall is available on pypi and can be installed via ``pip``
 ::
 
-    pip install -U rospkg
+    pip install -U rosinstall
 
 or ``easy_install``:
 
 ::
 
-    easy_install -U rosinstall
-
-
+    easy_install -U rosinstall vcstools
 
 
 Advanced: rosinstall developers/contributors
@@ -57,4 +56,5 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
 

@@ -1,11 +1,20 @@
 Developer's Guide
 =================
 
+Code API
+--------
+
+.. toctree::
+   :maxdepth: 1
+
+   modules
+
 Bug reports and feature requests
 --------------------------------
 
 - `Submit a bug report <https://code.ros.org/trac/ros/newticket?component=rosinstall&type=defect&&vcstools>`_
 - `Submit a feature request <https://code.ros.org/trac/ros/newticket?component=rosinstall&type=enhancement&vcstools>`_
+
 
 Developer Setup
 ---------------
@@ -68,3 +77,26 @@ You can build the docs as follows:
 
     cd rosinstall/doc
     make html
+
+
+Inofficial file format
+----------------------
+
+The willow garage build system relies on these two extentions to the rosinstall file format.
+Basic element types include 'tar', and meta properties can be attached.
+
+Example::
+
+  - svn:
+    local-name: rosorg
+    meta:
+      repo-name: ros-docs
+    uri: https://code.ros.org/svn/ros/stacks/rosorg/trunk
+  - tar:
+    local-name: foo.tar.bvz2
+    version: foo-1.2.0
+
+The meta element has no further semantics to rosinstall, it is just passed through.
+The tar element is an unsupported but required feature of vcstools, with the peculiar 
+semantics that 'version' must refer to a folder inside the tar root.
+

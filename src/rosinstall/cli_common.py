@@ -45,7 +45,8 @@ def get_workspace(argv, shell_path, config_filename = None, varname = None):
   if config_filename is given, searches for a file named in config_filename
   in '.', above '.'.
   In that case, if two solutions are found, asks the user.
-  returns abspath if a .rosinstall was found, error and exist else.
+  
+  :returns: abspath if a .rosinstall was found, error and exist else.
   """
   parser = OptionParser()
   parser.add_option("-t", "--target-workspace", dest="workspace", default=None,

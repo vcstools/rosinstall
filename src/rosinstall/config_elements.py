@@ -73,7 +73,8 @@ class ConfigElement:
     return self.local_name
   def prepare_install(self, backup_path = None, arg_mode = 'abort', robust = False):
     """
-    Check whether install can be performed, asking user for decision if necessary. 
+    Check whether install can be performed, asking user for decision if necessary.
+    
     :param arg_mode: one of prompt, backup, delete, skip. Determines how to handle error cases
     :param backup_path: if arg_mode==backup, determines where to backup to
     :param robust: if true, operation will be aborted without changes to the filesystem and without user interaction
@@ -86,6 +87,7 @@ class ConfigElement:
     """
     Attempt to make it so that self.path is the result of checking out / updating from remote repo.
     No user Interaction allowed here (for concurrent mode).
+    
     :param checkout: whether to checkout or update
     :param backup: if checking out, what to do if path exists. If true, backup_path must be set.
     """
@@ -150,6 +152,7 @@ class VCSConfigElement(ConfigElement):
   def __init__(self, path, local_name, uri, version='', properties = None):
     """
     Creates a config element for a VCS repository.
+    
     :param path: absolute or relative path, str
     :param vcs_client: Object compatible with vcstools.VcsClientBase
     :param local_name: display name for the element, str
@@ -233,6 +236,7 @@ class VCSConfigElement(ConfigElement):
   def install(self, checkout = True, backup = True, backup_path = None):
     """
     Runs the equivalent of SCM checkout for new local repos or update for existing.
+    
     :param checkout: whether to use an update command or a checkout/clone command
     :param backup: if checkout is True and folder exists, if backup is false folder will be DELETED.
     :param backup_path: if checkout is true and backup is true, move folder to this location
@@ -294,6 +298,7 @@ class VCSConfigElement(ConfigElement):
 class AVCSConfigElement(VCSConfigElement):
   """
   Implementation using vcstools vcsclient, works for types svn, git, hg, bzr, tar
+  
   :raises: Lookup Exception for unknown types
   """
   def __init__(self, scmtype, path, local_name, uri, version = '', vcsc = None, properties = None):

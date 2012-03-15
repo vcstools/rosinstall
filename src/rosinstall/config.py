@@ -49,6 +49,7 @@ class Config:
     :param config_source_dict: A list (e.g. from yaml) describing the config, list of dict, each dict describing one element.
     :param config_filename: When given a folder, Config
     :param merge_strategy: how to deal with entries with equivalent path. See insert_element
+    
     will look in folder for file of that name for more config source, str.
     """
     assert install_path is not None
@@ -88,12 +89,13 @@ class Config:
 
   def add_path_spec(self, path_spec, merge_strategy = 'KillAppend'):
     """
-    goes through path_specs and builds up self.trees.
-    May recursively pull elements from remote sources.
-    :param merge_strategy: see insert_element
-    :param path_specs: PathSpec objects
-    :retuns: merge action taken, see insert_element
-    """
+   goes through path_specs and builds up self.trees.
+   May recursively pull elements from remote sources.
+   
+   :param merge_strategy: see insert_element
+   :param path_specs: PathSpec objects
+   :returns: merge action taken, see insert_element
+   """
     #compute the local_path for the config element
     local_path = normabspath(path_spec.get_local_name(), self.get_base_path())
     if path_spec.get_scmtype() != None:
@@ -140,14 +142,16 @@ class Config:
 
   def insert_element(self, new_config_elt, merge_strategy = 'KillAppend'):
     """
-    Insert ConfigElement to self.trees, checking for duplicate local-name or path first.
-    In case local_name matches, follow given strategy
-    KillAppend (default): remove old element, append new at the end
-    MergeReplace: remove first such old element, insert new at that position.
-    MergeKeep: Discard new element
-    In case local path matches but local name does not, raise Exception
-    :returns: the action performed None, 'Append', 'KillAppend', 'MergeReplace', 'MergeKeep'
-    """
+   Insert ConfigElement to self.trees, checking for duplicate local-name or path first.
+   In case local_name matches, follow given strategy
+   
+   - KillAppend (default): remove old element, append new at the end
+   - MergeReplace: remove first such old element, insert new at that position.
+   - MergeKeep: Discard new element
+   
+   In case local path matches but local name does not, raise Exception
+   
+   :returns: the action performed None, 'Append', 'KillAppend', 'MergeReplace', 'MergeKeep'"""
     removals = []
     replaced = False
     for index, loop_elt in enumerate (self.trees):
@@ -191,6 +195,7 @@ class Config:
   def remove_element(self, local_name):
     """
     Removes element in the tree with the given local name (should be only one)
+    
     :returns: True if such an element was found
     """
     removals = []
@@ -219,7 +224,7 @@ class Config:
 
   def get_source(self):
     """
-    returns all elements that got added by user keystrokes (CLI and changed .rosinstall)
+    :returns: all elements that got added by user keystrokes (CLI and changed .rosinstall)
     """
     source_aggregate = []
     for t in self.trees:

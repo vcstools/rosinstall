@@ -1,90 +1,200 @@
-rosinstall: source-based install tool
-=====================================
+rosinstall Package
+==================
 
-Usage
------
+.. contents:: Contents
+   :depth: 2
 
-::
-    Usage: rosinstall <path> <paths...> [options]
-    
-    Options:
-      --version             show program's version number and exit
-      -h, --help            show this help message and exit
-      -n, --nobuild         skip the build step for the ROS stack
-      --rosdep-yes          Pass through --rosdep-yes to rosmake
-      --delete-changed-uris
-                            Delete the local copy of a directory before changing
-                            uri.
-      --abort-changed-uris  Abort if changed uri detected
-      --backup-changed-uris=BACKUP_CHANGED
-                            backup the local copy of a directory before changing
-                            uri to this directory.
-      --generate-versioned-rosinstall=GENERATE_VERSIONED
-                            generate a versioned rosintall file
+:mod:`rosinstall` Package
+-------------------------
 
+The rosinstall package currently contains all modules of rosinstall and rosws.
 
-The first `<path>` is the filesystem path where the source code will
-be downloaded.  Any additional `<paths...>` are treated as locations
-from which to fetch additional rosinstall file configuration.  *These
-can be filesystem paths or URLs*. The behavior of rosinstall depends
-on what `<paths...>` points to:
+there is a vision of splitting out all ROS dependent functionality into 
+a separate tool, to leave a pure multi-vcs tool. Thsi split is alread half 
+evident in the modules.
 
- - If an additional path is a filesystem directory, rosinstall will look for a `.rosinstall` file in the directory, and then overlay the new environment on top of that directory's configuration.
- - If an additional path points to a `.rosinstall` file, rosinstall will include the contents of that file.  
+The architecture can be imagined to have 3 layers, on top of the 
+vcstools library.
 
-For example::
+The lowest layer is the model layer, which is all the `config_*` modules.
+The main model class is .. autosummary:: rosinstall.config.
 
-    rosinstall ~/ros "http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=electric&variant=desktop-full&overlay=no"
+The `*_cmd` modules provide general services to query or modify the model.
+They should keep printing and command line assumptions to a minimum, 
+optimally functions in here should be callable from any UI.
 
-After installation, ``rosinstall`` writes a bash setup file, called
-``setup.bash``, into ``<path>``.  Source this file to configure your
-`environment variables`_.
-
-.. _environment variables: http://ros.org/wiki/ROS/EnvironmentVariables
-
-rosinstall will also store the checkout information used in ``<path>/.rosinstall``.
+The `*_cli` modules implement actual command line interface tools, and thus 
+provide command line argument parsing and pretty printing. Optimally 
+functions in here do not contain any algorithmic code that can be useful 
+for more than one UI.
 
 
-Updating a rosinstall checkout
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The Model
+=========
+
+The model of rosinstall is that a config maintains a list of elements, 
+and performs defines operations on the list. The config class irs 
+responsible for ensuring consistency, such as not having two elements 
+with the same localname.
+
+A config element defines one main function `install`, which eventually 
+calls an SCM provider to checkout or update code.
+
+:mod:`config` Module
+--------------------
+
+.. automodule:: rosinstall.config
+    :members:
+    :special-members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`config_elements` Module
+-----------------------------
+
+.. automodule:: rosinstall.config_elements
+    :members:
+    :special-members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`config_yaml` Module
+-------------------------
+
+.. automodule:: rosinstall.config_yaml
+    :members:
+    :special-members:
+    :undoc-members:
+    :show-inheritance:
 
 
-After using rosinstall to download and setup a certain directory tree.  You can update the the contents of that tree using rosinstall as well.
 
-::
+ROS dependent modules
+=====================
 
-    rosinstall ~/workspace
+These modules prodive functions on top of the multiproject context with reference to ROS.
 
-will read the ``.rosinstall`` file in ``~/ros`` and then call ``svn up`` or other VCS "update" equivalent.  This will also regenerate the ``setup.bash`` environment file.  
+:mod:`rosinstall_cli` Module
+----------------------------
 
-If you are already in ``~/workspace`` you can update by typing::
-
-    rosinstall .
-
-
-Examples usages
-~~~~~~~~~~~~~~~
-
-*Developing on top of boxturtle shared install*::
-
-    rosinstall ~/workspace /opt/ros/boxturtle http://www.ros.org/rosinstalls/wg_boxturtle_devel.rosinstall
-
-*Full source checkout*::
-
-    rosinstall ~/workspace http://www.ros.org/rosinstalls/boxturtle_pr2all.rosinstall
-
-*Developing a stack against a full tree*::
-
-    rosinstall ~/workspace http://www.ros.org/rosinstalls/boxturtle_pr2all.rosinstall my_stack.rosinstall
+.. automodule:: rosinstall.rosinstall_cli
+    :members:
+    :special-members:
+    :undoc-members:
+    :show-inheritance:
 
 
-*Adding a rosinstall layout to an existing workspace*
+:mod:`rosws_cli` Module
+-----------------------
 
-Create a new workspace directory and include `/opt/ros/diamondback` in the `ROS_PACKAGE_PATH`::
+.. automodule:: rosinstall.rosws_cli
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
-    rosinstall ~/workspace /opt/ros/diamondback
+:mod:`rosws_stacks_cli` Module
+------------------------------
 
-Add wg_boxturtle_devel packages to the workspace::
+.. automodule:: rosinstall.rosws_stacks_cli
+    :members:
+    :special-members:
+    :undoc-members:
+    :show-inheritance:
 
-    rosinstall ~/workspace http://www.ros.org/rosinstalls/wg_boxturtle_devel.rosinstall
+:mod:`rosinstall_cmd` Module
+----------------------------
+
+.. automodule:: rosinstall.rosinstall_cmd
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+:mod:`helpers` Module
+---------------------
+
+.. automodule:: rosinstall.helpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+:mod:`setupfiles` Module
+------------------------
+
+.. automodule:: rosinstall.setupfiles
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`locate` Module
+--------------------
+
+.. automodule:: rosinstall.locate
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+
+:mod:`simple_checkout` Module
+-----------------------------
+
+.. automodule:: rosinstall.simple_checkout
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Multiproject modules
+====================
+
+The following modules should have no dependency to ROS, related functions.
+
+:mod:`multiproject_cli` Module
+------------------------------
+
+.. automodule:: rosinstall.multiproject_cli
+    :members:
+    :special-members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`multiproject_cmd` Module
+------------------------------
+
+.. automodule:: rosinstall.multiproject_cmd
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+
+:mod:`cli_common` Module
+------------------------
+
+.. automodule:: rosinstall.cli_common
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`common` Module
+--------------------
+
+.. automodule:: rosinstall.common
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+
+
+:mod:`ui` Module
+----------------
+
+.. automodule:: rosinstall.ui
+    :members:
+    :special-members:
+    :undoc-members:
+    :show-inheritance:
 

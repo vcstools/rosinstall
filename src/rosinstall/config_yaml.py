@@ -77,6 +77,7 @@ def get_path_specs_from_uri(uri, config_filename = None, as_is = False):
   """
   Builds a list of PathSpec elements from several types of input locations, "uris".
   The function treats other workspace folders/files as special uris to prevent mutual conflicts.
+  
   :param uri: a folder, a file, or a web url
   :param config_filename: name for files to be treated special as other workspaces
   :param as_is: do not rewrite, used for loading the current workspace config without rewriting

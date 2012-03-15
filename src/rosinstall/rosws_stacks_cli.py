@@ -33,6 +33,7 @@ def get_stack_element_in_config(config, stack):
 def roslocate_info(stack, distro, dev):
   """
   Looks up stack yaml on the web
+  
   :raises: ROSInstallException on errors
   """
   # TODO: use roslocate from code
@@ -133,6 +134,7 @@ def cmd_add_stack(config, stackname, released = False, recurse = False):
   Attempts to get ROS stack from source if it is not already in config.
   Attempts the same for all stacks it depents, if recurse is given.
   Fails if any stack failed.
+  
   :param released: use the released or the dev version
   :param recurse: also get dependant version
   :returns: True if stack has been added
@@ -170,6 +172,7 @@ def cmd_delete_stack(config, stackname, delete = False, recurse = False):
   Attempts to get ROS stack from source if it is not already in config.
   Attempts the same for all stacks it depents, if recurse is given.
   Fails if any stack failed.
+  
   :param released: use the released or the dev version
   :param recurse: also get dependant version
   :returns: True if stack has been added
