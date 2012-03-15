@@ -260,7 +260,11 @@ rosws()
             if [ "$?" -eq 0 ]; then
                 # autosource
                 if [ "$1" = "init" ]; then
-                        rosws switch $2
+                    if [[ ! "$#" -eq 1 ]]; then
+                        rosws switch "."
+                    else
+                        rosws switch "$2"
+                    fi
                 elif [ "$1" = "install" ]; then
                     _rosws_maybe_reload $*
                 elif [ "$1" = "modify" ]; then
