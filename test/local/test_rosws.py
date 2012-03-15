@@ -32,6 +32,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import sys
 import copy
 import yaml
 import subprocess
@@ -39,7 +40,7 @@ import tempfile
 import shutil
 import rosinstall
 import rosinstall.helpers
-
+from StringIO import StringIO
 import rosinstall.multiproject_cmd
 
 from test.scm_test_base import AbstractFakeRosBasedTest
@@ -251,3 +252,44 @@ class RosWsTest(AbstractFakeRosBasedTest):
         self.assertEqual(None, path_spec.get_version())
         self.assertTrue(path_spec.get_revision() is None)
         self.assertFalse(path_spec.get_current_revision() is None)
+
+    def test_info_only(self):
+        workspace = os.path.join(self.test_root_path, 'ws7')
+        cli = RoswsCLI()
+        self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall]))
+        #pkg_path
+        sys.stdout = output = StringIO();
+        self.assertEqual(0, cli.cmd_info(workspace, ['--pkg-path-only']))
+        output = output.getvalue()
+        self.assertEqual( os.path.join(workspace, 'gitrepo'), output.strip())
+
+        sys.stdout = output = StringIO();
+        self.assertEqual(0, cli.cmd_info(workspace, ['--only=localname']))
+        output = output.getvalue()
+        self.assertEqual('ros\ngitrepo', output.strip())
+
+        sys.stdout = output = StringIO();
+        self.assertEqual(0, cli.cmd_info(workspace, ['--only=version']))
+        output = output.getvalue()
+        self.assertEqual('', output.strip())
+
+        sys.stdout = output = StringIO();
+        self.assertEqual(0, cli.cmd_info(workspace, ['--only=uri']))
+        output = output.getvalue()
+        self.assertEqual('%s\n%s\n'%(os.path.join(self.test_root_path, 'ros'), os.path.join(self.test_root_path, 'gitrepo')), output)
+
+        sys.stdout = output = StringIO();
+        self.assertEqual(0, cli.cmd_info(workspace, ['--only=cur_revision']))
+        output = output.getvalue()
+        self.assertEqual(82, len(output))
+	sys.stdout = sys.__stdout__
+
+        # pairs
+        sys.stdout = output = StringIO();
+        self.assertEqual(0, cli.cmd_info(workspace, ['--only=localname,scmtype']))
+        output = output.getvalue()
+        self.assertEqual('ros,git\ngitrepo,git', output.strip())
+        sys.stdout = output = StringIO();
+        self.assertEqual(0, cli.cmd_info(workspace, ['--only=scmtype,localname']))
+        output = output.getvalue()
+        self.assertEqual('git,ros\ngit,gitrepo', output.strip())

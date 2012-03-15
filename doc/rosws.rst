@@ -210,7 +210,7 @@ form.
 This also has the generic properties element which is usually empty.
 
 The --only option accepts keywords: ['path', 'localname', 'version',
-'revision', 'cur_revision', 'uri', 'cur_uri']
+'revision', 'cur_revision', 'uri', 'cur_uri', 'scmtype']
 
 Examples::
 

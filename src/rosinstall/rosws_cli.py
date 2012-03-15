@@ -280,7 +280,7 @@ accidentally.
 
    
     def cmd_info(self, target_path, argv, config = None):
-        only_option_valid_attrs=['path', 'localname', 'version', 'revision', 'cur_revision', 'uri', 'cur_uri']
+        only_option_valid_attrs=['path', 'localname', 'version', 'revision', 'cur_revision', 'uri', 'cur_uri', 'scmtype']
         parser = OptionParser(usage="usage: rosws info [localname]* [OPTIONS]",
                               formatter = IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["info"] + """
