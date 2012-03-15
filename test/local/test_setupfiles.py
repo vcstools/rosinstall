@@ -85,7 +85,7 @@ class GenerateTest(AbstractFakeRosBasedTest):
                          PathSpec("bar")],
                         self.test_root_path,
                         None)
-        result = rosinstall.setupfiles.generate_setup_sh_text(config, "ros")
+        result = rosinstall.setupfiles.generate_setup_sh_text(config.get_base_path())
         self.assertTrue(result.count("#!/usr/bin/env sh")==1)
 
         config = Config([PathSpec(self.ros_path),
@@ -93,9 +93,8 @@ class GenerateTest(AbstractFakeRosBasedTest):
                          PathSpec("bar.sh", tags = 'setup-file')],
                         self.test_root_path,
                         None)
-        result = rosinstall.setupfiles.generate_setup_sh_text(config, "foorosbar")
-        self.assertTrue(result.count("#!/usr/bin/env sh")==1)
-        self.assertTrue(result.count(". %s/bar.sh"%self.test_root_path)==1)
+        result = rosinstall.setupfiles.generate_setup_sh_text(config.get_base_path())
+        self.assertTrue(result.count("#!/usr/bin/env sh") == 1, result)
 
 
     def test_gen_setup_bash(self):

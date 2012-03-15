@@ -196,6 +196,18 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
                              env=self.new_environ)
         output = p.communicate()
         self.assertEqual(0, p.returncode)
+        p = subprocess.Popen("bash -c '. %s; echo $ROS_ROOT'"%os.path.join(self.directory, 'setup.bash'),
+                             shell=True,
+                             stdout=subprocess.PIPE,
+                             env=self.new_environ)
+        output = p.communicate()
+        self.assertEqual('/opt/ros/diamondback/ros', output[0].rstrip('\n'))
+        p = subprocess.Popen("sh -c '. %s; echo $ROS_ROOT'"%os.path.join(self.directory, 'setup.sh'),
+                             shell=True,
+                             stdout=subprocess.PIPE,
+                             env=self.new_environ)
+        output = p.communicate()
+        self.assertEqual('/opt/ros/diamondback/ros', output[0].rstrip('\n'))
         
     def test_local_electric(self):
         distrodir = '/opt/ros/electric'
@@ -212,6 +224,18 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
                              env=self.new_environ)
         output = p.communicate()
         self.assertEqual(0, p.returncode, (output, p.returncode))
+        p = subprocess.Popen("bash -c '. %s; echo $ROS_ROOT'"%os.path.join(self.directory, 'setup.bash'),
+                             shell=True,
+                             stdout=subprocess.PIPE,
+                             env=self.new_environ)
+        output = p.communicate()
+        self.assertEqual('/opt/ros/electric/ros', output[0].rstrip('\n'))
+        p = subprocess.Popen("sh -c '. %s; echo $ROS_ROOT'"%os.path.join(self.directory, 'setup.sh'),
+                             shell=True,
+                             stdout=subprocess.PIPE,
+                             env=self.new_environ)
+        output = p.communicate()
+        self.assertEqual('/opt/ros/electric/ros', output[0].rstrip('\n'))
         
     def test_local_fuerte(self):
         distrodir = '/opt/ros/fuerte'
@@ -227,7 +251,19 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
                              stdout=subprocess.PIPE,
                              env=self.new_environ)
         output = p.communicate()
-        self.assertEqual(0, p.returncode)
+        self.assertEqual(0, p.returncode, (output, p.returncode))
+        p = subprocess.Popen("bash -c '. %s; echo $ROS_ROOT'"%os.path.join(self.directory, 'setup.bash'),
+                             shell=True,
+                             stdout=subprocess.PIPE,
+                             env=self.new_environ)
+        output = p.communicate()
+        self.assertEqual('/opt/ros/fuerte/share/ros', output[0].rstrip('\n'))
+        p = subprocess.Popen("sh -c '. %s; echo $ROS_ROOT'"%os.path.join(self.directory, 'setup.sh'),
+                             shell=True,
+                             stdout=subprocess.PIPE,
+                             env=self.new_environ)
+        output = p.communicate()
+        self.assertEqual('/opt/ros/fuerte/share/ros', output[0].rstrip('\n'))
 
     def test_local_fuerte_catkin(self):
         distrodir = '/opt/ros/fuerte'
