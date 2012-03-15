@@ -479,12 +479,7 @@ def rosws_main(argv=None):
       'status'       : cli.cmd_status,
       'update'       : cli.cmd_update,
       }
-
-
-    # TODO remove
-    if command not in ['diff', 'status', 'info']:
-        print("(rosws and py-rosws are experimental scripts, please provide feedback to tfoote@willowgarage.com)")
-    
+   
     if command not in commands and command not in ws_commands:
       if os.path.exists(command):
         args = ['-t', command] + args
