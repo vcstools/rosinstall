@@ -271,18 +271,21 @@ $ rosws set robot_model --detached
             else:
                 localname = args[0]
                 is_insert = True
-              
+
+        version = None
+        if options.version != False:
+          version = options.version.strip("'\"")
         if is_insert:
             if scmtype is not None:
                 version = None
-                if options.version != False:
-                  version = options.version
                 spec = PathSpec(local_name = localname,
                                 uri = uri,
                                 version = version,
                                 scmtype = scmtype)
             else:
-                spec = PathSpec(local_name = localname)
+                spec = PathSpec(local_name = localname,
+                                uri = uri,
+                                version = version)
             print("     Add element: \n %s"%spec)
         else:
             # modify
@@ -290,9 +293,12 @@ $ rosws set robot_model --detached
             if options.detach:
                 spec = PathSpec(local_name = element.get_local_name())
             else:
+                # '' evals to False, we do not want that
+                if version is None:
+                    version = old_spec.get_version()
                 spec = PathSpec(local_name = element.get_local_name(),
                                 uri = uri or old_spec.get_uri(),
-                                version = options.version or old_spec.get_version(),
+                                version = version,
                                 scmtype = scmtype or old_spec.get_scmtype(),
                                 path = old_spec.get_path())
             if spec.get_legacy_yaml() == old_spec.get_legacy_yaml():
@@ -317,7 +323,8 @@ $ rosws set robot_model --detached
         print("Overwriting %s/%s"%(config.get_base_path(), self.config_filename))
         multiproject_cmd.cmd_persist_config(config, self.config_filename)
 
-        print("Config changed, remember to run rosws update %s to update the tree"%spec.get_local_name())
+        if (spec.get_scmtype() is not None):
+          print("Config changed, remember to run 'rosws update %s' to update the folder from %s"%(spec.get_local_name(), spec.get_scmtype()))
         # for element in config.get_config_elements():
         #   if element.get_local_name() == spec.get_local_name():
         #     if element.is_vcs_element():

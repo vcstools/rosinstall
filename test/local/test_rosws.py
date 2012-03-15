@@ -116,7 +116,7 @@ class RosWsTest(AbstractFakeRosBasedTest):
         config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
         self.assertEqual(2, len(config.get_config_elements()))
 
-    def test_modify(self):
+    def test_set_detached(self):
         workspace = os.path.join(self.test_root_path, 'ws4')
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall]))
@@ -135,3 +135,119 @@ class RosWsTest(AbstractFakeRosBasedTest):
         self.assertEqual('gitrepo', config.get_config_elements()[1].get_local_name())
         self.assertEqual(False, config.get_config_elements()[1].is_vcs_element())
         self.assertEqual('hgrepo', config.get_config_elements()[2].get_local_name())
+
+    def test_set_add_plain(self):
+        workspace = os.path.join(self.test_root_path, 'ws5')
+        cli = RoswsCLI()
+        self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall]))
+        config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
+        self.assertEqual(2, len(config.get_config_elements()))
+        self.assertEqual('ros', config.get_config_elements()[0].get_local_name())
+        self.assertEqual('gitrepo', config.get_config_elements()[1].get_local_name())
+        # detached
+        self.assertEqual(0, cli.cmd_set(workspace, ['foo', '-y']))
+        config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
+        self.assertEqual(3, len(config.get_config_elements()))
+        self.assertEqual('ros', config.get_config_elements()[0].get_local_name())
+        self.assertEqual('gitrepo', config.get_config_elements()[1].get_local_name())
+        self.assertEqual(False, config.get_config_elements()[2].is_vcs_element())
+        self.assertEqual('foo', config.get_config_elements()[2].get_local_name())
+        self.assertEqual(0, cli.cmd_set(workspace, ['hgrepo', '-y', '--detached']))
+        config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
+        self.assertEqual(4, len(config.get_config_elements()))
+        self.assertEqual('ros', config.get_config_elements()[0].get_local_name())
+        self.assertEqual('gitrepo', config.get_config_elements()[1].get_local_name())
+        self.assertEqual(False, config.get_config_elements()[2].is_vcs_element())
+        self.assertEqual('foo', config.get_config_elements()[2].get_local_name())
+        self.assertEqual(False, config.get_config_elements()[3].is_vcs_element())
+        self.assertEqual('hgrepo', config.get_config_elements()[3].get_local_name())
+        # turn into scm repo
+        self.assertEqual(0, cli.cmd_set(workspace, ['hgrepo', '../hgrepo', '-y', '--hg']))
+        config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
+        self.assertEqual(4, len(config.get_config_elements()))
+        self.assertEqual('ros', config.get_config_elements()[0].get_local_name())
+        self.assertEqual('gitrepo', config.get_config_elements()[1].get_local_name())
+        self.assertTrue(config.get_config_elements()[3].is_vcs_element())
+        self.assertEqual('hgrepo', config.get_config_elements()[3].get_local_name())
+        
+    def test_set_add_scm(self):
+        workspace = os.path.join(self.test_root_path, 'ws6')
+        cli = RoswsCLI()
+        self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall]))
+        config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
+        self.assertEqual(2, len(config.get_config_elements()))
+        self.assertEqual('ros', config.get_config_elements()[0].get_local_name())
+        self.assertEqual('gitrepo', config.get_config_elements()[1].get_local_name())
+
+        # scm repo
+        self.assertEqual(0, cli.cmd_set(workspace, ['hgrepo', '../hgrepo', '-y', '--hg']))
+        config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
+        self.assertEqual(3, len(config.get_config_elements()))
+        self.assertEqual('ros', config.get_config_elements()[0].get_local_name())
+        self.assertEqual('gitrepo', config.get_config_elements()[1].get_local_name())
+        self.assertTrue(config.get_config_elements()[2].is_vcs_element())
+        self.assertEqual('hgrepo', config.get_config_elements()[2].get_local_name())
+        self.assertFalse(os.path.exists(os.path.join(workspace, 'hgrepo')))
+        
+        self.assertEqual(0, cli.cmd_update(workspace, []))
+        self.assertTrue(os.path.exists(os.path.join(workspace, 'hgrepo')))
+
+        path_spec = config.get_config_elements()[2].get_versioned_path_spec()
+        self.assertFalse(path_spec is None )
+        self.assertEqual(None, path_spec.get_version())
+        self.assertEqual(None, path_spec.get_revision())
+        self.assertFalse(path_spec.get_current_revision() is None)
+
+        self.assertEqual(0, cli.cmd_set(workspace, ['hgrepo', '--version-new=0', '-y']))
+
+        config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
+        path_spec = config.get_config_elements()[2].get_versioned_path_spec()
+        self.assertEqual('0', path_spec.get_version())
+        self.assertFalse(path_spec.get_revision() is None)
+        self.assertFalse(path_spec.get_current_revision() is None)
+        self.assertEqual(path_spec.get_revision(), path_spec.get_current_revision())
+
+        # change in FS to version 1
+        subprocess.check_call(["touch", "hgfixed2.txt"], cwd=os.path.join(workspace, 'hgrepo'))
+        subprocess.check_call(["hg", "add", "hgfixed2.txt"], cwd=os.path.join(workspace, 'hgrepo'))
+        subprocess.check_call(["hg", "commit", "-m", "2nd"], cwd=os.path.join(workspace, 'hgrepo'))
+        self.assertTrue(os.path.exists(os.path.join(workspace, 'hgrepo', 'hgfixed2.txt')))
+
+        path_spec = config.get_config_elements()[2].get_versioned_path_spec()
+        self.assertEqual('0', path_spec.get_version())
+        self.assertFalse(path_spec.get_revision() is None)
+        self.assertFalse(path_spec.get_current_revision() is None)
+        self.assertNotEqual(path_spec.get_revision(), path_spec.get_current_revision())
+
+        # revert FS to spec
+        self.assertEqual(0, cli.cmd_update(workspace, []))
+        config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
+        path_spec = config.get_config_elements()[2].get_versioned_path_spec()
+        self.assertEqual('0', path_spec.get_version())
+        self.assertFalse(path_spec.get_revision() is None)
+        self.assertFalse(path_spec.get_current_revision() is None)
+        self.assertEqual(path_spec.get_revision(), path_spec.get_current_revision())
+
+        # change spec to 1
+        self.assertEqual(0, cli.cmd_set(workspace, ['hgrepo', '--version-new=1', '-y']))
+        config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
+        path_spec = config.get_config_elements()[2].get_versioned_path_spec()
+        self.assertEqual('1', path_spec.get_version())
+        self.assertFalse(path_spec.get_revision() is None)
+        self.assertFalse(path_spec.get_current_revision() is None)
+        self.assertNotEqual(path_spec.get_revision(), path_spec.get_current_revision())
+
+        # setting version to ''
+        self.assertEqual(0, cli.cmd_set(workspace, ['hgrepo', "--version-new=''", '-y']))
+        config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
+        path_spec = config.get_config_elements()[2].get_versioned_path_spec()
+        self.assertEqual(None, path_spec.get_version())
+        self.assertTrue(path_spec.get_revision() is None)
+        self.assertFalse(path_spec.get_current_revision() is None)
+
+        self.assertEqual(0, cli.cmd_update(workspace, []))
+        config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
+        path_spec = config.get_config_elements()[2].get_versioned_path_spec()
+        self.assertEqual(None, path_spec.get_version())
+        self.assertTrue(path_spec.get_revision() is None)
+        self.assertFalse(path_spec.get_current_revision() is None)
