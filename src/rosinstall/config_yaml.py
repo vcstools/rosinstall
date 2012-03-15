@@ -196,12 +196,10 @@ class PathSpec:
   def get_legacy_yaml(self):
     """return something like {hg: {local-name: common, version: common-1.0.2, uri: https://kforge.org/common/}}"""
     properties = {'local-name' : self._local_name}
-    if self._scmtype is not None:
-      # cautiously discarding uri and version even if they had been set in the meantime
-      if self._uri is not None:
-        properties['uri'] = self._uri
-      if self._version is not None:
-        properties['version'] = self._version
+    if self._uri is not None:
+      properties['uri'] = self._uri
+    if self._version is not None:
+      properties['version'] = self._version
     if self._tags is not None:
       for tag in self._tags:
         if tag != 'setup-file' and tag != []:

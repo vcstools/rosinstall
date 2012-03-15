@@ -269,8 +269,9 @@ $ rosws set robot_model --detached
                     parser.error("Cannot guess what localname to create")
                 is_insert = True
             else:
-                parser.error("No scm or localname provided")
-            
+                localname = args[0]
+                is_insert = True
+              
         if is_insert:
             if scmtype is not None:
                 version = None
@@ -294,7 +295,7 @@ $ rosws set robot_model --detached
                                 version = options.version or old_spec.get_version(),
                                 scmtype = scmtype or old_spec.get_scmtype(),
                                 path = old_spec.get_path())
-            if spec == old_spec:
+            if spec.get_legacy_yaml() == old_spec.get_legacy_yaml():
                 if not options.detach:
                     parser.error("No change provided, did you mean --detach ?")
                 parser.error("No change provided.")

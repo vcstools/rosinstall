@@ -112,7 +112,11 @@ class Config:
                  and os.path.isdir(local_path)
                  and os.path.exists(os.path.join(local_path, self.config_filename)))):
           local_name = os.path.normpath(path_spec.get_local_name())
-          elem = OtherConfigElement(local_path, local_name, properties = path_spec.get_tags())
+          elem = OtherConfigElement(local_path,
+                                    local_name,
+                                    path_spec.get_uri(),
+                                    path_spec.get_version(),
+                                    properties = path_spec.get_tags())
           return self.insert_element(elem, merge_strategy)
         else:
           print("!!!!!Warning: Not recursing into other config folder %s"%local_path)

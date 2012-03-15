@@ -63,6 +63,8 @@ class ConfigElement:
   exceptions.  Also a few shared methods."""
   def __init__(self, path, local_name, properties = None):
     self.path = path
+    if path is None:
+      raise MultiProjectException("Invalid empty path")
     self.local_name = local_name
     self.properties = properties
   def get_path(self):
@@ -124,6 +126,13 @@ class ConfigElement:
 
 
 class OtherConfigElement(ConfigElement):
+
+  def __init__(self, path, local_name, uri=None, version='', properties = None):
+    ConfigElement.__init__(self, path, local_name, properties)
+    self.uri = uri
+    self.version = version
+
+  
   def install(self, checkout = True, backup_path = None, arg_mode = None, robust = False):
     return True
 
@@ -131,7 +140,15 @@ class OtherConfigElement(ConfigElement):
     raise MultiProjectException("Cannot generate versioned outputs with non source types")
 
   def get_path_spec(self):
-    return PathSpec(local_name = self.get_local_name(), path = self.get_path(), tags = self.get_properties())
+    "yaml as from source"
+    version = self.version
+    if version == '': version = None
+    return PathSpec(local_name = self.get_local_name(),
+                    path = self.get_path(),
+                    scmtype = None,
+                    uri = self.uri,
+                    version = version,
+                    tags = self.get_properties())
 
 
 class SetupConfigElement(ConfigElement):
@@ -160,8 +177,6 @@ class VCSConfigElement(ConfigElement):
     :param version: optional revision spec (tagname, SHAID, ..., str)
     """
     ConfigElement.__init__(self, path, local_name, properties)
-    if path is None:
-      raise MultiProjectException("Invalid empty path")
     if uri is None:
       raise MultiProjectException("Invalid scm entry having no uri attribute for path %s"%path)
     self.uri = uri.rstrip('/') # strip trailing slashes if defined to not be too strict #3061
