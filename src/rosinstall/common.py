@@ -170,12 +170,13 @@ class WorkerThread(Process):
 
 class DistributedWork():
   
-  def __init__(self, capacity, silent=True):
+  def __init__(self, capacity, num_threads=10, silent=True):
     man = Manager() # need managed array since we need the results later
     self.outputs = man.list([None for x in range(capacity)])
     self.threads = []
     self.sequentializers = {}
     self.index = 0
+    self.num_threads = num_threads
     self.silent = silent
     
   def add_thread(self, worker):
@@ -214,36 +215,41 @@ class DistributedWork():
     """
     if self.threads == []:
       return []
-    # The following code is rather delicate and may behave differently
-    # using threading or multiprocessing. running_threads is
-    # intentionally not used as a shrinking list because of al the
-    # possible multithreading / interruption corner cases
-    # Not using Pool because of KeyboardInterrupt cases
-    try:
-      waiting_index = 0
-      maxthreads = 10
-      running_threads = []
-      missing_threads = copy.copy(self.threads)
-      while len(running_threads) > 0 or len(missing_threads) > 0:
-        if len(running_threads) < maxthreads:
-          to_index = min(waiting_index + maxthreads - len(running_threads), len(self.threads))
-          for i in range(waiting_index, to_index):
-            self.threads[i].start()
-          waiting_index = to_index
-        running_threads = [t for t in self.threads if t is not None and t.is_alive()]
-        if (self.silent == False
-            and len(running_threads) > 0):
-          print("[%s] still active"%",".join([th.worker.element.get_local_name() for th in running_threads]))
-        for thread in running_threads:
-          if thread in missing_threads:
-            missing_threads.remove(thread)
-          thread.join(1)
-    except KeyboardInterrupt as k:
+    if (self.num_threads == 1):
       for thread in self.threads:
-        if thread is not None and thread.is_alive():
-          print("[%s] terminated while active"%thread.worker.element.get_local_name())
-          thread.terminate()
-      raise k
+        thread.run()
+    else:
+      # The following code is rather delicate and may behave differently
+      # using threading or multiprocessing. running_threads is
+      # intentionally not used as a shrinking list because of al the
+      # possible multithreading / interruption corner cases
+      # Not using Pool because of KeyboardInterrupt cases
+      try:
+        waiting_index = 0
+        maxthreads = self.num_threads
+        running_threads = []
+        missing_threads = copy.copy(self.threads)
+        while len(running_threads) > 0 or len(missing_threads) > 0:
+          if len(running_threads) < maxthreads:
+            to_index = min(waiting_index + maxthreads - len(running_threads), len(self.threads))
+            for i in range(waiting_index, to_index):
+              self.threads[i].start()
+            waiting_index = to_index
+          running_threads = [t for t in self.threads if t is not None and t.is_alive()]
+          if (self.silent == False
+              and len(running_threads) > 0):
+            print("[%s] still active"%",".join([th.worker.element.get_local_name() for th in running_threads]))
+          for thread in running_threads:
+            if thread in missing_threads:
+              missing_threads.remove(thread)
+            thread.join(1)
+      except KeyboardInterrupt as k:
+        for thread in self.threads:
+          if thread is not None and thread.is_alive():
+            print("[%s] terminated while active"%thread.worker.element.get_local_name())
+            thread.terminate()
+        raise k
+    
     self.outputs = filter(lambda x: x is not None, self.outputs)
     message = ''
     for output in self.outputs:
