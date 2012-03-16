@@ -228,6 +228,7 @@ $ roslocate info robot_mode | rosws merge -
                                                       path_change_message = "ROS_PACKAGE_PATH order changed",
                                                       merge_strategy = merge_strategy,
                                                       confirmed = options.confirm_all)
+        print("Config changed, maybe you need run rosws update to update SCM entries.")
         if newconfig is not None:
             print("Overwriting %s/%s"%(newconfig.get_base_path(), self.config_filename))
             rosinstall_cmd.cmd_persist_config(newconfig)
@@ -235,7 +236,7 @@ $ roslocate info robot_mode | rosws merge -
             print("\nrosws update complete.")
             if path_changed:
                 print("\nDo not forget to do ...\n$ source %s/setup.sh\n... in every open terminal." % target_path)
-        print("Config changed, remember to run rosws update to update the tree")
+
         return 0
 
     
@@ -393,11 +394,12 @@ $ rosws info --only=path,cur_uri,cur_revision robot_model geometry
                 print(cli_common.get_info_list(config.get_base_path(), outputs[0], options.data_only))
                 return 0
                 
-        print("workspace: %s"%target_path)
-        print("ROS_ROOT: %s\n"%get_ros_stack_path(config))
-
+        header = 'workspace: %s\nROS_ROOT: %s'%(target_path, get_ros_stack_path(config))
+        print(header)
         if not options.no_pkg_path:
-            print(cli_common.get_info_table(config.get_base_path(), outputs, options.data_only, reverse = True))
+            table = cli_common.get_info_table(config.get_base_path(), outputs, options.data_only, reverse = True)
+            if table is not None and table != '':
+                print("\n%s"%table)
       
         return 0
 
