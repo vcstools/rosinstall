@@ -283,7 +283,24 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
             self.assertEqual(expect, output.strip(), ("'%s' != '%s'"%(expect, output), cmd, cwd))
             self.assertEqual(0, p.returncode)
         
+    def test_init_parallel(self):
+        self.local_path = os.path.join(self.test_root_path, "ws13a")
+        cli = RoswsCLI()
+        self.assertEqual(0, cli.cmd_init([self.local_path, self.simple_rosinstall, "--parallel=5"]))
+
+        command = "echo $ROS_WORKSPACE"
+        self.execute_check_result_allshells(command, self.local_path, expect = self.local_path)
+        self.execute_check_result_allshells(command, '.', cwd=self.local_path, expect = self.local_path)
+        self.execute_check_result_allshells(command, 'ws13a', cwd=self.test_root_path, expect = self.local_path)
         
+        local_ros_path = os.path.join(self.local_path, "ros")
+        local_git_path = os.path.join(self.local_path, "gitrepo")
+        package_path = "%s:%s"%(local_git_path, local_ros_path)
+        command = "echo $ROS_PACKAGE_PATH"
+        self.execute_check_result_allshells(command, self.local_path, expect = package_path)
+        self.execute_check_result_allshells(command, '.', cwd=self.local_path, expect = package_path)
+        self.execute_check_result_allshells(command, 'ws13a', cwd=self.test_root_path, expect = package_path)
+            
     def test_setup_sh(self):
         self.local_path = os.path.join(self.test_root_path, "ws13")
         cli = RoswsCLI()

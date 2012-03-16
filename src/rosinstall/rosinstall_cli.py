@@ -102,7 +102,9 @@ Later URIs will shadow packages of earlier URIs.\n",
   parser.add_option("--status-untracked", dest="vcs_status_untracked", default=False,
                     help="shows a combined status command over all SCM entries, also showing untracked files",
                     action="store_true")
-  
+  parser.add_option("-j", "--parallel", dest="jobs", default=1,
+                    help="How many parallel threads to use for installing",
+                    action="store")  
   parser.add_option("--generate-versioned-rosinstall", dest="generate_versioned", default=None,
                     help="generate a versioned rosinstall file", action="store")
   (options, args) = parser.parse_args(args)
@@ -180,10 +182,12 @@ Later URIs will shadow packages of earlier URIs.\n",
   rosinstall_cmd.cmd_persist_config(config)
   
   ## install or update each element
-  install_success = multiproject_cmd.cmd_install_or_update(config,
-                                                                      backup_path = options.backup_changed,
-                                                                      mode = mode,
-                                                                      robust = options.robust)
+  install_success = multiproject_cmd.cmd_install_or_update(
+    config,
+    backup_path = options.backup_changed,
+    mode = mode,
+    robust = options.robust,
+    num_threads = int(options.jobs))
   
   rosinstall_cmd.cmd_generate_ros_files(
     config,

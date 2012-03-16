@@ -359,6 +359,9 @@ $ rosws update robot_model geometry
         parser.add_option("--backup-changed-uris", dest="backup_changed", default='',
                           help="backup the local copy of a directory before changing uri to this directory.",
                           action="store")
+        parser.add_option("-j", "--parallel", dest="jobs", default=1,
+                          help="How many parallel threads to use for installing",
+                          action="store")
         # -t option required here for help but used one layer above, see cli_common
         parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
                           help="which workspace to use",
@@ -378,7 +381,8 @@ $ rosws update robot_model geometry
               localnames = args,
               backup_path = options.backup_changed,
               mode = 'abort', 
-              robust = False)
+              robust = False,
+              num_threads = int(options.jobs))
             return 0
         return 1
 

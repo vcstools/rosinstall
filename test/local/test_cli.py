@@ -278,6 +278,10 @@ class InstallTest(unittest.TestCase):
                          "bzr": MockVcsConfigElement})
         rosinstall.multiproject_cmd.cmd_install_or_update(config)
         rosinstall.multiproject_cmd.cmd_install_or_update(config)
+        rosinstall.multiproject_cmd.cmd_install_or_update(config, num_threads=10)
+        rosinstall.multiproject_cmd.cmd_install_or_update(config, num_threads=10)
+        rosinstall.multiproject_cmd.cmd_install_or_update(config, num_threads=1)
+        rosinstall.multiproject_cmd.cmd_install_or_update(config, num_threads=1)
 
     def test_mock_install_fail(self):
         # robust

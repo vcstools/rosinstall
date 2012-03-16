@@ -80,16 +80,12 @@ class RosWsTest(AbstractFakeRosBasedTest):
         config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
         self.assertEqual(0, len(config.get_config_elements()))
 
-    def test_regenerate(self):
-        workspace = os.path.join(self.test_root_path, 'ws1c')
+    def test_init_parallel(self):
+        workspace = os.path.join(self.test_root_path, 'ws1d')
         cli = RoswsCLI()
-        self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall]))
+        self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall, "--parallel=5"]))
         self.assertTrue(os.path.exists(workspace))
         self.assertTrue(os.path.exists(os.path.join(workspace, '.rosinstall')))
-        os.remove(os.path.join(workspace, 'setup.sh'))
-        self.assertFalse(os.path.exists(os.path.join(workspace, 'setup.sh')))
-        self.assertEqual(0, cli.cmd_regenerate(workspace, []))
-        self.assertTrue(os.path.exists(os.path.join(workspace, 'setup.sh')))
 
         
     def test_merge(self):

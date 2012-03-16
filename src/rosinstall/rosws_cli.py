@@ -99,6 +99,9 @@ $ rosws init ~/fuerte /opt/ros/fuerte
         parser.add_option("--continue-on-error", dest="robust", default=False,
                           help="Continue despite checkout errors",
                           action="store_true")
+        parser.add_option("-j", "--parallel", dest="jobs", default=1,
+                          help="How many parallel threads to use for installing",
+                          action="store")
         (options, args) = parser.parse_args(argv)
         if len(args) < 1:
             target_path = '.'
@@ -131,7 +134,7 @@ $ rosws init ~/fuerte /opt/ros/fuerte
         rosinstall_cmd.cmd_persist_config(config)
 
         ## install or update each element
-        install_success = multiproject_cmd.cmd_install_or_update(config, robust = False)
+        install_success = multiproject_cmd.cmd_install_or_update(config, robust = False, num_threads = int(options.jobs))
       
         rosinstall_cmd.cmd_generate_ros_files(config,
                                               target_path,
