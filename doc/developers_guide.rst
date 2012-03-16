@@ -12,8 +12,8 @@ Code API
 Bug reports and feature requests
 --------------------------------
 
-- `Submit a bug report <https://code.ros.org/trac/ros/newticket?component=rosinstall&type=defect&&vcstools>`_
-- `Submit a feature request <https://code.ros.org/trac/ros/newticket?component=rosinstall&type=enhancement&vcstools>`_
+- `Submit a bug report <https://kforge.ros.org/vcstools/trac/newticket?component=rosinstall&type=defect>`_
+- `Submit a feature request <https://kforge.ros.org/vcstools/trac/newticket?component=rosinstall&type=enhancement>`_
 
 
 Developer Setup
