@@ -202,7 +202,7 @@ class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):
         self.install_success = True
         self.properties = properties
 
-    def install(self, backup_path = None, arg_mode = 'abort', robust = False):
+    def install(self, checkout=True, backup = False, backup_path = None, robust = False):
         if not self.install_success:
             raise MultiProjectException("Unittest Mock says install failed")
 
@@ -332,7 +332,7 @@ class GetStatusDiffCmdTest(unittest.TestCase):
         self.assertEqual(1, len(result))
         self.assertTrue(result[0]['diff'] is not None)
         self.assertTrue(result[0]['entry'] is not None)
-        self.mock_config = FakeConfig([MockVcsConfigElement('git', 'gitpath', None, None),
+        self.mock_config = FakeConfig([MockVcsConfigElement('git', 'gitpath', 'gitname', None),
                                        MockVcsConfigElement('svn', 'svnpath', 'svnname', None),
                                        MockVcsConfigElement('hg', 'hgpath', 'hgname', None),
                                        MockVcsConfigElement('bzr', 'bzrpath', 'bzrname', None)])
