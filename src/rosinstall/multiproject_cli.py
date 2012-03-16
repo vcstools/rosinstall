@@ -58,37 +58,37 @@ __MULTIPRO_CMD_DICT__={
 }
 
 class IndentedHelpFormatterWithNL(IndentedHelpFormatter):
-  def format_description(self, description):
-    if not description: return ""
-    desc_width = self.width - self.current_indent
-    indent = " "*self.current_indent
-# the above is still the same
-    bits = description.split('\n')
-    formatted_bits = [
-      textwrap.fill(bit,
-        desc_width,
-        initial_indent=indent,
-        subsequent_indent=indent)
-      for bit in bits]
-    result = "\n".join(formatted_bits) + "\n"
-    return result 
+    def format_description(self, description):
+        if not description: return ""
+        desc_width = self.width - self.current_indent
+        indent = " "*self.current_indent
+        # the above is still the same
+        bits = description.split('\n')
+        formatted_bits = [
+            textwrap.fill(bit,
+                          desc_width,
+                          initial_indent=indent,
+                          subsequent_indent=indent)
+            for bit in bits]
+        result = "\n".join(formatted_bits) + "\n"
+        return result 
 
 
 def _get_mode_from_options(parser, options):
-  mode = 'prompt'
-  if options.delete_changed:
-      mode = 'delete'
-  if options.abort_changed:
-      if mode == 'delete':
-          parser.error("delete-changed-uris is mutually exclusive with abort-changed-uris")
-      mode = 'abort'
-  if options.backup_changed != '':
-      if mode == 'delete':
-          parser.error("delete-changed-uris is mutually exclusive with backup-changed-uris")
-      if mode == 'abort':
-          parser.error("abort-changed-uris is mutually exclusive with backup-changed-uris")
-      mode = 'backup'
-  return mode
+    mode = 'prompt'
+    if options.delete_changed:
+        mode = 'delete'
+    if options.abort_changed:
+        if mode == 'delete':
+            parser.error("delete-changed-uris is mutually exclusive with abort-changed-uris")
+        mode = 'abort'
+    if options.backup_changed != '':
+        if mode == 'delete':
+            parser.error("delete-changed-uris is mutually exclusive with backup-changed-uris")
+        if mode == 'abort':
+            parser.error("abort-changed-uris is mutually exclusive with backup-changed-uris")
+        mode = 'backup'
+    return mode
 
   
 
@@ -243,14 +243,14 @@ $ rosws set robot_model --detached
             scmtype = 'bzr'
             count_scms +=1
         if options.detach:
-          count_scms +=1
+            count_scms +=1
         if count_scms > 1:
             parser.error("You cannot provide more than one scm provider option")
           
         is_insert = False
         # find out whether to is_insert or modify
         if len(args) == 0:
-          parser.error("Must provide a localname")
+            parser.error("Must provide a localname")
         
         element = select_element(config.get_config_elements(), args[0])
 
