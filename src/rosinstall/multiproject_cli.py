@@ -256,36 +256,33 @@ $ rosws set robot_model --detached
 
         uri = None
         if len(args) == 2:
-          uri = args[1]
-        if element is None:
-            if uri != None and scmtype is not None:
-                # maybe is insert
-                localname = os.path.basename(uri)
-                try:
-                  element = select_element(config.get_config_elements(), localname)
-                except MultiProjectException:
-                    element = None
-                if element is not None:
-                    parser.error("Cannot guess what localname to create")
-                is_insert = True
-            else:
-                localname = args[0]
-                is_insert = True
-
+            uri = args[1]
         version = None
         if options.version != False:
-          version = options.version.strip("'\"")
-        if is_insert:
-            if scmtype is not None:
-                version = None
-                spec = PathSpec(local_name = localname,
-                                uri = uri,
-                                version = version,
-                                scmtype = scmtype)
+            version = options.version.strip("'\"")
+        
+        if element is None:
+            # asssume is insert, choose localname
+            localname = os.path.normpath(args[0])
+            rel_path = os.path.relpath(os.path.realpath(localname),
+                                       os.path.realpath(config.get_base_path()))
+            if os.path.isabs(localname):
+                # use shorter localname for folders inside workspace
+                if not rel_path.startswith('..'):
+                    localname = rel_path
             else:
-                spec = PathSpec(local_name = localname,
-                                uri = uri,
-                                version = version)
+                # got a relative path as localname, could point to a dir or be meant relative to workspace
+                if not os.path.samefile(os.getcwd(), config.get_base_path()):
+                    if os.path.isdir(localname):
+                        parser.error("Cannot decide which one you want to add:\n%s\n%s"%(os.path.abspath(localname),
+                                                                                         os.path.join(config.get_base_path(), localname)))
+                    if not rel_path.startswith('..'):
+                        localname = rel_path
+
+            spec = PathSpec(local_name = localname,
+                            uri = uri,
+                            version = version,
+                            scmtype = scmtype)
             print("     Add element: \n %s"%spec)
         else:
             # modify

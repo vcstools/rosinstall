@@ -289,3 +289,37 @@ class RosWsTest(AbstractFakeRosBasedTest):
         self.assertEqual(0, cli.cmd_info(workspace, ['--only=scmtype,localname']))
         output = output.getvalue()
         self.assertEqual('git,ros\ngit,gitrepo', output.strip())
+
+    def test_set_add_scm_change_localname(self):
+        workspace = os.path.join(self.test_root_path, 'ws8')
+        cli = RoswsCLI()
+        self.assertEqual(0, cli.cmd_init([workspace, self.ros_path]))
+        config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
+        self.assertEqual(1, len(config.get_config_elements()))
+        self.assertEqual(os.path.join(self.test_root_path, 'ros'), config.get_config_elements()[0].get_local_name())
+
+        # use a weird absolute localname
+        self.assertEqual(0, cli.cmd_set(workspace, [os.path.join(workspace, '..', 'ws8', 'hgrepo'), '../hgrepo', '-y', '--hg']))
+        config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
+        self.assertEqual(2, len(config.get_config_elements()))
+        self.assertEqual('hgrepo', config.get_config_elements()[1].get_local_name())
+
+        
+        oldcwd = os.getcwd()
+        try:
+            os.chdir(self.test_root_path)
+            # try pointing to a relative dir that also exists elsewhere
+            try:
+                cli.cmd_set(workspace, ['gitrepo', '../gitrepo', '-y', '--hg'])
+                self.fail("Expected SystemExit")
+            except SystemExit:
+                pass            
+            # use a weird relative localname
+            self.assertEqual(0, cli.cmd_set(workspace, [os.path.join('ws8', 'gitrepo'), '../gitrepo', '-y', '--hg']))
+            config = rosinstall.multiproject_cmd.get_config(workspace, config_filename = '.rosinstall')
+            self.assertEqual(3, len(config.get_config_elements()))
+
+            self.assertEqual('hgrepo', config.get_config_elements()[1].get_local_name())
+            self.assertEqual('gitrepo', config.get_config_elements()[2].get_local_name())
+        finally:
+            os.chdir(oldcwd)
