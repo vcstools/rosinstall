@@ -108,7 +108,7 @@ class RosinstallCommandlineOverlays(AbstractFakeRosBasedTest):
     def test_Rosinstall_ros_with_folder(self):
         """Use a folder as a remote rosinstall location"""
         cmd = copy.copy(self.rosinstall_fn)
-        cmd.extend([self.new_directory, self.ros_path, self.directory])
+        cmd.extend([self.new_directory, self.directory])
         self.assertTrue(rosinstall_main(cmd))
 
 

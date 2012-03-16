@@ -67,6 +67,8 @@ def get_ros_stack_path(config):
   rp = None
   for t in config.get_config_elements():
     if is_path_ros(t.get_path()):
+      if rp is not None:
+        raise ROSInstallException("Two ros roots defined in config, delete one: %s %s"%(rp, t.get_path()))
       rp = t.get_path()
   return rp
 

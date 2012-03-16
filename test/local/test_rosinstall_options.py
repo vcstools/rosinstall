@@ -55,7 +55,7 @@ class RosinstallOptionsTest(AbstractFakeRosBasedTest):
         _create_git_repo(self.git_path2)
         self.simple_changed_uri_rosinstall = os.path.join(self.test_root_path, "simple_changed_uri.rosinstall")
         # same local name for gitrepo, different uri
-        _create_yaml_file([_create_config_elt_dict("other", self.ros_path),
+        _create_yaml_file([_create_config_elt_dict("git", "ros", self.ros_path),
                            _create_config_elt_dict("git", "gitrepo", self.git_path2)],
                           self.simple_changed_uri_rosinstall)
 
