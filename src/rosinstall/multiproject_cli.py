@@ -359,6 +359,10 @@ $ rosws update robot_model geometry
         parser.add_option("--backup-changed-uris", dest="backup_changed", default='',
                           help="backup the local copy of a directory before changing uri to this directory.",
                           action="store")
+        # -t option required here for help but used one layer above, see cli_common
+        parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
+                          help="which workspace to use",
+                          action="store")
         (options, args) = parser.parse_args(argv)
 
         if config == None:
