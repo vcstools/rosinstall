@@ -35,6 +35,7 @@ import os
 import copy
 # choosing multiprocessing over threading for clean Control-C interrupts (provides terminate())
 from multiprocessing import Process, Manager
+from vcstools.vcs_base import VcsError
 
 class MultiProjectException(Exception): pass
 
