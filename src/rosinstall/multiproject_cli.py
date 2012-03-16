@@ -36,6 +36,7 @@ import os
 import cli_common
 import textwrap
 import yaml
+import shutil
 from optparse import OptionParser, IndentedHelpFormatter
 from common import select_element, select_elements, MultiProjectException
 from config_yaml import PathSpec
@@ -317,7 +318,8 @@ $ rosws set robot_model --detached
             if abort:
                 print("No changes made.")
                 return 0
-        print("Overwriting %s/%s"%(config.get_base_path(), self.config_filename))
+        print("Overwriting %s"%os.path.join(config.get_base_path(), self.config_filename))
+        shutil.move(os.path.join(config.get_base_path(), self.config_filename), "%s.bak"%os.path.join(config.get_base_path(), self.config_filename))
         multiproject_cmd.cmd_persist_config(config, self.config_filename)
 
         if (spec.get_scmtype() is not None):
@@ -409,7 +411,8 @@ The command removes entries from your configuration file, it does not affect you
                 print("Bug: No such element %s in config, aborting without changes"%(localname))
                 break
         if success:
-            print("Overwriting %s/%s"%(config.get_base_path(), self.config_filename))
+            print("Overwriting %s"%os.path.join(config.get_base_path(), self.config_filename))
+            shutil.move(os.path.join(config.get_base_path(), self.config_filename), "%s.bak"%os.path.join(config.get_base_path(), self.config_filename))
             multiproject_cmd.cmd_persist_config(config, self.config_filename)
             print("Removed entries %s"%args)
             

@@ -32,11 +32,10 @@
 
 from __future__ import print_function
 import os
-
 import sys
 from optparse import OptionParser
 import yaml
-
+import shutil
 import pkg_resources
 from rosinstall import multiproject_cmd, rosinstall_cmd
 
@@ -178,7 +177,10 @@ Later URIs will shadow packages of earlier URIs.\n",
         ", ".join(config_uris))
 
   # includes ROS specific files
-  print("(Over-)Writing %s/%s"%(options.path, ROSINSTALL_FILENAME))
+  print("(Over-)Writing %s"%os.path.join(options.path, ROSINSTALL_FILENAME))
+  if(os.path.isfile(os.path.join(options.path, ROSINSTALL_FILENAME))):
+    shutil.move(os.path.join(options.path, ROSINSTALL_FILENAME),
+                "%s.bak"%os.path.join(options.path, ROSINSTALL_FILENAME))
   rosinstall_cmd.cmd_persist_config(config)
   
   ## install or update each element

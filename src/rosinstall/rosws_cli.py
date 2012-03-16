@@ -44,6 +44,8 @@ from __future__ import print_function
 import os
 import sys
 import yaml
+import shutil
+
 from optparse import OptionParser
 
 import cli_common
@@ -130,7 +132,8 @@ $ rosws init ~/fuerte /opt/ros/fuerte
                                                         config_filename = self.config_filename)
        
         # includes ROS specific files
-        print("Writing %s/%s"%(config.get_base_path(), self.config_filename))
+        
+        print("Writing %s"%os.path.join(config.get_base_path(), self.config_filename))
         rosinstall_cmd.cmd_persist_config(config)
 
         ## install or update each element
@@ -233,7 +236,8 @@ $ roslocate info robot_mode | rosws merge -
                                                       confirmed = options.confirm_all)
         print("Config changed, maybe you need run rosws update to update SCM entries.")
         if newconfig is not None:
-            print("Overwriting %s/%s"%(newconfig.get_base_path(), self.config_filename))
+            print("Overwriting %s"%os.path.join(newconfig.get_base_path(), self.config_filename))
+            shutil.move(os.path.join(newconfig.get_base_path(), self.config_filename), "%s.bak"%os.path.join(newconfig.get_base_path(), self.config_filename))
             rosinstall_cmd.cmd_persist_config(newconfig)
        
             print("\nrosws update complete.")
