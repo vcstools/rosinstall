@@ -62,8 +62,6 @@ class MockConfigElement():
         self.scmtype = scmtype
         self.path = path
         self.uri = uri
-    def get_config_elements(self):
-        return self.scmtype
     def get_path(self):
         return self.path
 
