@@ -32,10 +32,9 @@
 
 from __future__ import print_function
 import os
-from urlparse import urlparse
 import config_elements
 from config_elements import AVCSConfigElement, OtherConfigElement, SetupConfigElement
-from common import MultiProjectException, normabspath, realpath_relation
+from common import MultiProjectException, normabspath, realpath_relation, is_web_uri
 
 
 class Config:
@@ -125,12 +124,11 @@ class Config:
   def _insert_vcs_path_spec(self, path_spec, local_path, merge_strategy = 'KillAppend'):
     # Get the version and source_uri elements
     source_uri = path_spec.get_uri()
-    if source_uri is not None:
-      parsed_uri = urlparse(source_uri)
-      if (parsed_uri.scheme == ''
-          and not os.path.isabs(source_uri)):
-        source_uri = os.path.normpath(os.path.join(self.get_base_path(), source_uri))
-        print("Warning: Converted relative uri path %s to abspath %s"%(path_spec.get_uri(), source_uri))
+    if (source_uri is not None
+        and not is_web_uri(source_uri)
+        and not os.path.isabs(source_uri)):
+      source_uri = os.path.normpath(os.path.join(self.get_base_path(), source_uri))
+      print("Warning: Converted relative uri path %s to abspath %s"%(path_spec.get_uri(), source_uri))
     version = path_spec.get_version()
     try:
       local_name = os.path.normpath(path_spec.get_local_name())

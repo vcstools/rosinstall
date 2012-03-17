@@ -65,6 +65,21 @@ class FunctionsTest(unittest.TestCase):
         self.assertEqual("/foo/bar/bim", rosinstall.common.normabspath('bim', base))
         self.assertEqual("/foo", rosinstall.common.normabspath('..', base))
 
+    def test_is_web_uri(self):
+        self.assertTrue(rosinstall.common.is_web_uri('http://foo.com'))
+        self.assertTrue(rosinstall.common.is_web_uri('http://foo.com/bar'))
+        self.assertTrue(rosinstall.common.is_web_uri('http://foo.com:42'))
+        self.assertTrue(rosinstall.common.is_web_uri('http://foo.com:42/bar'))
+        self.assertTrue(rosinstall.common.is_web_uri('ssh://foo.com'))
+        self.assertTrue(rosinstall.common.is_web_uri('lp:foo.com'))
+        self.assertTrue(rosinstall.common.is_web_uri('git://foo.com'))
+        self.assertTrue(rosinstall.common.is_web_uri('git+ssh://foo.com:foo'))
+        self.assertTrue(rosinstall.common.is_web_uri('user@foo:foo/bar'))
+        self.assertFalse(rosinstall.common.is_web_uri('foo/bar'))
+        self.assertFalse(rosinstall.common.is_web_uri('bar'))
+        self.assertFalse(rosinstall.common.is_web_uri(''))
+        self.assertFalse(rosinstall.common.is_web_uri(None))
+        
     
     def test_conditional_abspath(self):
         path = "foo"

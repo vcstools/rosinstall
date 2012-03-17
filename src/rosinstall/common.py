@@ -30,10 +30,10 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import urlparse
 import os
 import copy
 # choosing multiprocessing over threading for clean Control-C interrupts (provides terminate())
+from urlparse import urlparse
 from multiprocessing import Process, Manager
 from vcstools.vcs_base import VcsError
 
@@ -44,12 +44,21 @@ def conditional_abspath(uri):
   @param uri: The uri to check
   @return: abspath(uri) if local path otherwise pass through uri
   """
-  u = urlparse.urlparse(uri)
+  u = urlparse(uri)
   if u.scheme == '': # maybe it's a local file?
     return os.path.abspath(uri)
   else:
     return uri
 
+def is_web_uri(source_uri):
+  if source_uri is None or source_uri == '':
+    return False
+  parsed_uri = urlparse(source_uri)
+  if (parsed_uri.scheme == ''
+      and parsed_uri.netloc == ''
+      and not '@' in parsed_uri.path.split('/')[0]):
+    return False
+  return True
 
 def normabspath(localname, path):
   """
