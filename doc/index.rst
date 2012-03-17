@@ -4,7 +4,15 @@ ROS installation tools
 .. module:: rosinstall
 .. moduleauthor:: Tully Foote <tfoote@willowgarage.com>, Thibault Kruse <kruset@in.tum.de>, Ken Conley <kwc@willowgarage.com>
 
-The rosinstall package provides a Python API for interacting with a source code workspace as well as a group of command line tools.  Rosinstall leverages the :mod:`vcstools` module for source control and stores its state in .rosinstall files.
+Using rosinstall you can update several folders using a variety 
+of SCMs (SVN, Mercurial, git, Bazaar) with just one command.
+
+That way you can more effectively manage source code workspaces.
+
+The rosinstall package provides a Python API for interacting with a
+source code workspace as well as a group of command line tools.
+Rosinstall leverages the :mod:`vcstools` module for source control and
+stores its state in .rosinstall files.
 
   
 Command Line Tools:
@@ -16,6 +24,14 @@ Command Line Tools:
    rosws
    roslocate
    rosco
+
+Tutorials
+---------
+
+.. toctree::
+   :maxdepth: 2
+
+   rosws_tutorial
 
 
 

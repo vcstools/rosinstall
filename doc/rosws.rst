@@ -5,20 +5,25 @@ rosws can do anything that rosinstall can do, and more.  Most commands
 will just do a small subset of a single rosinstall invocation, so
 users can more easily understand and control the tool actions.
 
-The main difference to rosinstall is that rosws uses an SCM like syntax 
-of command keywords.
+The main difference to rosinstall is that rosws uses an SCM like
+syntax of command keywords. The motivation for rosws was that many
+users were overwhelmed with the number of things rosinstall does with
+just one command, and ended up not using it at all. rosws does much
+less and informs the user more about what it will do, so that users
+should feel safer and also should more easily understand what the tool
+is doing.
 
 The single most important feature that is different to rosinstall is
 the info command. The second most is the set command.
 
 The command was introduced with [REP110]_.
 
-
 .. contents:: Contents
-   :depth: 2
+   :depth: 3
+
 
 Usage
-~~~~~
+-----
 
 ::
 

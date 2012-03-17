@@ -9,6 +9,14 @@ Code API
 
    modules
 
+Changelog
+---------
+
+.. toctree::
+   :maxdepth: 1
+
+   changelog
+
 Bug reports and feature requests
 --------------------------------
 
