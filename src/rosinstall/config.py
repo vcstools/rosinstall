@@ -130,7 +130,7 @@ class Config:
       if (parsed_uri.scheme == ''
           and not os.path.isabs(source_uri)):
         source_uri = os.path.normpath(os.path.join(self.get_base_path(), source_uri))
-        print("Warning: Converted relative uri path %s to abpath %s"%(path_spec.get_uri(), source_uri))
+        print("Warning: Converted relative uri path %s to abspath %s"%(path_spec.get_uri(), source_uri))
     version = path_spec.get_version()
     try:
       local_name = os.path.normpath(path_spec.get_local_name())
