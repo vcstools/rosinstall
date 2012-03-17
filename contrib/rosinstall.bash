@@ -6,7 +6,7 @@ _rosinstall_complete()
   cur=${COMP_WORDS[COMP_CWORD]}
 
   if [[ "$cur" == -* ]] ; then
-      cmdOpts="-h --help -n -c --catkin --cmake-prefix-path --continue-on-error --delete-changed-uris --abort-changed-uris --backup-changed-uris --version --nobuild --rosdep-yes --diff --status"
+      cmdOpts="-h --help -n -c --catkin --cmake-prefix-path --continue-on-error --delete-changed-uris --abort-changed-uris --backup-changed-uris --version --nobuild --rosdep-yes --diff --status -j --parallel"
   fi
 
   # take out options already given
