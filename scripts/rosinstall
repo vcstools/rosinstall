@@ -1,20 +1,6 @@
 #!/usr/bin/env python
 
-"""
-usage: rosinstall [OPTIONS] INSTALL_PATH [ROSINSTALL FILES OR DIRECTORIES]
-see: http://www.ros.org/wiki/rosinstall
 
-Common Option:
--n or --nobuild (don't perform a 'make core_cools' on the ros stack)
-
-Type 'rosinstall --help' for usage.
-
-Common invocations:
-
-initial checkout:   rosinstall ~/ros "http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=diamondback&variant=ros-full&overlay=no"
-subsequent update:  rosinstall ~/ros
-
-"""
 import sys
 from rosinstall.rosinstall_cli import rosinstall_main
 from rosinstall.helpers import ROSInstallException

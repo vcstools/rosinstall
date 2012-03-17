@@ -30,6 +30,22 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+"""
+usage: rosinstall [OPTIONS] INSTALL_PATH [ROSINSTALL FILES OR DIRECTORIES]
+see: http://www.ros.org/wiki/rosinstall
+
+Common Option:
+-n or --nobuild (don't perform a 'make core_cools' on the ros stack)
+
+Type 'rosinstall --help' for usage.
+
+Common invocations:
+
+initial checkout:   rosinstall ~/ros "http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=diamondback&variant=ros-full&overlay=no"
+subsequent update:  rosinstall ~/ros
+
+"""
+
 from __future__ import print_function
 import os
 import sys
