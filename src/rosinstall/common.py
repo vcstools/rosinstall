@@ -169,12 +169,13 @@ class WorkerThread(Process):
 
 class DistributedWork():
   
-  def __init__(self, capacity):
+  def __init__(self, capacity, silent=True):
     man = Manager() # need managed array since we need the results later
     self.outputs = man.list([None for x in range(capacity)])
     self.threads = []
     self.sequentializers = {}
     self.index = 0
+    self.silent = silent
     
   def add_thread(self, worker):
     thread = WorkerThread(worker, self.outputs, self.index)
@@ -229,6 +230,9 @@ class DistributedWork():
             self.threads[i].start()
           waiting_index = to_index
         running_threads = [t for t in self.threads if t is not None and t.is_alive()]
+        if (self.silent == False
+            and len(running_threads) > 0):
+          print("[%s] still active"%",".join([th.worker.element.get_local_name() for th in running_threads]))
         for thread in running_threads:
           if thread in missing_threads:
             missing_threads.remove(thread)
@@ -236,6 +240,7 @@ class DistributedWork():
     except KeyboardInterrupt as k:
       for thread in self.threads:
         if thread is not None and thread.is_alive():
+          print("[%s] terminated while active"%thread.worker.element.get_local_name())
           thread.terminate()
       raise k
     self.outputs = filter(lambda x: x is not None, self.outputs)
