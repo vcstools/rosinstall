@@ -6,21 +6,52 @@ will just do a small subset of a single rosinstall invocation, so
 users can more easily understand and control the tool actions.
 
 The main difference to rosinstall is that rosws uses an SCM like
-syntax of command keywords. The motivation for rosws was that many
-users were overwhelmed with the number of things rosinstall does with
-just one command, and ended up not using it at all. rosws does much
-less and informs the user more about what it will do, so that users
-should feel safer and also should more easily understand what the tool
-is doing.
+syntax of command keywords. 
+
+The motivation for rosws was that many users were overwhelmed with the
+number of things rosinstall does with just one command, and ended up
+not using it at all. rosws does much less and informs the user more
+about what it will do, so that users should feel safer and also should
+more easily understand what the tool is doing.
 
 The single most important feature that is different to rosinstall is
 the info command. The second most is the set command.
+
+The general design philosophy for rosws wa that each command should
+just perform a single task, not multiple tasks.
 
 The command was introduced with [REP110]_.
 
 .. contents:: Contents
    :depth: 3
 
+
+Roadmap
+-------
+
+Thanks to its scm like syntax the rosws tool has a lot of room to
+grow. Possible changes that have been discussed are:
+
+- declare fixed positions for entries
+- maintain environment parameters like PATH, PYTHONPATH, LD_LIBRARY_PATH in .rosinstall
+- ability to deactivate entries but still keep their data in the file
+- manage labeled configurations for individual entries (and whole workspace)
+- manage nested or included workspaces
+- maintain workspace meta-information (rosinstall version, workspace relationships)
+- use an improved yaml syntax that also allows for all of the above
+- rosws as shell command to switch workspaces (prototype in contrib/rosws.shell)
+- recognize SCM folders as such when adding them
+- provide tags and branches of distributed SCMs in tab-completion and info
+- shows whether updates are available on remote
+- colorize outputs
+- a --verbose option
+- a command to reorder elements
+- an option for ``set`` to change element position
+- split out ROS agnostic tool for multi-vcs shell-project management
+
+At the time of this writing the rosws command is very new, so 
+it was decided to only provide a small set of commands and see 
+how users accept those before adding functionality.
 
 Usage
 -----
