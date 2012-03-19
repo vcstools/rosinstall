@@ -206,7 +206,12 @@ $ roslocate info robot_mode | rosws merge -
         specs = []
         if config_uris[0] == '-':
             pipedata = "".join(sys.stdin.readlines())
-            yamldicts = yaml.load(pipedata)
+            try:
+                yamldicts = yaml.load(pipedata);
+            except yaml.YAMLError as e:
+                raise MultiProjectException("Invalid yaml format: \n%s \n%s" %(pipedata, e))
+            if yamldicts is None:
+                parser.error("No Input read from stdin")
             options.confirm_all = True # cant have user interaction and piped input
             specs.extend([get_path_spec_from_yaml(x) for x in yamldicts])
             config_uris = []
@@ -514,5 +519,5 @@ def rosws_main(argv=None):
     sys.stderr.write("ERROR in rosinstall: %s\n"%str(e))
     return 1
   except MultiProjectException as e:
-    sys.stderr.write("ERROR in config: %s\n"%str(e))
+    sys.stderr.write("ERROR: %s\n"%str(e))
     return 1
