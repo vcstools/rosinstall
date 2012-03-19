@@ -249,10 +249,41 @@ with the ``.rosinstall.bak``.
 
   $ mv .rosinstall.bak .rosinstall
 
+Combining merge with roslocate
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A usecase that was considered in the design of rosws was to quickly
+get ROS stacks into a workspace. The ``roslocate`` script uses an
+online index to lookup stack or package source information by name.
+
+We can pipe that information to rosws to add the definition to 
+our workspace. 
+
+As an example we will add the navigation stack. Just to show you what
+is happening, we first call ``roslocate``, and then call it again
+passing the output to ``rosws merge -``::
+
+  $ roslocate info navigation
+  - hg:
+      local-name: navigation
+      meta:
+        repo-name: wg-kforge
+      uri: https://kforge.ros.org/navigation/navigation
+      version: default
+
+  $ roslocate info navigation | rosws merge -
+       Performing actions: 
+
+       Add new elements:
+    navigation    hg  https://kforge.ros.org/navigation/navigation   default
+
+If you wanted, you could next checkout the source code calling ``rosws
+update navigation``.
+
 Working with Entries
 --------------------
 
-To have something to work with, we will add single ROS stack to our 
+To have something small to work with, we will add single ROS stack to our 
 workspace for real. The ``set`` command is for manual adding of entries:
 
 ::
