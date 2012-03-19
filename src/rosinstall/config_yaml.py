@@ -261,27 +261,28 @@ def get_path_spec_from_yaml(yaml_dict):
 # - other: {local-name: /opt/ros/fuerte/share/ros}
 # - other: {local-name: /opt/ros/fuerte/share}
 # - other: {local-name: /opt/ros/fuerte/stacks}
-  if len(yaml_dict) == 1 and yaml_dict.keys()[0] in __ALLTYPES__:
-    firstkey = yaml_dict.keys()[0]
-    if firstkey in __REPOTYPES__:
-      scmtype = yaml_dict.keys()[0]
-    if firstkey == 'setup-file':
-      tags.append('setup-file')
-    values = yaml_dict[firstkey]
-    if values is not None:
-      for key, value in values.items():
-        if key == "local-name":
-          local_name = value
-        elif key == "meta":
-          tags.append({key: value})        
-        elif key == "uri":
-          uri = value
-        elif key == "version":
-          version = value
-        else:
-          raise MultiProjectException("Unknown key %s in %s"%(key, yaml_dict))
-  else:
-    raise MultiProjectException("scm type structure not recognized %s"%(yaml_dict))
+  if len(yaml_dict) > 1:
+    raise MultiProjectException("too many keys in element dict %s"%(yaml_dict.keys()))
+  if not yaml_dict.keys()[0] in __ALLTYPES__:
+    raise MultiProjectException("Unknown element type '%s'"%(yaml_dict.keys()[0]))
+  firstkey = yaml_dict.keys()[0]
+  if firstkey in __REPOTYPES__:
+    scmtype = yaml_dict.keys()[0]
+  if firstkey == 'setup-file':
+    tags.append('setup-file')
+  values = yaml_dict[firstkey]
+  if values is not None:
+    for key, value in values.items():
+      if key == "local-name":
+        local_name = value
+      elif key == "meta":
+        tags.append({key: value})        
+      elif key == "uri":
+        uri = value
+      elif key == "version":
+        version = value
+      else:
+        raise MultiProjectException("Unknown key %s in %s"%(key, yaml_dict))
   # global validation
   if local_name == None:
     raise MultiProjectException("Config element without a local-name: %s"%(yaml_dict))
