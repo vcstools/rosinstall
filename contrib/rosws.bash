@@ -94,7 +94,7 @@ _rosws_complete()
     cmdOpts="-c --catkin --cmake-prefix-path -t --target-workspace --continue-on-error"
     ;;
   merge)
-    cmdOpts="-t --target-workspace -y --confirm-all -m --merge-replace -k --merge-keep --merge-kill-append"
+    cmdOpts="-t --target-workspace -y --confirm-all -r --merge-replace -k --merge-keep -a --merge-kill-append"
     ;;
   set)
     cmdOpts="-t --target-workspace --git --svn --bzr --hg --uri -v --version-new --detached -y --confirm"
@@ -143,9 +143,92 @@ _rosws_complete()
     --target-workspace) cmdOpts=${cmdOpts/ -t / } ;;
     -c)                 cmdOpts=${cmdOpts/ --catkin / } ;;
     --catkin)           cmdOpts=${cmdOpts/ -c / } ;;
-    -n)                 cmdOpts=${cmdOpts/ --nobuild / } ;;
-    --nobuild)          cmdOpts=${cmdOpts/ -n / } ;;
-
+    --delete-changed-uris) 
+      cmdOpts=${cmdOpts/ --abort-changed-uris / }
+      cmdOpts=${cmdOpts/ --backup-changed-uris / }
+    ;;
+    --abort-changed-uris)
+      cmdOpts=${cmdOpts/ --delete-changed-uris / }
+      cmdOpts=${cmdOpts/ --backup-changed-uris / }
+    ;;
+    --backup-changed-uris) 
+      cmdOpts=${cmdOpts/ --delete-changed-uris / }
+      cmdOpts=${cmdOpts/ --abort-changed-uris  / }
+    ;;
+    # scm options
+    --svn)
+      cmdOpts=${cmdOpts/ --git / }
+      cmdOpts=${cmdOpts/ --hg / }
+      cmdOpts=${cmdOpts/ --bzr / }
+      cmdOpts=${cmdOpts/ --detached / }
+    ;;
+    --git)
+      cmdOpts=${cmdOpts/ --svn / }
+      cmdOpts=${cmdOpts/ --hg / }
+      cmdOpts=${cmdOpts/ --bzr / }
+      cmdOpts=${cmdOpts/ --detached / }
+    ;;
+    --hg)
+      cmdOpts=${cmdOpts/ --git / }
+      cmdOpts=${cmdOpts/ --svn / }
+      cmdOpts=${cmdOpts/ --bzr / }
+      cmdOpts=${cmdOpts/ --detached / }
+    ;;
+    --bzr)
+      cmdOpts=${cmdOpts/ --git / }
+      cmdOpts=${cmdOpts/ --hg / }
+      cmdOpts=${cmdOpts/ --svn / }
+      cmdOpts=${cmdOpts/ --detached / }
+    ;;
+    --detached)
+      cmdOpts=${cmdOpts/ --git / }
+      cmdOpts=${cmdOpts/ --hg / }
+      cmdOpts=${cmdOpts/ --bzr / }
+      cmdOpts=${cmdOpts/ --svn / }
+    ;;
+    # merge options
+    --merge-replace)
+      cmdOpts=${cmdOpts/ --merge-keep / }
+      cmdOpts=${cmdOpts/ --merge-kill-append / }
+      cmdOpts=${cmdOpts/ -r / }
+      cmdOpts=${cmdOpts/ -a / }
+      cmdOpts=${cmdOpts/ -k / }
+    ;;
+    --merge-keep)
+      cmdOpts=${cmdOpts/ --merge-replace / }
+      cmdOpts=${cmdOpts/ --merge-kill-append / }
+      cmdOpts=${cmdOpts/ -r / }
+      cmdOpts=${cmdOpts/ -a / }
+      cmdOpts=${cmdOpts/ -k / }
+    ;;
+    --merge-kill-append)
+      cmdOpts=${cmdOpts/ --merge-keep / }
+      cmdOpts=${cmdOpts/ --merge-replace / }
+      cmdOpts=${cmdOpts/ -r / }
+      cmdOpts=${cmdOpts/ -a / }
+      cmdOpts=${cmdOpts/ -k / }
+    ;;
+    -r)
+      cmdOpts=${cmdOpts/ --merge-keep / }
+      cmdOpts=${cmdOpts/ --merge-kill-append / }
+      cmdOpts=${cmdOpts/ --merge-replace / }
+      cmdOpts=${cmdOpts/ -a / }
+      cmdOpts=${cmdOpts/ -k / }
+    ;;
+    -a)
+      cmdOpts=${cmdOpts/ --merge-keep / }
+      cmdOpts=${cmdOpts/ --merge-kill-append / }
+      cmdOpts=${cmdOpts/ --merge-replace / }
+      cmdOpts=${cmdOpts/ -r / }
+      cmdOpts=${cmdOpts/ -k / }
+    ;;
+    -k)
+      cmdOpts=${cmdOpts/ --merge-keep / }
+      cmdOpts=${cmdOpts/ --merge-kill-append / }
+      cmdOpts=${cmdOpts/ --merge-replace / }
+      cmdOpts=${cmdOpts/ -a / }
+      cmdOpts=${cmdOpts/ -r / }
+    ;;
     esac
 
     # skip next option if this one requires a parameter
