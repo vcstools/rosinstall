@@ -174,14 +174,14 @@ $ roslocate info robot_mode | rosws merge -
 """,
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         # same options as for multiproject
-        parser.add_option("--merge-kill-append", dest="merge_kill_append", default='',
+        parser.add_option("-a", "--merge-kill-append", dest="merge_kill_append", default=False,
                           help="merge by deleting given entry and appending new one",
                           action="store_true")
-        parser.add_option("-k", "--merge-keep", dest="merge_keep", default='',
-                          help="(default) merge by keeping existing entry and discarding new one",
+        parser.add_option("-k", "--merge-keep", dest="merge_keep", default=False,
+                          help="merge by keeping existing entry and discarding new one",
                           action="store_true")
-        parser.add_option("-m", "--merge-replace", dest="merge_replace", default='',
-                          help="merge by replacing given entry with new one maintaining ordering",
+        parser.add_option("-r", "--merge-replace", dest="merge_replace", default=True,
+                          help="(default) merge by replacing given entry with new one maintaining ordering",
                           action="store_true")
         parser.add_option("-y", "--confirm-all", dest="confirm_all", default='',
                           help="do not ask for confirmation unless strictly necessary",
