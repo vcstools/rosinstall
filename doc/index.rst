@@ -14,6 +14,14 @@ source code workspace as well as a group of command line tools.
 Rosinstall leverages the :mod:`vcstools` module for source control and
 stores its state in .rosinstall files.
 
+rosinstall was developed to help with the ROS software, but it 
+has no install dependencies to ROS. It offers support for ROS
+environments and thus makes some assumptions about ROS being 
+present at runtime, but those can be easily removed and rosws
+provides all services even when there is no ROS installed. The 
+vision is for the bulk of rosinstall to be a ROS agnostic 
+tool one day.
+
   
 Command Line Tools:
 ===================

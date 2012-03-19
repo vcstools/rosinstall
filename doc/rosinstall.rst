@@ -10,7 +10,7 @@ rosinstall Package
 The rosinstall package currently contains all modules of rosinstall and rosws.
 
 there is a vision of splitting out all ROS dependent functionality into 
-a separate tool, to leave a pure multi-vcs tool. Thsi split is alread half 
+a separate tool, to leave a pure multi-vcs tool. This split is already half 
 evident in the modules.
 
 The architecture can be imagined to have 3 layers, on top of the 
@@ -33,7 +33,7 @@ The Model
 =========
 
 The model of rosinstall is that a config maintains a list of elements, 
-and performs defines operations on the list. The config class irs 
+and performs defines operations on the list. The config class is 
 responsible for ensuring consistency, such as not having two elements 
 with the same localname.
 
@@ -72,7 +72,7 @@ calls an SCM provider to checkout or update code.
 ROS dependent modules
 =====================
 
-These modules prodive functions on top of the multiproject context with reference to ROS.
+These modules provide functions on top of the multiproject context with reference to ROS.
 
 :mod:`rosinstall_cli` Module
 ----------------------------

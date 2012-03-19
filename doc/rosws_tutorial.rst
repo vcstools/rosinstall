@@ -57,7 +57,12 @@ To see what this command did, just type:
   $ ls -a
   ./  ../  .rosinstall  setup.bash  setup.sh  setup.zsh
 
-This is all that ``rosws init`` does, it creates these files. We can run ``rosws info`` to see an overview of the environment:
+This is all that ``rosws init`` does, it creates these files. If you
+ever want to start your workspace over, you can delete all these
+files, and that's it. Note that ``rm *`` on linux does not delete 
+the ``.rosinstall``, you need to call ``rm .rosinstall`` as well.
+
+We can run ``rosws info`` to see an overview of the environment:
 
 ::
 
@@ -138,6 +143,9 @@ To start using this workspace, we need to source the setup.bash:
 This changes several environment variables and enables several ros based 
 commands if the ROS_ROOT is set.
 
+You can add this line somewhere in your .bashrc to load the environment 
+every time you start a new terminal.
+
 Extending your workspace
 ------------------------
 
@@ -198,9 +206,9 @@ We can inspect the new config in detail again using the ``rosws info`` command:
    /opt/ros/fuerte/share                                                          
    /opt/ros/fuerte/share/ros
 
-So this looks much more fun. For each stack definition that we merged in, we see the SCM provider, the URI, and the version. The column labelled ``S`` gives us the status, an ``x`` means that the folder is missing. That's because we did only merge in the definitions, so far we did not pull the actual stacks. The ``UID (Spec)`` column would show the current revision of each stack, but as we did not check out any, it is empty for all.
+So this looks much more fun. For each stack definition that we merged in, we see the SCM provider, the URI, and the version. The column labeled ``S`` gives us the status, an ``x`` means that the folder is missing. That's because we did only merge in the definitions, so far we did not pull the actual stacks. The ``UID (Spec)`` column would show the current revision of each stack, but as we did not check out any, it is empty for all.
 
-.. note:: For svn, rosws, usws the standard layout to reduce table width. So 
+.. note:: For svn, rosws, uses the standard layout to reduce table width. So 
   uri = ``https://code.ros.org/svn/ros-pkg/stacks/common_msgs/tags/common_msgs-1.6.0``
   becomes
   uri = ``code.ros.org/svn/ros-pkg/stacks/common_msgs``
@@ -264,18 +272,20 @@ confirm.
 
 We will go ahead and check this stack out, as it is fairly small it should not take too long.
 
-Updating entries
-~~~~~~~~~~~~~~~~
+Puling entries
+~~~~~~~~~~~~~~
 
 :: 
 
   $ rosws update common_msgs
   [common_msgs] Installing https://code.ros.org/svn/ros-pkg/stacks/common_msgs/trunk (None) to /tmp/rosws_tutorial/common_msgs
   [common_msgs] Done.
+  $ ls
+  common_msgs/  setup.bash  setup.sh  setup.zsh
 
 .. note:: You can also at any time update all your workspace trees just using ``rosws update``
 
-You can now see that the repository was checked out:
+You can now see that the repository was checked out, also using ``rosws info``:
 
 :: 
 
@@ -288,8 +298,9 @@ You can now see that the repository was checked out:
    ...
 
 You see now the UID (Spec) column contains your current revision. If
-you see a different revision number, that is okay. We can play with
-that a bit::
+you see a different revision number, that is okay.
+
+We can play with that a bit::
 
   $ svn update common_msgs -r PREV
   ...
@@ -299,7 +310,10 @@ that a bit::
    common_msgs                 svn  trunk        -r38989     code.ros.org/svn/ros-pkg/stacks/common_msgs/
    ...
 
-You should notice that for you, the revision number should have changed as well.
+You should notice that for you, the revision number should have
+changed as well.  We needed use the ``svn`` command here because we
+changed the ``common_msgs`` version without changes to the .rosinstall
+file.
 
 Setting entry versions:
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -405,22 +419,30 @@ there is the ``remove`` command for that::
   Removed entries ['common_msgs']
 
 
-Advanced topics
-===============
+Updating many
+~~~~~~~~~~~~~
 
-This part of the tutorial shows some extra capabilities of ``rosws``.
-
-Getting the most out of info
-----------------------------
-
-Advanced users may want to look at bit more at the info command options.
+Doing several SCM actions at a time can be very time-consuming, and we
+can gain a lot of time by doing the work in parallel. ``rosws`` allows to 
+checkout or update entries in parallel as well:
 
 Here is how to generate a snapshot for one or more entries. 
 We first extend our workspace again::
 
   $ rosws set geometry https://kforge.ros.org/geometry/geometry --hg --version=geometry-1.6.1
   $ rosws set common_msgs https://code.ros.org/svn/ros-pkg/stacks/common_msgs/trunk --svn
-  $ rosws update
+
+  $ rosws update --parallel=2
+
+``-j=2`` is a shorter version of that option.
+The default for rosws is not to do parallel work because checking out
+or updating both may require user interaction, which can get confusing
+with many threads running at the same time.
+
+Getting the most out of info
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Advanced users may want to look at bit more at the info command options.
 
 Then we can print the info e.g. of just geometry as yaml or store it in a file::
 
@@ -438,3 +460,13 @@ Another interesting feature for scripters is the ``--only`` option::
 
 This yields a CSV representation of the columns you gave, in this case
 retrieving from SCM providers the current revision id.
+
+
+Cleanup workspace
+-----------------
+
+The tutorial ends here, what you can do is deleting the workspace folder:
+
+::
+
+  $ rm -rf /tmp/rosws_tutorial
