@@ -7,6 +7,14 @@ Changelog
 0.6.9
 -----
 
+- fix #25 rejection of git short-hand notation user@server:file
+- Create a .rosinstall.bak on every rewrite
+- diverse minor bugs
+- strictly accept only one ros root in workspace
+- parallelity is non-default for init and update, options -j and --parallel like cmake
+- setup.sh also infers ROS_ROOT from .rosinstall
+- docs contain tutorial for rosws
+- more verbose out of paralelity
 - added this changelog
 - more versatile info command --only option
 - bugfix unable to add plain folder
