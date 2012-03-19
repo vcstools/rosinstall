@@ -10,7 +10,7 @@ setup:
 	echo "building version ${VERSION}"
 
 clean_dist:
-	-rm -f MANIFEST
+	-rm -rf src/rosinstall.egg-info
 	-rm -rf dist
 	-rm -rf deb_dist
 
@@ -21,9 +21,8 @@ push: distro
 	python setup.py sdist register upload
 	scp dist/rosinstall-${VERSION}.tar.gz ipr:/var/www/pr.willowgarage.com/html/downloads/rosinstall
 
-
 clean: clean_dist
-	rm -rf src/rosinstall/vcs
+
 
 install: distro
 	sudo checkinstall python setup.py install
