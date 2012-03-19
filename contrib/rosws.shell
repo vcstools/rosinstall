@@ -265,9 +265,9 @@ rosws()
                     else
                         rosws switch "$2"
                     fi
-                elif [ "$1" = "install" ]; then
+                elif [ "$1" = "merge" ]; then
                     _rosws_maybe_reload $*
-                elif [ "$1" = "modify" ]; then
+                elif [ "$1" = "set" ]; then
                     _rosws_maybe_reload $*
                 elif [ "$1" = "remove" ]; then
                     _rosws_maybe_reload $*
