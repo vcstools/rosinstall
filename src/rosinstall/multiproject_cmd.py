@@ -249,7 +249,8 @@ def cmd_install_or_update(config, backup_path = None, mode = 'abort', robust = F
     os.mkdir(config.get_base_path())
   # Prepare install operation check filesystem and ask user
   preparation_reports = []
-  for t in config.get_config_elements():
+  elements = select_elements(config, localnames)
+  for t in elements:
     abs_backup_path = None
     if backup_path is not None:
       abs_backup_path = os.path.join(config.get_base_path(), backup_path)

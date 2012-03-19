@@ -371,9 +371,11 @@ $ rosws update robot_model geometry
             config = multiproject_cmd.get_config(target_path, [], config_filename = self.config_filename)
         elif config.get_base_path() != target_path:
             raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
-        elements = []
         success = True
         mode = _get_mode_from_options(parser, options)
+        if args == []:
+            # None means no filter, [] means filter all
+            args = None
         if success:
             install_success = multiproject_cmd.cmd_install_or_update(
               config,
