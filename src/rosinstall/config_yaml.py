@@ -195,6 +195,7 @@ class PathSpec:
 
   def get_legacy_yaml(self):
     """return something like {hg: {local-name: common, version: common-1.0.2, uri: https://kforge.org/common/}}"""
+    # TODO switch to new syntax
     properties = {'local-name' : self._local_name}
     if self._uri is not None:
       properties['uri'] = self._uri
@@ -261,6 +262,8 @@ def get_path_spec_from_yaml(yaml_dict):
 # - other: {local-name: /opt/ros/fuerte/share/ros}
 # - other: {local-name: /opt/ros/fuerte/share}
 # - other: {local-name: /opt/ros/fuerte/stacks}
+  if yaml_dict is None or len(yaml_dict) == 0:
+    raise MultiProjectException("no element in yaml dict.")
   if len(yaml_dict) > 1:
     raise MultiProjectException("too many keys in element dict %s"%(yaml_dict.keys()))
   if not yaml_dict.keys()[0] in __ALLTYPES__:
