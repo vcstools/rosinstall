@@ -56,6 +56,9 @@ def get_workspace(argv, shell_path, config_filename = None, varname = None):
   argv2 = filter(lambda x: (not x.startswith('-') or x.startswith('--target-workspace=') or x.startswith('-t=') or x in ['-t', '--target-workspace']), argv)
   (options, args) = parser.parse_args(argv2)
   if options.workspace is not None:
+    if (config_filename is not None
+        and not os.path.isfile(os.path.join(options.workspace, config_filename))):
+      raise MultiProjectException("%s has no workspace configuration file '%s'"%(os.path.abspath(options.workspace), config_filename))
     return os.path.abspath(options.workspace)
 
   varname_path = None
