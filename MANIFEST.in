@@ -1,1 +1,1 @@
-include contrib/rosws.bash contrib/rosinstall.bash
+# include contrib/rosws.bash contrib/rosinstall.bash
