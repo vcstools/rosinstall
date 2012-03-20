@@ -152,6 +152,7 @@ _rosws_leave()
   _var_undo_restore_var LD_LIBRARY_PATH
   _var_undo_restore_var PKG_CONFIG_PATH
   if [ ! -z "$ROS_WORKSPACE" ]; then
+    _ROSWS_LAST_WORKSPACE=$ROS_WORKSPACE
     unset ROS_WORKSPACE
     echo Unset var: ROS_WORKSPACE
   fi
@@ -179,7 +180,11 @@ _rosws_source()
     _var_undo_backup_var  LD_LIBRARY_PATH
     _var_undo_backup_var  PKG_CONFIG_PATH
   
+
+    echo old ws $_ROSWS_LAST_WORKSPACE
     . $1/setup.sh
+    echo new ws $1
+    export ROS_WORKSPACE=$1
     echo "Sourced $1/setup.sh"
   
     _var_undo_backup_diff_var PATH
@@ -231,9 +236,7 @@ rosws()
                         fi
                     fi
                     if [ ! "$workspace" = "$ROS_WORKSPACE" ]; then
-                        _ROSWS_LAST_WORKSPACE=$ROS_WORKSPACE
                         _rosws_source $workspace
-                        ROS_WORKSPACE=$workspace
                     else
                         rosws reload
                     fi
