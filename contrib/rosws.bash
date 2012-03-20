@@ -38,6 +38,9 @@
 # this file (or on some systems add it to ~/.bash_completion and start a new
 # shell) and bash's completion mechanism will know all about bzr's options!
 
+if [ -z "$ROSWS_BASE_COMMANDS" ]; then
+  _ROSWS_BASE_COMMANDS="help init set merge info remove regenerate diff status update --version"
+fi
 
 # Based originally on the bzr/svn bash completition scripts.
 _rosws_complete()
@@ -47,7 +50,7 @@ _rosws_complete()
   COMPREPLY=()
   cur=${COMP_WORDS[COMP_CWORD]}
 
-  cmds='help init set merge info remove regenerate diff status update  --version'
+  cmds=$_ROSWS_BASE_COMMANDS
 
   if [[ $COMP_CWORD -eq 1 ]] ; then
     COMPREPLY=( $( compgen -W "$cmds" -- $cur ) )

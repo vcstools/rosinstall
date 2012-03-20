@@ -92,6 +92,10 @@ _var_undo_restore_var () {
 }
 
 
+# overwrite bash completion var
+_ROSWS_BASE_COMMANDS=help init set merge info remove regenerate diff status update --version reload switch leave
+
+
 _rosws_main()
 {
   local result
