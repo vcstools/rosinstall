@@ -64,6 +64,13 @@ or ``easy_install``:
 
     easy_install -U rosinstall vcstools
 
+Linux and Bash users will benefit a lot from also installing bash
+completion. This is provided in a different package due to the 
+installation process currently requiring linux. It is only available 
+via pip for now::
+
+    pip install -U rosinstall_shellcompletion
+
 
 Advanced: rosinstall developers/contributors
 ============================================
