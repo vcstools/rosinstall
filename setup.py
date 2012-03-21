@@ -1,10 +1,5 @@
 from setuptools import setup
 
-try:
-    import yaml
-except:
-    raise SystemExit("rosinstall requires python-yaml. Please install python-yaml. On debian systems sudo apt-get install python-yaml.")
-
 import imp
 
 file = None
@@ -21,7 +16,7 @@ setup(name='rosinstall',
       version= version,
       packages=['rosinstall'],
       package_dir = {'':'src'},
-      install_requires = ['vcstools'],
+      install_requires = ['vcstools', 'pyyaml'],
       scripts = ["scripts/rosinstall", "scripts/roslocate", "scripts/rosws", "scripts/rosco"],
       # data_files=[('/etc/bash_completion.d', ['contrib/rosws.bash',
       #                                         'contrib/rosinstall.bash'])],
