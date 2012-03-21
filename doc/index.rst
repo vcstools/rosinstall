@@ -11,7 +11,7 @@ That way you can more effectively manage source code workspaces.
 
 The rosinstall package provides a Python API for interacting with a
 source code workspace as well as a group of command line tools.
-Rosinstall leverages the :mod:`vcstools` module for source control and
+Rosinstall leverages the :mod:`vcstools` package for source control and
 stores its state in .rosinstall files.
 
 rosinstall was developed to help with the ROS software, but it 
