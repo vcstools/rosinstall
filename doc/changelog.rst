@@ -4,6 +4,20 @@ Changelog
 0.6
 ---
 
+
+
+0.6.11
+------
+
+- bugfix rosinstall --snapshot not working (refactoring victim)
+- minor bugfixes on options of rosws update
+- pyyaml added as dependency in setup.py, rather than failure on import
+
+0.6.10
+------
+
+- undoing bash completion install as it fails with easy_install
+
 0.6.9
 -----
 
