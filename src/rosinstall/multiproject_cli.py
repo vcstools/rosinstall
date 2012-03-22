@@ -572,11 +572,11 @@ The command removes entries from your configuration file, it does not affect you
                     elif mode_input == 'n':
                         abort = True
                     elif mode_input == 'a':
-                         strategies = {'MergeKeep': "(k)eep",
-                                       'MergeReplace': "(s)witch in",
-                                       'KillAppend': "(a)ppending"}
-                         unselected = [strategies[x] for x in strategies if x != merge_strategy]
-                         print( """New entries will just be appended to the config and
+                        strategies = {'MergeKeep': "(k)eep",
+                                      'MergeReplace': "(s)witch in",
+                                      'KillAppend': "(a)ppending"}
+                        unselected = [strategies[x] for x in strategies if x != merge_strategy]
+                        print( """New entries will just be appended to the config and
 appear at the beginning of your ROS_PACKAGE_PATH. The merge strategy
 decides how to deal with entries having a duplicate localname or path.
 
@@ -593,15 +593,15 @@ of elements in the order they were given.
 
 Switch append is the default.
 """)
-                         prompt = """Change Strategy %s: """%", ".join(unselected)
-                         mode_input = raw_input(prompt)
-                         if mode_input == 's':
-                             merge_strategy = 'MergeReplace'
-                         elif mode_input == 'k':
-                             merge_strategy = 'MergeKeep'
-                         elif mode_input == 'a':
-                             merge_strategy = 'KillAppend'
-                         
+                        prompt = """Change Strategy %s: """%", ".join(unselected)
+                        mode_input = raw_input(prompt)
+                        if mode_input == 's':
+                            merge_strategy = 'MergeReplace'
+                        elif mode_input == 'k':
+                            merge_strategy = 'MergeKeep'
+                        elif mode_input == 'a':
+                            merge_strategy = 'KillAppend'
+                        
                     elif mode_input == 'v':
                       extra_verbose = not extra_verbose
             if abort:
