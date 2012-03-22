@@ -50,6 +50,14 @@ Rosinstall File Format:
 
    rosinstall_file_format   
 
+Rosinstall Under the Hood
+=========================
+.. toctree::
+   :maxdepth: 2
+
+   rosinstall_under_the_hood
+
+
 Installation
 ============
 
