@@ -381,10 +381,11 @@ $ rosws update robot_model geometry
               config,
               localnames = args,
               backup_path = options.backup_changed,
-              mode = 'abort', 
-              robust = False,
+              mode = mode,
+              robust = options.robust,
               num_threads = int(options.jobs))
-            return 0
+            if install_success or options.robust:
+                return 0
         return 1
 
 
