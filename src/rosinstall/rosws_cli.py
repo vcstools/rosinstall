@@ -238,7 +238,8 @@ $ roslocate info robot_mode | rosws merge -
                                                       additional_specs = specs,
                                                       path_change_message = "ROS_PACKAGE_PATH order changed",
                                                       merge_strategy = merge_strategy,
-                                                      confirmed = options.confirm_all)
+                                                      confirmed = options.confirm_all,
+                                                      config = config)
         print("Config changed, maybe you need run rosws update to update SCM entries.")
         if newconfig is not None:
             print("Overwriting %s"%os.path.join(newconfig.get_base_path(), self.config_filename))
