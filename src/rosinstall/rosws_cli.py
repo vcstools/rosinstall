@@ -417,107 +417,107 @@ $ rosws info --only=path,cur_uri,cur_revision robot_model geometry
 
 
 def usage():
-  """
-  Prints usage from file header and from dictionary, sorting entries
-  """
-  dvars = {'prog': 'rosws'}
-  dvars.update(vars())
-  print(__doc__%dvars)
-  # keys=[]
-  # for k in __ROSWS_CMD_DICT__.iterkeys():
-  #   if k in gkeys:
-  #     keys.append(k)
-  # keys.sort()
-  keys=['help', 'init', None, 'set', 'merge', None, 'update', None, 'info', 'status', 'diff', None, 'regenerate']
-  for k in keys:
-    if k in __ROSWS_CMD_DICT__:
-      print("  " + k.ljust(10)+'   \t'+__ROSWS_CMD_DICT__[k])
-    else:
-      print('')
+    """
+    Prints usage from file header and from dictionary, sorting entries
+    """
+    dvars = {'prog': 'rosws'}
+    dvars.update(vars())
+    print(__doc__%dvars)
+    # keys=[]
+    # for k in __ROSWS_CMD_DICT__.iterkeys():
+    #   if k in gkeys:
+    #     keys.append(k)
+    # keys.sort()
+    keys=['help', 'init', None, 'set', 'merge', None, 'update', None, 'info', 'status', 'diff', None, 'regenerate']
+    for k in keys:
+        if k in __ROSWS_CMD_DICT__:
+            print("  " + k.ljust(10)+'   \t'+__ROSWS_CMD_DICT__[k])
+        else:
+            print('')
 
 def rosws_main(argv=None):
-  """
-  Calls the function corresponding to the first argument.
-  """
-  if argv == None:
-    argv = sys.argv
-  if (sys.argv[0] == '-c'):
-      sys.argv = ['rosws'] + sys.argv[1:]
-  if '--version' in argv:
-    import __version__
-    print("rosws: \t%s\n%s"%(__version__.version, multiproject_cmd.cmd_version()))
-    sys.exit(0)
-  workspace = None
-  if len(argv) < 2:
-    try:
-      workspace = cli_common.get_workspace(argv, os.getcwd(), config_filename = ROSINSTALL_FILENAME, varname = "ROS_WORKSPACE")
-      argv.append('info')
-    except MultiProjectException as e:
-      print(str(e))
-      usage()
-      return 0
-    
-  if '--help' == argv[1]:
-      usage()
-      return 0
-
-  try:
-    command = argv[1]
-    args = argv[2:]
-
-    if command == 'help':
-      if len(argv) < 3:
-        usage()
-        return 0
-
-      else:
-        command=argv[2]
-        args = argv[3:]
-        args.insert(0,"--help")
-        # help help
-        if command == 'help':
+    """
+    Calls the function corresponding to the first argument.
+    """
+    if argv == None:
+        argv = sys.argv
+    if (sys.argv[0] == '-c'):
+        sys.argv = ['rosws'] + sys.argv[1:]
+    if '--version' in argv:
+        import __version__
+        print("rosws: \t%s\n%s"%(__version__.version, multiproject_cmd.cmd_version()))
+        sys.exit(0)
+    workspace = None
+    if len(argv) < 2:
+        try:
+            workspace = cli_common.get_workspace(argv, os.getcwd(), config_filename = ROSINSTALL_FILENAME, varname = "ROS_WORKSPACE")
+            argv.append('info')
+        except MultiProjectException as e:
+            print(str(e))
             usage()
             return 0
-    cli = RoswsCLI()
-
-    # commands for which we do not infer target workspace
-    commands = {'init': cli.cmd_init}
-    # commands which work on a workspace
-    ws_commands = {
-      'info'         : cli.cmd_info,
-      'remove'       : cli.cmd_remove,
-      'regenerate'   : cli.cmd_regenerate,
-      'set'          : cli.cmd_set,
-      'merge'        : cli.cmd_merge,
-      'diff'         : cli.cmd_diff,
-      'status'       : cli.cmd_status,
-      'update'       : cli.cmd_update,
-      }
-   
-    if command not in commands and command not in ws_commands:
-      if os.path.exists(command):
-        args = ['-t', command] + args
-        command = 'info'
-      else:
-        if command.startswith('-'):
-          print("First argument must be name of a command: %s"%command)
-        else:
-          print("Error: unknown command: %s"%command)
-        usage()
-        return 1
       
-    if command in commands:
-        return commands[command](args)
-    else:
-        if workspace is None and not '--help' in args and not '-h' in args:
-            workspace = cli_common.get_workspace(args, os.getcwd(), config_filename = ROSINSTALL_FILENAME, varname = "ROS_WORKSPACE")
-        return ws_commands[command](workspace, args)
+    if '--help' == argv[1]:
+        usage()
+        return 0
+  
+    try:
+        command = argv[1]
+        args = argv[2:]
+    
+        if command == 'help':
+            if len(argv) < 3:
+                usage()
+                return 0
 
-  except KeyboardInterrupt:
-    pass
-  except ROSInstallException as e:
-    sys.stderr.write("ERROR in rosinstall: %s\n"%str(e))
-    return 1
-  except MultiProjectException as e:
-    sys.stderr.write("ERROR: %s\n"%str(e))
-    return 1
+            else:
+                command=argv[2]
+                args = argv[3:]
+                args.insert(0,"--help")
+                # help help
+                if command == 'help':
+                    usage()
+                    return 0
+        cli = RoswsCLI()
+    
+        # commands for which we do not infer target workspace
+        commands = {'init': cli.cmd_init}
+        # commands which work on a workspace
+        ws_commands = {
+          'info'         : cli.cmd_info,
+          'remove'       : cli.cmd_remove,
+          'regenerate'   : cli.cmd_regenerate,
+          'set'          : cli.cmd_set,
+          'merge'        : cli.cmd_merge,
+          'diff'         : cli.cmd_diff,
+          'status'       : cli.cmd_status,
+          'update'       : cli.cmd_update,
+          }
+       
+        if command not in commands and command not in ws_commands:
+            if os.path.exists(command):
+                args = ['-t', command] + args
+                command = 'info'
+            else:
+                if command.startswith('-'):
+                    print("First argument must be name of a command: %s"%command)
+                else:
+                    print("Error: unknown command: %s"%command)
+                usage()
+                return 1
+
+        if command in commands:
+            return commands[command](args)
+        else:
+            if workspace is None and not '--help' in args and not '-h' in args:
+                workspace = cli_common.get_workspace(args, os.getcwd(), config_filename = ROSINSTALL_FILENAME, varname = "ROS_WORKSPACE")
+            return ws_commands[command](workspace, args)
+    
+    except KeyboardInterrupt:
+        pass
+    except ROSInstallException as e:
+        sys.stderr.write("ERROR in rosinstall: %s\n"%str(e))
+        return 1
+    except MultiProjectException as e:
+        sys.stderr.write("ERROR: %s\n"%str(e))
+        return 1
