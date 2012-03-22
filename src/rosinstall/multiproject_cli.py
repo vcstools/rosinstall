@@ -411,7 +411,7 @@ The command removes entries from your configuration file, it does not affect you
         for element in elements:
             if not config.remove_element(element.get_local_name()):
                 success = False
-                print("Bug: No such element %s in config, aborting without changes"%(localname))
+                print("Bug: No such element %s in config, aborting without changes"%(element.get_local_name()))
                 break
         if success:
             print("Overwriting %s"%os.path.join(config.get_base_path(), self.config_filename))
