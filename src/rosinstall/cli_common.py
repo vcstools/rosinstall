@@ -106,10 +106,10 @@ def _uris_match(basepath, uri1, uri2):
       
   
 def _get_status_flags(basepath, line):
-  if 'exists' in line and line['exists'] == False:
+  if 'exists' in line and line['exists'] is False:
     return 'x'
   mflag = ''
-  if 'modified' in line and line['modified'] == True:
+  if 'modified' in line and line['modified'] is True:
     mflag = 'M'
   if (('curr_uri' in line
        and not _uris_match(basepath, line['uri'], line['curr_uri']))

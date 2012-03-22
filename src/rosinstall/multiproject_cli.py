@@ -33,9 +33,7 @@
 from __future__ import print_function
 import sys
 import os
-import cli_common
 import textwrap
-import yaml
 import shutil
 from optparse import OptionParser, IndentedHelpFormatter
 from common import select_element, select_elements, MultiProjectException
@@ -98,14 +96,14 @@ class MultiprojectCLI:
     def __init__(self, config_filename = None):
         self.config_filename = config_filename
 
-    def cmd_init(self, argv):
-        raise Exception("Not implemented yet")
-        # TODO enable when making multiproject an independent CLI
+    # def cmd_init(self, argv):
+    #     raise Exception("Not implemented yet")
+    # TODO enable when making multiproject an independent CLI
 
     
-    def cmd_merge(self, target_path, argv, config = None):
-        raise Exception("Not implemented yet")
-        # TODO enable when making multiproject an independent CLI
+    # def cmd_merge(self, target_path, argv, config = None):
+    #     raise Exception("Not implemented yet")
+    # TODO enable when making multiproject an independent CLI
 
 
     def cmd_diff(self, target_path, argv, config = None):
@@ -195,7 +193,7 @@ $ rosws set robot_model --detached
         parser.add_option("--detached", dest="detach", default=False,
                           help="make an entry unmanaged (default for new element)",
                           action="store_true")
-        parser.add_option("-v","--version-new", dest="version", default=False,
+        parser.add_option("-v","--version-new", dest="version", default=None,
                           help="point SCM to this version",
                           action="store")
         parser.add_option("--git", dest="git", default=False,
@@ -248,8 +246,6 @@ $ rosws set robot_model --detached
         if count_scms > 1:
             parser.error("You cannot provide more than one scm provider option")
           
-        is_insert = False
-        # find out whether to is_insert or modify
         if len(args) == 0:
             parser.error("Must provide a localname")
         
@@ -259,7 +255,7 @@ $ rosws set robot_model --detached
         if len(args) == 2:
             uri = args[1]
         version = None
-        if options.version != False:
+        if options.version is not None:
             version = options.version.strip("'\"")
         
         if element is None:
@@ -305,7 +301,7 @@ $ rosws set robot_model --detached
                 parser.error("No change provided.")
             print("     Change element from: \n %s\n     to\n %s"%(old_spec, spec))
 
-        action = config.add_path_spec(spec, merge_strategy = 'MergeReplace')
+        config.add_path_spec(spec, merge_strategy = 'MergeReplace')
         if not options.confirm:
             abort = None
             prompt = "Continue(y/n): "
@@ -421,14 +417,14 @@ The command removes entries from your configuration file, it does not affect you
             
         return 0
 
-            
-    def cmd_info(self, target_path, argv, reverse = False, config = None):
-        """
-        :param target_path: where to look for config
-        :param config: config to use instead of parsing file anew
-        """
-        raise Exception("Not implemented yet")
-        # TODO enable when making multiproject an independent CLI
+    # def cmd_info(self, target_path, argv, reverse = False, config = None):
+    #     """
+    #     :param target_path: where to look for config
+    #     :param config: config to use instead of parsing file anew
+    #     """
+    #     __pychecker__ = 'unusednames=reverse'
+    #     raise Exception("Not implemented yet")
+    # TODO enable when making multiproject an independent CLI
 
 
     def _get_element_diff(self, new_path_spec, config_old, extra_verbose = False):
@@ -561,9 +557,8 @@ The command removes entries from your configuration file, it does not affect you
                 return (newconfig, path_changed)
             else:
                 print(output)
-                help = "(h)elp"
                 showhelp = True
-                while(showhelp == True):
+                while(showhelp):
                     showhelp = False
                     prompt = "Continue: (y)es, (n)o, (v)erbosity, (a)dvance options: "
                     mode_input = raw_input(prompt)

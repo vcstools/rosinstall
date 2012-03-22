@@ -49,11 +49,9 @@ from config_yaml import aggregate_from_uris, generate_config_yaml, get_path_spec
 ## A change to expect is abstraction of user interaction.
 
 import vcstools
-from vcstools import VcsClient
 
 def get_config(basepath,
                additional_uris = None,
-               additional_specs = None,
                config_filename = None,
                merge_strategy = 'KillAppend'):
   """
@@ -130,7 +128,7 @@ def add_uris(config, additional_uris, merge_strategy = "KillAppend"):
         continue
       add_uris.append(uri)
   
-  path_specs = aggregate_from_uris(add_uris, config.get_config_filename(), config.get_base_path())
+  path_specs = aggregate_from_uris(add_uris, config.get_config_filename())
   
   actions = {}
   for path_spec in path_specs:
@@ -289,7 +287,7 @@ def cmd_install_or_update(config, backup_path = None, mode = 'abort', robust = F
     work.add_thread(thread)
  
   try:
-    outputs = work.run()
+    work.run()
   except MultiProjectException as e:
     print ("exception caught %s"%e)
     success = False

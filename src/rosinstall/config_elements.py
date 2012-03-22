@@ -35,7 +35,6 @@ import os
 import shutil
 import datetime
 
-import vcstools
 from vcstools import VcsClient
 from vcstools.vcs_base import VcsError
 
@@ -258,10 +257,10 @@ class VCSConfigElement(ConfigElement):
     :param backup: if checkout is True and folder exists, if backup is false folder will be DELETED.
     :param backup_path: if checkout is true and backup is true, move folder to this location
     """
-    if checkout == True:
+    if checkout is True:
       print("[%s] Installing %s (%s) to %s"%(self.get_local_name(), self.uri, self.version, self.get_path()))
       if self.path_exists():
-        if (backup == False):
+        if (backup is False):
           shutil.rmtree(self.path)
         else:
           self.backup(backup_path)

@@ -122,13 +122,16 @@ def rewrite_included_source(source_path_specs, source_dir):
     source_path_specs[index] = pathspec
   return source_path_specs
 
-def aggregate_from_uris(config_uris, config_filename = None, basepath = None):
+def aggregate_from_uris(config_uris, config_filename = None):
   """
   Builds a List of PathSpec from a list of location strings (uri,
   paths). If locations is a folder, attempts to find config_filename in it,
   and use "folder/config_filename" instead(rewriting element path and
   stripping scm nature), else add folder as PathSpec.  Anything else,
   parse yaml at location, and add a PathSpec for each element.
+
+  :param config_uris: source of yaml
+  :param config_filename: file to use when given a folder
   """
   aggregate_source_yaml = []
   # build up a merged list of config elements from all given config_uris

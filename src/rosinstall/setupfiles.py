@@ -33,11 +33,8 @@
 from __future__ import print_function
 
 import os
-import yaml
 
-import helpers
 from helpers import ROSInstallException, get_ros_stack_path, get_ros_package_path, ROSINSTALL_FILENAME
-import config
 from config_elements import SetupConfigElement
 
 CATKIN_CMAKE_TOPLEVEL="""#
@@ -234,7 +231,7 @@ fi
 
 
 def generate_setup(config, no_ros_allowed = False):
-  ros_root = helpers.get_ros_stack_path(config)
+  ros_root = get_ros_stack_path(config)
   if not ros_root:
     if not no_ros_allowed:
       raise ROSInstallException("""

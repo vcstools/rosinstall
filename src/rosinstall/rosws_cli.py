@@ -293,7 +293,7 @@ accidentally.
         return 0
 
    
-    def cmd_info(self, target_path, argv, config = None):
+    def cmd_info(self, target_path, argv, reverse = True, config = None):
         only_option_valid_attrs=['path', 'localname', 'version', 'revision', 'cur_revision', 'uri', 'cur_uri', 'scmtype']
         parser = OptionParser(usage="usage: rosws info [localname]* [OPTIONS]",
                               formatter = IndentedHelpFormatterWithNL(),
@@ -410,7 +410,7 @@ $ rosws info --only=path,cur_uri,cur_revision robot_model geometry
         header = 'workspace: %s\nROS_ROOT: %s'%(target_path, get_ros_stack_path(config))
         print(header)
         if not options.no_pkg_path:
-            table = cli_common.get_info_table(config.get_base_path(), outputs, options.data_only, reverse = True)
+            table = cli_common.get_info_table(config.get_base_path(), outputs, options.data_only, reverse = reverse)
             if table is not None and table != '':
                 print("\n%s"%table)
       

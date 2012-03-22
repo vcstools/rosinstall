@@ -32,7 +32,6 @@
 
 from __future__ import print_function
 import os
-import config_elements
 from config_elements import AVCSConfigElement, OtherConfigElement, SetupConfigElement
 from common import MultiProjectException, normabspath, realpath_relation, is_web_uri
 
@@ -72,7 +71,6 @@ class Config:
     if extended_types is not None:
       self.registry = dict(list(self.registry.items()) + list(extended_types.items()))
 
-    actions = {}
     for path_spec in path_specs:
       action = self.add_path_spec(path_spec, merge_strategy)
       # Usual action in init should be 'Append', anything else is unusual

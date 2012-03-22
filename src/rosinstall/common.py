@@ -181,7 +181,7 @@ class DistributedWork():
   
   def __init__(self, capacity, num_threads=10, silent=True):
     man = Manager() # need managed array since we need the results later
-    self.outputs = man.list([None for x in range(capacity)])
+    self.outputs = man.list([None for _ in range(capacity)])
     self.threads = []
     self.sequentializers = {}
     self.index = 0
@@ -245,7 +245,7 @@ class DistributedWork():
               self.threads[i].start()
             waiting_index = to_index
           running_threads = [t for t in self.threads if t is not None and t.is_alive()]
-          if (self.silent == False
+          if (not self.silent
               and len(running_threads) > 0):
             print("[%s] still active"%",".join([th.worker.element.get_local_name() for th in running_threads]))
           for thread in running_threads:
