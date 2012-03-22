@@ -57,7 +57,6 @@ from rosinstall import multiproject_cmd, rosinstall_cmd
 
 from rosinstall.helpers import ROSInstallException, ROSINSTALL_FILENAME
 from rosinstall.common import MultiProjectException
-import rosinstall.config
 
 def usage():
   print(__doc__ % vars())
@@ -162,9 +161,7 @@ Later URIs will shadow packages of earlier URIs.\n",
 
   if options.generate_versioned:
     filename = os.path.abspath(options.generate_versioned)
-
-    config = multiproject_cmd.cmd_snapshot(config)
-    
+    source_aggregate = multiproject_cmd.cmd_snapshot(config)
     with open(filename, 'w') as fh:
       fh.write(yaml.safe_dump(source_aggregate))
     print("Saved versioned rosinstall of current directory %s to %s"%(options.path, filename))
