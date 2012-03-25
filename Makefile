@@ -1,6 +1,6 @@
 .PHONY: all setup clean_dist distro clean install dsc source_deb upload
 
-VERSION=$(shell grep version= ./src/rosinstall/__version__.py | sed -s 's,version=,,')
+VERSION=$(shell grep version= ./src/rosinstall/__version__.py | sed 's,version=,,')
 
 
 all:

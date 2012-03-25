@@ -123,12 +123,12 @@ if y is not None:
 EOPYTHON`
 
 #whitespace separates results
-_ROS_PACKAGE_PATH_ROSINSTALL=`echo "$_PARSED_CONFIG" | sed -s 's,\(.*\)ROSINSTALL_PATH_SETUPFILE_SEPARATOR\(.*\),\\1,'`
-_SETUPFILES_ROSINSTALL=`echo "$_PARSED_CONFIG" | sed -s 's,\(.*\)'ROSINSTALL_PATH_SETUPFILE_SEPARATOR'\(.*\),\\2,'`
+_ROS_PACKAGE_PATH_ROSINSTALL=`echo "$_PARSED_CONFIG" | sed 's,\(.*\)ROSINSTALL_PATH_SETUPFILE_SEPARATOR\(.*\),\\1,'`
+_SETUPFILES_ROSINSTALL=`echo "$_PARSED_CONFIG" | sed 's,\(.*\)'ROSINSTALL_PATH_SETUPFILE_SEPARATOR'\(.*\),\\2,'`
 unset _PARSED_CONFIG
 
 # colon separates entries
-_LOOP_SETUP_FILE=`echo $_SETUPFILES_ROSINSTALL | sed -s 's,\([^:]*\)[:]\(.*\),\\1,'`
+_LOOP_SETUP_FILE=`echo $_SETUPFILES_ROSINSTALL | sed 's,\([^:]*\)[:]\(.*\),\\1,'`
 while [ ! -z "$_LOOP_SETUP_FILE" ]
 do
   if [ -f "$_LOOP_SETUP_FILE" ]; then
@@ -136,8 +136,8 @@ do
   else
     echo warn: no such file : "$_LOOP_SETUP_FILE"
   fi
-  _SETUPFILES_ROSINSTALL=`echo $_SETUPFILES_ROSINSTALL | sed -s 's,\([^:]*[:]*\),,'`
-  _LOOP_SETUP_FILE=`echo $_SETUPFILES_ROSINSTALL | sed -s 's,\([^:]*\)[:]\(.*\),\\1,'`
+  _SETUPFILES_ROSINSTALL=`echo $_SETUPFILES_ROSINSTALL | sed 's,\([^:]*[:]*\),,'`
+  _LOOP_SETUP_FILE=`echo $_SETUPFILES_ROSINSTALL | sed 's,\([^:]*\)[:]\(.*\),\\1,'`
 done
 
 unset _LOOP_SETUP_FILE
