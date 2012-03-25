@@ -4,7 +4,10 @@ Changelog
 0.6
 ---
 
+0.6.12
+------
 
+- fixed #33 sed -s blunder
 
 0.6.11
 ------
