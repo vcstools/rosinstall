@@ -429,7 +429,7 @@ def usage():
     #   if k in gkeys:
     #     keys.append(k)
     # keys.sort()
-    keys=['help', 'init', None, 'set', 'merge', None, 'update', None, 'info', 'status', 'diff', None, 'regenerate']
+    keys=['help', 'init', None, 'set', 'merge', 'remove', None, 'update', None, 'info', 'status', 'diff', None, 'regenerate']
     for k in keys:
         if k in __ROSWS_CMD_DICT__:
             print("  " + k.ljust(10)+'   \t'+__ROSWS_CMD_DICT__[k])
