@@ -33,24 +33,6 @@ Command Line Tools:
    roslocate
    rosco
 
-Tutorials
----------
-
-.. toctree::
-   :maxdepth: 2
-
-   rosws_tutorial
-
-
-
-Rosinstall File Format:
-=======================
-.. toctree::
-   :maxdepth: 2
-
-   rosinstall_file_format   
-
-
 Installation
 ============
 
@@ -71,6 +53,24 @@ installation process currently requiring linux. It is only available
 via pip for now::
 
     pip install -U rosinstall_shellcompletion
+
+
+Tutorials
+=========
+
+.. toctree::
+   :maxdepth: 2
+
+   rosws_tutorial
+
+
+
+Rosinstall File Format:
+=======================
+.. toctree::
+   :maxdepth: 2
+
+   rosinstall_file_format   
 
 
 Advanced: rosinstall developers/contributors
