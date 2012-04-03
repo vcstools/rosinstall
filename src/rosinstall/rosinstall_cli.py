@@ -215,5 +215,8 @@ Later URIs will shadow packages of earlier URIs.\n",
   if not install_success:
     print("Warning: installation encountered errors, but --continue-on-error was requested.  Look above for warnings.")
 
-  print("\nrosinstall update complete.\n\nNow, type 'source %s/setup.bash' to set up your environment.\nAdd that to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % options.path)
+  print("\nrosinstall update complete.")
+  if (options.catkin is False
+      and options.catkinpp is None):
+    print("\n\nNow, type 'source %s/setup.bash' to set up your environment.\nAdd that to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % options.path)
   return True
