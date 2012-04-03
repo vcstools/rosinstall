@@ -149,7 +149,10 @@ $ rosws init ~/fuerte /opt/ros/fuerte
     
         if not install_success:
             print("Warning: installation encountered errors, but --continue-on-error was requested.  Look above for warnings.")
-        print("\nrosws init complete.\n\nType 'source %s/setup.bash' to change into this environment. Add that source command to the bottom of your ~/.bashrc to set it up every time you log in.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % target_path)
+        print("\nrosinstall update complete.")
+        if (options.catkin is False
+            and options.catkinpp is None):
+            print("\nType 'source %s/setup.bash' to change into this environment. Add that source command to the bottom of your ~/.bashrc to set it up every time you log in.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % target_path)
         return 0
 
     def cmd_merge(self, target_path, argv, config = None):
