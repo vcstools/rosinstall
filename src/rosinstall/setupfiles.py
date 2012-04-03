@@ -218,7 +218,7 @@ RETURNCODE=`type _ros_decode_path 2> /dev/null | grep function 1>/dev/null 2>&1 
 if [ ! "$RETURNCODE" = "" ]; then
   RETURNCODE=`rospack help 1> /dev/null 2>&1 || echo error`
   if  [ "$RETURNCODE" = "" ]; then
-    ROSSHELL_PATH=`rospack find rosbash`/rosbash
+    ROSSHELL_PATH=`rospack find rosbash`/ros%(shell)s
     if [ -e "$ROSSHELL_PATH" ]; then
       . $ROSSHELL_PATH
     fi

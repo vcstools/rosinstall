@@ -106,6 +106,9 @@ class GenerateTest(AbstractFakeRosBasedTest):
         result = rosinstall.setupfiles.generate_setup_bash_text('bash')
         self.assertTrue(result.count("#!/usr/bin/env bash")==1)
         self.assertTrue(result.count("CATKIN_SHELL=bash")==1)
+        self.assertTrue(result.count("ROSSHELL_PATH=`rospack find rosbash`/rosbash") == 1)
         result = rosinstall.setupfiles.generate_setup_bash_text('zsh')
         self.assertTrue(result.count("#!/usr/bin/env zsh")==1)
         self.assertTrue(result.count("CATKIN_SHELL=zsh") == 1)
+        self.assertTrue(result.count("ROSSHELL_PATH=`rospack find rosbash`/roszsh") == 1)
+        
