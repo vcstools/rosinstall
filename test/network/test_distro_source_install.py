@@ -59,12 +59,17 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
                 if "local-name" in element:
                     if element["local-name"] == "ros":
                         ros_found = True
+            elif "tar" in e:
+                element = e["tar"]
+                if "local-name" in element:
+                    if element["local-name"] == "ros":
+                        ros_found = True
         return ros_found
 
     def _ros_found_path_spec(self, specs):
         ros_found = False
         for s in specs:
-            if "svn" == s.get_scmtype():
+            if "svn" == s.get_scmtype() or "tar" == s.get_scmtype():
                 if "ros" == s.get_path():
                     ros_found = True
         return ros_found
