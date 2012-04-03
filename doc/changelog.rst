@@ -4,6 +4,11 @@ Changelog
 0.6
 ---
 
+0.6.13
+------
+
+minor bugfixes for #34, #35
+
 0.6.12
 ------
 
