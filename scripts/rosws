@@ -49,18 +49,24 @@ from __future__ import print_function
 import sys
 
 import pkg_resources # else python warning
-import rosinstall.rosws_cli
-from rosinstall.helpers import ROSInstallException
-from rosinstall.common import MultiProjectException
 
+try:
+  import rosinstall.rosws_cli
+  from rosinstall.helpers import ROSInstallException
+  from rosinstall.common import MultiProjectException
+except ImportError:
+  sys.stderr.write("ERROR Cannot find rosinstall libraries, check your\
+ installation. One frequent cause is that rosinstall 0.5 is still\
+ installed in /usr/local/lib.\n")
+  sys.exit(1)
 
 
 if __name__ == "__main__":
-    try:
-        sys.exit(rosinstall.rosws_cli.rosws_main(sys.argv))
-    except ROSInstallException as e:
-        sys.stderr.write("ERROR in rosinstall: %s"%str(e))
-        sys.exit(1)
-    except MultiProjectException as e:
-        sys.stderr.write("ERROR in config: %s"%str(e))
-        sys.exit(1)
+  try:
+    sys.exit(rosinstall.rosws_cli.rosws_main(sys.argv))
+  except ROSInstallException as e:
+    sys.stderr.write("ERROR in rosinstall: %s"%str(e))
+    sys.exit(1)
+  except MultiProjectException as e:
+    sys.stderr.write("ERROR in config: %s"%str(e))
+    sys.exit(1)

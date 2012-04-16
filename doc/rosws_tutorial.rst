@@ -27,6 +27,18 @@ You can then get the latest rosinstall like this:
 
     $ sudo pip install -U rosinstall
 
+Troubleshoot
+~~~~~~~~~~~~
+
+If you had rosinstall series 0.5 installed, you may encounter conflicts like::
+
+  ImportError: No module named rosinstall.rosinstall_cli
+
+To fix this, you will have to remove leftover directories from the earlier install, as sadly the python setuptools will not do it for you. On Ubuntu Lucid, as an example::
+
+  $ sudo rm -rf /usr/local/lib/python2.6/dist-packages/rosinstall-0.5*
+
+
 Initialize a workspace
 ----------------------
 
