@@ -202,13 +202,15 @@ CATKIN_SHELL=%(shell)s
 if [ ! -f "$SCRIPT_PATH/setup.sh" ]; then
   echo "Bug: shell script unable to determine its own location: $SCRIPT_PATH"
   return 22
-fi
+fi"""%locals()
 
-
+  if not no_ros:
+    text += """
 # unset _ros_decode_path to check later whether setup.sh has sourced ros%(shell)s
-unset -f _ros_decode_path 1> /dev/null 2>&1
+unset -f _ros_decode_path 1> /dev/null 2>&1"""%locals()
 
-. $SCRIPT_PATH/setup.sh"""%locals()
+  text += """
+. $SCRIPT_PATH/setup.sh"""
 
   if not no_ros:
     text += """
@@ -232,7 +234,7 @@ fi
 
 def generate_setup(config, no_ros_allowed = False):
   ros_root = get_ros_stack_path(config)
-  if not ros_root:
+  if ros_root is None:
     if not no_ros_allowed:
       raise ROSInstallException("""
 No 'ros' stack detected in candidates %s.
@@ -244,7 +246,6 @@ See http://ros.org/wiki/rosinstall."""%([t.get_path() for t in config.get_config
   setup_path = os.path.join(config.get_base_path(), 'setup.sh')
   with open(setup_path, 'w') as f:
     f.write(text)
-
 
   for shell in ['bash', 'zsh']:
     text = generate_setup_bash_text(shell, ros_root is None)
