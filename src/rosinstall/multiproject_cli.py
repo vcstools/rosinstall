@@ -552,7 +552,7 @@ The command removes entries from your configuration file, it does not affect you
                 ask_user = True
      
             if output == "":
-                return (None, None)
+                return (None, False)
             if confirmed or not ask_user:
                 print("     Performing actions: ")
                 print(output)
@@ -603,6 +603,6 @@ Switch append is the default.
                       extra_verbose = not extra_verbose
             if abort:
                 print("No changes made.")
-                return (None, None)
+                return (None, False)
             print('==========================================')
           
