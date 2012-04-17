@@ -429,7 +429,7 @@ The command removes entries from your configuration file, it does not affect you
 
     def _get_element_diff(self, new_path_spec, config_old, extra_verbose = False):
         """
-        returns a string telling what changed for element compared to old config
+        :returns: a string telling what changed for element compared to old config
         """
         if new_path_spec is None or config_old is None:
             return ''
@@ -475,8 +475,10 @@ The command removes entries from your configuration file, it does not affect you
                      config = None):
         """
         Prompts the user for the resolution of a merge
+        
         :param target_path: Location of the config workspace
-        :additional_uris: what needs merging in
+        :param additional_uris: what needs merging in
+        :returns: tupel (Config or None if no change, bool path_changed)
         """
         if config == None:
             config = multiproject_cmd.get_config(target_path, additional_uris = [], config_filename = self.config_filename)

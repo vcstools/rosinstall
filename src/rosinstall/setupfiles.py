@@ -92,7 +92,7 @@ unset ROS_ROOT
    
 # use python script to read ros_package_path and setup-file elements
   text += """
-# python script to read .rosinstall even when rosnistall is not installed
+# python script to read .rosinstall even when rosinstall is not installed
 export _PARSED_CONFIG=`/usr/bin/env python << EOPYTHON
 import sys, os, yaml;
 filename = '.rosinstall'

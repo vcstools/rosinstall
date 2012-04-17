@@ -243,8 +243,8 @@ $ roslocate info robot_mode | rosws merge -
                                                       merge_strategy = merge_strategy,
                                                       confirmed = options.confirm_all,
                                                       config = config)
-        print("Config changed, maybe you need run rosws update to update SCM entries.")
         if newconfig is not None:
+            print("Config changed, maybe you need run rosws update to update SCM entries.")
             print("Overwriting %s"%os.path.join(newconfig.get_base_path(), self.config_filename))
             shutil.move(os.path.join(newconfig.get_base_path(), self.config_filename), "%s.bak"%os.path.join(newconfig.get_base_path(), self.config_filename))
             rosinstall_cmd.cmd_persist_config(newconfig)
@@ -252,7 +252,8 @@ $ roslocate info robot_mode | rosws merge -
             print("\nrosws update complete.")
             if path_changed:
                 print("\nDo not forget to do ...\n$ source %s/setup.sh\n... in every open terminal." % target_path)
-
+        else:
+            print("Merge caused no change, matching elements already exist")
         return 0
 
     
