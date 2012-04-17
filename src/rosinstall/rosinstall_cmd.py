@@ -57,6 +57,14 @@ def _ros_requires_boostrap(config):
       if entry.get_scmtype() is not None:
         return True
   return False
+
+def cmd_maybe_refresh_ros_files(config):
+  """
+  Regenerates setup.* files if they exist already
+  """
+  if (os.path.isfile(os.path.join(config.get_base_path(), 'setup.sh'))):
+    print("Overwriting setup.sh, setup.bash, and setup.zsh in %s"%config.get_base_path())
+    setupfiles.generate_setup(config, no_ros_allowed = True)
   
 def cmd_generate_ros_files(config, path, nobuild = False, rosdep_yes = False, catkin = False, catkinpp = None, no_ros_allowed = False):
   """

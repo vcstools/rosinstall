@@ -248,7 +248,7 @@ $ roslocate info robot_mode | rosws merge -
             print("Overwriting %s"%os.path.join(newconfig.get_base_path(), self.config_filename))
             shutil.move(os.path.join(newconfig.get_base_path(), self.config_filename), "%s.bak"%os.path.join(newconfig.get_base_path(), self.config_filename))
             rosinstall_cmd.cmd_persist_config(newconfig)
-       
+            rosinstall_cmd.cmd_maybe_refresh_ros_files(newconfig)
             print("\nrosws update complete.")
             if path_changed:
                 print("\nDo not forget to do ...\n$ source %s/setup.sh\n... in every open terminal." % target_path)

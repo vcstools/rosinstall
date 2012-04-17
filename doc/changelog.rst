@@ -4,10 +4,16 @@ Changelog
 0.6
 ---
 
+0.6.14
+------
+
+- minor bugfix for #41, setupfiles not regenerated causing rosbash missing on pre-fuerte
+- changes to docstrings and some messages
+
 0.6.13
 ------
 
-minor bugfixes for #34, #35
+- minor bugfixes for #34, #35
 
 0.6.12
 ------
