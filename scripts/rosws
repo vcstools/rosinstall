@@ -54,10 +54,10 @@ try:
   import rosinstall.rosws_cli
   from rosinstall.helpers import ROSInstallException
   from rosinstall.common import MultiProjectException
-except ImportError:
+except ImportError as e:
   sys.stderr.write("ERROR Cannot find rosinstall libraries, check your\
  installation. One frequent cause is that rosinstall 0.5 is still\
- installed in /usr/local/lib.\n")
+ installed in /usr/local/lib.\n%s\n"%e)
   sys.exit(1)
 
 
