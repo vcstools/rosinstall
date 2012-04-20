@@ -238,20 +238,23 @@ class DistributedWork():
         maxthreads = self.num_threads
         running_threads = []
         missing_threads = copy.copy(self.threads)
-        while len(running_threads) > 0 or len(missing_threads) > 0:
+        # we are done if all threads have finished
+        while len(missing_threads) > 0:
+          # we spawn more threads whenever some threads have finished
           if len(running_threads) < maxthreads:
             to_index = min(waiting_index + maxthreads - len(running_threads), len(self.threads))
             for i in range(waiting_index, to_index):
               self.threads[i].start()
+              running_threads.append(self.threads[i])
             waiting_index = to_index
-          running_threads = [t for t in self.threads if t is not None and t.is_alive()]
+          # threads have exitcode only once they terminated
+          missing_threads = [t for t in missing_threads if t.exitcode is None]
+          running_threads = [t for t in running_threads if t.exitcode is None]
           if (not self.silent
               and len(running_threads) > 0):
             print("[%s] still active"%",".join([th.worker.element.get_local_name() for th in running_threads]))
           for thread in running_threads:
-            if thread in missing_threads:
-              missing_threads.remove(thread)
-            thread.join(1)
+            thread.join(1) # this should prevent busy waiting
       except KeyboardInterrupt as k:
         for thread in self.threads:
           if thread is not None and thread.is_alive():

@@ -4,6 +4,11 @@ Changelog
 0.6
 ---
 
+0.6.15
+------
+
+- bugfix infinite loop possible on race condition
+
 0.6.14
 ------
 
