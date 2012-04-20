@@ -120,23 +120,8 @@ def _get_status_flags(basepath, line):
     mflag += 'V'
   return mflag
 
-def get_info_table(basepath, entries, data_only = False, reverse = False):
-  headers = {
-    'uri':"URI  (Spec) (https://...)",
-    'scm':"SCM ",
-    'localname':"Localname",
-    'version':"Version-Spec",
-    'matching': "UID  (Spec)",
-    'status':"S"
-    }
-
-  # table design
-  selected_headers=['localname', 'status', 'scm', 'version', 'matching', 'uri'  ]
-
-  column_length = {}
-
-  for header in headers.keys():
-    column_length[header] = len(headers[header])
+def get_info_table_elements(basepath, entries, headers):
+  """returns a list of dict with refined information from entries"""
 
   outputs = []
   for line in entries:
@@ -209,11 +194,37 @@ def get_info_table(basepath, entries, data_only = False, reverse = False):
       output_dict['matching'] = " "
     output_dict['status'] = _get_status_flags(basepath, line)
         
-    for header in headers.keys():
-      if output_dict[header] != None:
-        column_length[header] = max(column_length[header], len(output_dict[header]))
     outputs.append(output_dict)
+    
+  return outputs
 
+def get_info_table(basepath, entries, data_only = False, reverse = False):
+  """return a refined textual representation of the entries"""
+  headers = {
+    'uri':"URI  (Spec) (https://...)",
+    'scm':"SCM ",
+    'localname':"Localname",
+    'version':"Version-Spec",
+    'matching': "UID  (Spec)",
+    'status':"S"
+    }
+
+  # table design
+  selected_headers=['localname', 'status', 'scm', 'version', 'matching', 'uri'  ]
+
+  outputs = get_info_table_elements(
+    basepath = basepath,
+    entries = entries,
+    headers = headers)
+
+  # adjust column width
+  column_length = {}
+  for header in headers.keys():
+    column_length[header] = len(headers[header])
+    for entry in outputs:
+      if entry[header] != None:
+        column_length[header] = max(column_length[header], len(entry[header]))
+        
   resultlines = []
   if not data_only and len(outputs) > 0:
     header_line = ' '
