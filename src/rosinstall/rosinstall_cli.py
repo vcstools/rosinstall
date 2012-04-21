@@ -89,6 +89,9 @@ Later URIs will shadow packages of earlier URIs.\n",
   parser.add_option("--version", dest="version", default=False,
                     help="display version information",
                     action="store_true")
+  parser.add_option("--verbose", dest="verbose", default=False,
+                    help="display more information",
+                    action="store_true")
   parser.add_option("-n", "--nobuild", dest="nobuild", default=False,
                     help="skip the build step for the ROS stack",
                     action="store_true")
@@ -202,7 +205,8 @@ Later URIs will shadow packages of earlier URIs.\n",
     backup_path = options.backup_changed,
     mode = mode,
     robust = options.robust,
-    num_threads = int(options.jobs))
+    num_threads = int(options.jobs),
+    verbose = options.verbose)
   
   rosinstall_cmd.cmd_generate_ros_files(
     config,

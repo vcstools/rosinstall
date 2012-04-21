@@ -4,6 +4,11 @@ Changelog
 0.6
 ---
 
+0.6.16
+------
+
+- #42 implemented rosinstall --verbose and rosws update --verbose to show what files have changed
+
 0.6.15
 ------
 

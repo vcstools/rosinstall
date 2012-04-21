@@ -51,6 +51,7 @@ class PreparationReport:
     self.abort = False # abort ALL operations
     self.skip = False # skip this tree
     self.error = None # message
+    self.verbose = False # verbosity
     self.checkout = True # checkout vs update
     self.backup = False # backup vs delete
     self.backup_path = None # where to move tree to
@@ -85,7 +86,7 @@ class ConfigElement:
     preparation_report.skip = True
     return preparation_report
   
-  def install(self, checkout = True, backup = False, backup_path = None):
+  def install(self, checkout = True, backup = False, backup_path = None, verbose = False):
     """
     Attempt to make it so that self.path is the result of checking out / updating from remote repo.
     No user Interaction allowed here (for concurrent mode).
@@ -134,7 +135,7 @@ class OtherConfigElement(ConfigElement):
     self.version = version
 
   
-  def install(self, checkout = True, backup = False, backup_path = None):
+  def install(self, checkout = True, backup = False, backup_path = None, verbose = False):
     return True
 
   def get_versioned_path_spec(self):
@@ -155,7 +156,7 @@ class OtherConfigElement(ConfigElement):
 class SetupConfigElement(ConfigElement):
   """A setup config element specifies a single file containing configuration data for a config."""
 
-  def install(self, checkout = True, backup = False, backup_path = None):
+  def install(self, checkout = True, backup = False, backup_path = None, verbose = False):
     return True
 
   def get_versioned_path_spec(self):
@@ -249,7 +250,7 @@ class VCSConfigElement(ConfigElement):
           preparation_report.backup = False
     return preparation_report
 
-  def install(self, checkout = True, backup = True, backup_path = None):
+  def install(self, checkout = True, backup = True, backup_path = None, verbose = False):
     """
     Runs the equivalent of SCM checkout for new local repos or update for existing.
     
@@ -264,11 +265,11 @@ class VCSConfigElement(ConfigElement):
           shutil.rmtree(self.path)
         else:
           self.backup(backup_path)
-      if not self._get_vcsc().checkout(self.uri, self.version):
+      if not self._get_vcsc().checkout(self.uri, self.version, verbose = verbose):
         raise MultiProjectException("[%s] Checkout of %s version %s into %s failed."%(self.get_local_name(), self.uri, self.version, self.get_path()))
     else:
       print("[%s] Updating %s"%(self.get_local_name(), self.get_path()))
-      if not self._get_vcsc().update(self.version):
+      if not self._get_vcsc().update(self.version, verbose = verbose):
         raise MultiProjectException("[%s] Update Failed of %s"%(self.get_local_name(), self.get_path()))
     print("[%s] Done."%self.get_local_name())
           

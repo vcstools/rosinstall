@@ -122,6 +122,7 @@ class Config:
   def _insert_vcs_path_spec(self, path_spec, local_path, merge_strategy = 'KillAppend'):
     # Get the version and source_uri elements
     source_uri = path_spec.get_uri()
+    
     if (source_uri is not None
         and not is_web_uri(source_uri)
         and not os.path.isabs(source_uri)):

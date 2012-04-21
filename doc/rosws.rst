@@ -26,8 +26,8 @@ The command was introduced with [REP110]_.
    :depth: 3
 
 
-Roadmap
--------
+Wishlist
+--------
 
 Thanks to its scm like syntax the rosws tool has a lot of room to
 grow. Possible changes that have been discussed are:
@@ -44,10 +44,11 @@ grow. Possible changes that have been discussed are:
 - provide tags and branches of distributed SCMs in tab-completion and info
 - shows whether updates are available on remote
 - colorize outputs
-- a --verbose option
 - a command to reorder elements
 - an option for ``set`` to change element position
 - split out ROS agnostic tool for multi-vcs shell-project management
+- ability to store personal tool preferences in a .rc file
+- rosgui plugin
 
 At the time of this writing the rosws command is very new, so 
 it was decided to only provide a small set of commands and see 

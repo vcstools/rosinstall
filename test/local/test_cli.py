@@ -202,7 +202,7 @@ class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):
         self.install_success = True
         self.properties = properties
 
-    def install(self, checkout=True, backup = False, backup_path = None, robust = False):
+    def install(self, checkout=True, backup = False, backup_path = None, robust = False, verbose=False):
         if not self.install_success:
             raise MultiProjectException("Unittest Mock says install failed")
 
@@ -249,11 +249,11 @@ class MockVcsClient():
     def path_exists(self):
         return self.path_exists_flag
 
-    def checkout(self, uri=None, version=None):
+    def checkout(self, uri=None, version=None, verbose=False):
         self.checkedout = True
         return self.checkout_success
 
-    def update(self, version):
+    def update(self, version, verbose=False):
         self.updated = True
         return self.update_success
 

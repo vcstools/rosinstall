@@ -357,6 +357,9 @@ $ rosws update robot_model geometry
         parser.add_option("-j", "--parallel", dest="jobs", default=1,
                           help="How many parallel threads to use for installing",
                           action="store")
+        parser.add_option("-v", "--verbose", dest="verbose", default=False,
+                          help="Whether to print out more information",
+                          action="store_true")
         # -t option required here for help but used one layer above, see cli_common
         parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
                           help="which workspace to use",
@@ -379,7 +382,8 @@ $ rosws update robot_model geometry
               backup_path = options.backup_changed,
               mode = mode,
               robust = options.robust,
-              num_threads = int(options.jobs))
+              num_threads = int(options.jobs),
+              verbose = options.verbose)
             if install_success or options.robust:
                 return 0
         return 1

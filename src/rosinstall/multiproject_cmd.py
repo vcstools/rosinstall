@@ -229,7 +229,14 @@ def cmd_diff(config, localnames = None):
   outputs = work.run()
   return outputs
 
-def cmd_install_or_update(config, backup_path = None, mode = 'abort', robust = False, localnames = None, num_threads = 1):
+def cmd_install_or_update(
+  config,
+  backup_path = None,
+  mode = 'abort',
+  robust = False,
+  localnames = None,
+  num_threads = 1,
+  verbose = False):
   """
   performs many things, generally attempting to make
   the local filesystem look like what the config specifies,
@@ -278,11 +285,13 @@ def cmd_install_or_update(config, backup_path = None, mode = 'abort', robust = F
     def do_work(self):
       self.element.install(checkout = self.report.checkout,
                            backup = self.report.backup,
-                           backup_path = self.report.backup_path)
+                           backup_path = self.report.backup_path,
+                           verbose = self.report.verbose)
       return {}
 
   work = DistributedWork(len(preparation_reports), num_threads, silent=False)
   for report in preparation_reports:
+    report.verbose = verbose
     thread = Installer(report)
     work.add_thread(thread)
  
