@@ -201,7 +201,7 @@ def get_info_table_elements(basepath, entries, headers):
 def get_info_table(basepath, entries, data_only = False, reverse = False):
   """return a refined textual representation of the entries"""
   headers = {
-    'uri':"URI  (Spec) (https://...)",
+    'uri':"URI  (Spec) [https://...]",
     'scm':"SCM ",
     'localname':"Localname",
     'version':"Version-Spec",

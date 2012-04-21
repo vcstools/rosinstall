@@ -289,11 +289,9 @@ def cmd_install_or_update(config, backup_path = None, mode = 'abort', robust = F
   try:
     work.run()
   except MultiProjectException as e:
-    print ("exception caught %s"%e)
+    print ("Exception caught during install: %s"%e)
     success = False
-    if robust:
-      print("Errors during install %s"%(e))
-    else:
+    if not robust:
       raise e
   return success
   # TODO go back and make sure that everything in options.path is described

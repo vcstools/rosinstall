@@ -201,7 +201,6 @@ class RosinstallDiffHgTest(AbstractSCMTest):
         self.assertEqual(0, cli.cmd_status(os.path.join(self.test_root_path, 'ws'), ["--untracked"]))
 
     def test_rosws_info_hg(self):
-        """Test untracked status output for hg"""
         cmd = ["rosws", "info", "-t", "ws"]
         os.chdir(self.test_root_path)
         sys.stdout = output = StringIO();

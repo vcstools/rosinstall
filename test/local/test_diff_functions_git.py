@@ -202,8 +202,6 @@ class RosinstallDiffGitTest(AbstractSCMTest):
 
 
     def test_rosws_info_git(self):
-        """Test untracked status output for git"""
-
         cmd = ["rosws", "info", "-t", "ws"]
         os.chdir(self.test_root_path)
         sys.stdout = output = StringIO();

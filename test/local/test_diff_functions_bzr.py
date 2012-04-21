@@ -71,7 +71,7 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
         subprocess.check_call(["bzr", "commit", "-m", "modified"], cwd=remote_path)
 
         # rosinstall the remote repo and fake ros
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- bzr: {local-name: clone, uri: ../remote}")
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- bzr: {local-name: clone, uri: %s}"%remote_path)
 
         cmd = ["rosinstall", "ws", "-n"]
         os.chdir(self.test_root_path)
@@ -210,8 +210,6 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
         self.assertEqual(0, cli.cmd_status(os.path.join(self.test_root_path, 'ws'), ["--untracked"]))
 
     def test_rosws_info_bzr(self):
-        """Test untracked status output for bzr"""
-
         cmd = ["rosws", "info", "-t", "ws"]
         os.chdir(self.test_root_path)
         sys.stdout = output = StringIO();
@@ -259,6 +257,7 @@ class RosinstallInfoBzrTest(AbstractSCMTest):
         sys.stdout = output = StringIO();
         rosws_main(cmd)
         output = output.getvalue()
+
         tokens = _nth_line_split(-2, output)
         self.assertEqual(['clone', 'bzr', self.version_end, os.path.join(self.test_root_path, 'remote')], tokens)
 
