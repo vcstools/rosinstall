@@ -140,12 +140,15 @@ def get_info_table_elements(basepath, entries, headers):
     if line == None:
       print("Bug Warning, an element is missing")
       continue
+    
     if line['scm'] == 'git':
       if (line['specversion'] is not None and len(line['specversion']) > 12):
         line['specversion'] = line['specversion'][0:12]
       if (line['actualversion'] is not None and len(line['actualversion'])>12):
         line['actualversion'] = line['actualversion'][0:12]
+        
     if line['scm'] != None:
+      
       if line['scm'] == 'svn':
         # in case of SVN, we can use the final part of standard uri as version
         uri = line['uri']
@@ -170,26 +173,33 @@ def get_info_table_elements(basepath, entries, headers):
               version = m.groups()[1]
             line['curr_uri'] = uri
             line['curr_version'] = version
+            
       if (line['curr_version'] is not None
           and line['version'] != line['curr_version']):
         output_dict['version'] = "%s  (%s)"%(line['curr_version'], line['version'])
       else:
         output_dict['version'] = line['version']
+        
       if (line['specversion'] is not None
         and line['specversion'] != ''
         and line['actualversion'] != line['specversion']):
         output_dict['matching'] = "%s (%s)"%( line['actualversion'], line['specversion'])
       else:
         output_dict['matching'] = line['actualversion']
+
       common_prefix = "https://"
-      if line['uri'].startswith(common_prefix):
+      if (line['uri'] is not None and
+          line['uri'].startswith(common_prefix)):
         line['uri'] = line['uri'][len(common_prefix):]
         output_dict['uri'] = line['uri']
+        
       if (line['curr_uri'] is not None
           and line['curr_uri'].startswith(common_prefix)):
         line['curr_uri'] = line['curr_uri'][len(common_prefix):]
+        
       if (not _uris_match(basepath, line['uri'], line['curr_uri'])):
         output_dict['uri'] = "%s  (%s)"%(line['curr_uri'], line['uri'])
+        
     else:
       output_dict['matching'] = " "
     output_dict['status'] = _get_status_flags(basepath, line)
