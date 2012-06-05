@@ -171,12 +171,12 @@ Later URIs will shadow packages of earlier URIs.\n",
     return True
 
   if options.vcs_diff:
-    alldiff = ""
     difflist = multiproject_cmd.cmd_diff(config)
+    alldiff = []
     for entrydiff in difflist:
-      if entrydiff['diff'] != None:
-        alldiff += entrydiff['diff']
-    print(alldiff)
+      if entrydiff['diff'] != None and entrydiff['diff'] != '':
+        alldiff.append(entrydiff['diff'])
+    print('\n'.join(alldiff))
     return True
 
   if options.vcs_status or options.vcs_status_untracked:
@@ -184,7 +184,7 @@ Later URIs will shadow packages of earlier URIs.\n",
     allstatus = []
     for entrystatus in statuslist:
       if entrystatus['status'] != None and entrystatus['status'] != '':
-        allstatus.append(entrystatus['status'].strip())
+        allstatus.append(entrystatus['status'])
     print('\n'.join(allstatus))
     return True
 
