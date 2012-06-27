@@ -126,11 +126,11 @@ class MultiprojectCLI:
             difflist = multiproject_cmd.cmd_diff(config, localnames = args)
         else:
             difflist = multiproject_cmd.cmd_diff(config)
-        alldiff = ""
+        alldiff = []
         for entrydiff in difflist:
-            if entrydiff['diff'] != None:
-                alldiff += entrydiff['diff']
-        print(alldiff)
+            if entrydiff['diff'] != None and entrydiff['diff'] != '':
+                alldiff.append(entrydiff['diff'])
+        print('\n'.join(alldiff))
             
         return False
     
