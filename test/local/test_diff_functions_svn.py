@@ -89,7 +89,7 @@ class RosinstallDiffSvnTest(AbstractSCMTest):
         _add_to_file(os.path.join(clone_path, "modified.txt"), u"foo\n")
         _add_to_file(os.path.join(clone_path, "added-fs.txt"), u"tada\n")
         _add_to_file(os.path.join(clone_path, "added.txt"), u"flam\n")
-        subprocess.check_call(["svn", "add", "added.txt"], cwd=clone_path)
+        subprocess.check_call(["svn", "add", "--no-auto-props", "added.txt"], cwd=clone_path)
 
 
     def check_diff_output(self, output):
