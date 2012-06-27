@@ -58,7 +58,6 @@ def _add_to_file(path, content):
 
 class GetWorkspaceTest(unittest.TestCase):
 
-    """Base class for cli tests"""
     @classmethod
     def setUpClass(self):
         self.environback = copy.copy(os.environ)
