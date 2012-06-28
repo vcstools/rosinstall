@@ -4,6 +4,16 @@ Changelog
 0.6
 ---
 
+0.6.18
+------
+
+- bugfix #55 rosws and rosinstall, diff and status
+
+0.6.17
+------
+- improved generated file code
+- workaround for #55 (rosinstall only), missing newlines after diff and status (hg and svn) 
+
 0.6.16
 ------
 
