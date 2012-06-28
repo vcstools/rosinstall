@@ -42,7 +42,7 @@ grow. Possible changes that have been discussed are:
 - rosws as shell command to switch workspaces (prototype in contrib/rosws.shell)
 - recognize SCM folders as such when adding them
 - provide tags and branches of distributed SCMs in tab-completion and info
-- shows whether updates are available on remote
+- show whether updates are available on remote
 - colorize outputs
 - a command to reorder elements
 - an option for ``set`` to change element position
@@ -97,11 +97,6 @@ rosws init does the following:
 SOURCE_PATH can e.g. be a folder like /opt/ros/electric
 If PATH is not given, uses current folder.
 
-Examples::
-
-  $ rosws init ~/fuerte /opt/ros/fuerte
-
-
 ::
 
   Usage: rosws init [TARGET_PATH [SOURCE_PATH]]?
@@ -115,6 +110,11 @@ Examples::
     --continue-on-error   Continue despite checkout errors
 
 
+Examples::
+
+  $ rosws init ~/fuerte /opt/ros/fuerte
+
+
 set
 ~~~
 
@@ -126,13 +126,6 @@ basename of it as localname unless such an element already exists.
 
 The command only changes the configuration, to checkout or update
 the element, run rosws update afterwards.
-
-Examples::
-
-  $ rosws set robot_model --hg https://kforge.ros.org/robotmodel/robot_model
-  $ rosws set robot_model --version robot_model-1.7.1
-  $ rosws set robot_model --detached
-
 
 ::
 
@@ -151,6 +144,14 @@ Examples::
     -t WORKSPACE, --target-workspace=WORKSPACE
                         which workspace to use
 
+Examples::
+
+  $ rosws set robot_model --hg https://kforge.ros.org/robotmodel/robot_model
+  $ rosws set robot_model --version robot_model-1.7.1
+  $ rosws set robot_model --detached
+
+
+
 merge
 ~~~~~
 
@@ -163,15 +164,7 @@ The default workspace will be inferred from context, you can specify one using
 By default, when an element in an additional URI has the same
 local-name as an existing element, the existing element will be
 replaced. In order to ensure the ordering of elements is as
-provided in the URI, use the option --merge-kill-append.
-
-Examples::
-
-  $ rosws merge someother.rosinstall
-
-You can use '-' to pipe in input, as an example::
-
-  $ roslocate info robot_mode | rosws merge -
+provided in the URI, use the option ``--merge-kill-append``.
 
 ::
 
@@ -187,6 +180,15 @@ You can use '-' to pipe in input, as an example::
     -y, --confirm-all     do not ask for confirmation unless strictly necessary
     -t WORKSPACE, --target-workspace=WORKSPACE
                           which workspace to use
+
+Examples::
+
+  $ rosws merge someother.rosinstall
+
+You can use '-' to pipe in input, as an example::
+
+  $ roslocate info robot_mode | rosws merge -
+
   
 update
 ~~~~~~
@@ -196,14 +198,6 @@ update or check out some of your config elements
 This command calls the SCM provider to pull changes from remote to
 your local filesystem. In case the url has changed, the command will
 ask whether to delete or backup the folder.
-
-Examples::
-
-  $ rosws update -t ~/fuerte
-  $ rosws update robot_model geometry
-
-
-
 
 ::
 
@@ -219,6 +213,12 @@ Examples::
     --backup-changed-uris=BACKUP_CHANGED
                           backup the local copy of a directory before changing
                           uri to this directory.
+
+Examples::
+
+  $ rosws update -t ~/fuerte
+  $ rosws update robot_model geometry
+
 
 
 info
@@ -246,15 +246,8 @@ When given one localname, just show the data of one element in list
 form.
 This also has the generic properties element which is usually empty.
 
-The --only option accepts keywords: ['path', 'localname', 'version',
+The ``--only`` option accepts keywords: ['path', 'localname', 'version',
 'revision', 'cur_revision', 'uri', 'cur_uri', 'scmtype']
-
-Examples::
-
-  $ rosws info -t ~/ros/fuerte
-  $ rosws info robot_model
-  $ rosws info --yaml
-  $ rosws info --only=path,cur_uri,cur_revision robot_model geometry
 
 ::
   
@@ -273,6 +266,15 @@ Examples::
                           scripting.
     -t WORKSPACE, --target-workspace=WORKSPACE
                           which workspace to use
+
+Examples::
+
+  $ rosws info -t ~/ros/fuerte
+  $ rosws info robot_model
+  $ rosws info --yaml
+  $ rosws info --only=path,cur_uri,cur_revision robot_model geometry
+
+
     
     
 status
@@ -296,7 +298,7 @@ diff
 
 print a diff over some SCM controlled entries
     
-::+
+::
 
   Usage: rosws diff [localname]* 
 
