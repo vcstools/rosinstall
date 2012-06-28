@@ -48,6 +48,31 @@ from rosinstall.rosws_cli import rosws_main
 import test.scm_test_base
 from test.scm_test_base import AbstractSCMTest, _add_to_file, _nth_line_split
 
+def create_hg_repo(remote_path):
+    # create a "remote" repo
+    subprocess.check_call(["hg", "init"], cwd=remote_path)
+    subprocess.check_call(["touch", "fixed.txt"], cwd=remote_path)
+    subprocess.check_call(["touch", "modified.txt"], cwd=remote_path)
+    subprocess.check_call(["touch", "modified-fs.txt"], cwd=remote_path)
+    subprocess.check_call(["touch", "deleted.txt"], cwd=remote_path)
+    subprocess.check_call(["touch", "deleted-fs.txt"], cwd=remote_path)
+    subprocess.check_call(["hg", "add", "fixed.txt"], cwd=remote_path)
+    subprocess.check_call(["hg", "add", "modified.txt"], cwd=remote_path)
+    subprocess.check_call(["hg", "add", "modified-fs.txt"], cwd=remote_path)
+    subprocess.check_call(["hg", "add", "deleted.txt"], cwd=remote_path)
+    subprocess.check_call(["hg", "add", "deleted-fs.txt"], cwd=remote_path)
+    subprocess.check_call(["hg", "commit", "-m", "modified"], cwd=remote_path)
+
+def modify_hg_repo(clone_path):
+    # make local modifications
+    subprocess.check_call(["rm", "deleted-fs.txt"], cwd=clone_path)
+    subprocess.check_call(["hg", "rm", "deleted.txt"], cwd=clone_path)
+    _add_to_file(os.path.join(clone_path, "modified-fs.txt"), u"foo\n")
+    _add_to_file(os.path.join(clone_path, "modified.txt"), u"foo\n")
+    _add_to_file(os.path.join(clone_path, "added-fs.txt"), u"tada\n")
+    _add_to_file(os.path.join(clone_path, "added.txt"), u"flam\n")
+    subprocess.check_call(["hg", "add", "added.txt"], cwd=clone_path)
+
 class RosinstallDiffHgTest(AbstractSCMTest):
 
     @classmethod
@@ -56,19 +81,7 @@ class RosinstallDiffHgTest(AbstractSCMTest):
         remote_path = os.path.join(self.test_root_path, "remote")
         os.makedirs(remote_path)
 
-        # create a "remote" repo
-        subprocess.check_call(["hg", "init"], cwd=remote_path)
-        subprocess.check_call(["touch", "fixed.txt"], cwd=remote_path)
-        subprocess.check_call(["touch", "modified.txt"], cwd=remote_path)
-        subprocess.check_call(["touch", "modified-fs.txt"], cwd=remote_path)
-        subprocess.check_call(["touch", "deleted.txt"], cwd=remote_path)
-        subprocess.check_call(["touch", "deleted-fs.txt"], cwd=remote_path)
-        subprocess.check_call(["hg", "add", "fixed.txt"], cwd=remote_path)
-        subprocess.check_call(["hg", "add", "modified.txt"], cwd=remote_path)
-        subprocess.check_call(["hg", "add", "modified-fs.txt"], cwd=remote_path)
-        subprocess.check_call(["hg", "add", "deleted.txt"], cwd=remote_path)
-        subprocess.check_call(["hg", "add", "deleted-fs.txt"], cwd=remote_path)
-        subprocess.check_call(["hg", "commit", "-m", "modified"], cwd=remote_path)
+        create_hg_repo(remote_path)
 
         # rosinstall the remote repo and fake ros
         _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- hg: {local-name: clone, uri: ../remote}")
@@ -79,18 +92,11 @@ class RosinstallDiffHgTest(AbstractSCMTest):
 
         clone_path = os.path.join(self.local_path, "clone")
 
-        # make local modifications
-        subprocess.check_call(["rm", "deleted-fs.txt"], cwd=clone_path)
-        subprocess.check_call(["hg", "rm", "deleted.txt"], cwd=clone_path)
-        _add_to_file(os.path.join(clone_path, "modified-fs.txt"), u"foo\n")
-        _add_to_file(os.path.join(clone_path, "modified.txt"), u"foo\n")
-        _add_to_file(os.path.join(clone_path, "added-fs.txt"), u"tada\n")
-        _add_to_file(os.path.join(clone_path, "added.txt"), u"flam\n")
-        subprocess.check_call(["hg", "add", "added.txt"], cwd=clone_path)
+        modify_hg_repo(clone_path)
 
     def check_diff_output(self, output):
         # sha ids are always same with hg
-        self.assertEqual('diff --git clone/added.txt clone/added.txt\nnew file mode 100644\n--- /dev/null\n+++ clone/added.txt\n@@ -0,0 +1,1 @@\n+flam\ndiff --git clone/deleted.txt clone/deleted.txt\ndeleted file mode 100644\ndiff --git clone/modified-fs.txt clone/modified-fs.txt\n--- clone/modified-fs.txt\n+++ clone/modified-fs.txt\n@@ -0,0 +1,1 @@\n+foo\ndiff --git clone/modified.txt clone/modified.txt\n--- clone/modified.txt\n+++ clone/modified.txt\n@@ -0,0 +1,1 @@\n+foo', output.rstrip('\n'))
+        self.assertEqual('diff --git clone/added.txt clone/added.txt\nnew file mode 100644\n--- /dev/null\n+++ clone/added.txt\n@@ -0,0 +1,1 @@\n+flam\ndiff --git clone/deleted.txt clone/deleted.txt\ndeleted file mode 100644\ndiff --git clone/modified-fs.txt clone/modified-fs.txt\n--- clone/modified-fs.txt\n+++ clone/modified-fs.txt\n@@ -0,0 +1,1 @@\n+foo\ndiff --git clone/modified.txt clone/modified.txt\n--- clone/modified.txt\n+++ clone/modified.txt\n@@ -0,0 +1,1 @@\n+foo\n', output)
 
     def test_Rosinstall_diff_hg_outside(self):
         """Test diff output for hg when run outside workspace"""
@@ -143,7 +149,7 @@ class RosinstallDiffHgTest(AbstractSCMTest):
         sys.stdout = output = StringIO();
         rosinstall_main(cmd)
         output = output.getvalue()
-        self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n\n', output)
+        self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n', output)
 
         cmd = ["rosws", "status"]
         os.chdir(directory)
@@ -151,7 +157,7 @@ class RosinstallDiffHgTest(AbstractSCMTest):
         rosws_main(cmd)
         output = output.getvalue()
         sys.stdout = sys.__stdout__
-        self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n\n', output)
+        self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n', output)
 
         cli = RoswsCLI()
         self.assertEqual(0,cli.cmd_diff(directory, []))
@@ -166,7 +172,7 @@ class RosinstallDiffHgTest(AbstractSCMTest):
         rosinstall_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
-        self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n\n', output)
+        self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n', output)
 
         cmd = ["rosws", "status", "-t", "ws"]
         os.chdir(self.test_root_path)
@@ -174,7 +180,7 @@ class RosinstallDiffHgTest(AbstractSCMTest):
         rosws_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
-        self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n\n', output)
+        self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n', output)
 
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_status(os.path.join(self.test_root_path, 'ws'), []))
@@ -187,7 +193,7 @@ class RosinstallDiffHgTest(AbstractSCMTest):
         rosinstall_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
-        self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n?       clone/added-fs.txt\n\n', output)
+        self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n?       clone/added-fs.txt\n', output)
 
         cmd = ["rosws", "status", "-t", "ws", "--untracked"]
         os.chdir(self.test_root_path)
@@ -195,7 +201,7 @@ class RosinstallDiffHgTest(AbstractSCMTest):
         rosws_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
-        self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n?       clone/added-fs.txt\n\n', output)
+        self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n?       clone/added-fs.txt\n', output)
 
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_status(os.path.join(self.test_root_path, 'ws'), ["--untracked"]))

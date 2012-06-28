@@ -49,6 +49,28 @@ from rosinstall.rosws_cli import rosws_main
 import test.scm_test_base
 from test.scm_test_base import AbstractSCMTest, _add_to_file, _nth_line_split
 
+def create_git_repo(remote_path):
+    # create a "remote" repo
+    subprocess.check_call(["git", "init"], cwd=remote_path)
+    subprocess.check_call(["touch", "fixed.txt"], cwd=remote_path)
+    subprocess.check_call(["touch", "modified.txt"], cwd=remote_path)
+    subprocess.check_call(["touch", "modified-fs.txt"], cwd=remote_path)
+    subprocess.check_call(["touch", "deleted.txt"], cwd=remote_path)
+    subprocess.check_call(["touch", "deleted-fs.txt"], cwd=remote_path)
+    subprocess.check_call(["git", "add", "*"], cwd=remote_path)
+    subprocess.check_call(["git", "commit", "-m", "modified"], cwd=remote_path)
+
+def modify_git_repo(clone_path):
+    # make local modifications
+    subprocess.check_call(["rm", "deleted-fs.txt"], cwd=clone_path)
+    subprocess.check_call(["git", "rm", "deleted.txt"], cwd=clone_path)
+    _add_to_file(os.path.join(clone_path, "modified-fs.txt"), u"foo\n")
+    _add_to_file(os.path.join(clone_path, "modified.txt"), u"foo\n")
+    subprocess.check_call(["git", "add", "modified.txt"], cwd=clone_path)
+    _add_to_file(os.path.join(clone_path, "added-fs.txt"), u"tada\n")
+    _add_to_file(os.path.join(clone_path, "added.txt"), u"flam\n")
+    subprocess.check_call(["git", "add", "added.txt"], cwd=clone_path)
+    
 class RosinstallDiffGitTest(AbstractSCMTest):
 
     @classmethod
@@ -57,15 +79,7 @@ class RosinstallDiffGitTest(AbstractSCMTest):
         remote_path = os.path.join(self.test_root_path, "remote")
         os.makedirs(remote_path)
 
-        # create a "remote" repo
-        subprocess.check_call(["git", "init"], cwd=remote_path)
-        subprocess.check_call(["touch", "fixed.txt"], cwd=remote_path)
-        subprocess.check_call(["touch", "modified.txt"], cwd=remote_path)
-        subprocess.check_call(["touch", "modified-fs.txt"], cwd=remote_path)
-        subprocess.check_call(["touch", "deleted.txt"], cwd=remote_path)
-        subprocess.check_call(["touch", "deleted-fs.txt"], cwd=remote_path)
-        subprocess.check_call(["git", "add", "*"], cwd=remote_path)
-        subprocess.check_call(["git", "commit", "-m", "modified"], cwd=remote_path)
+        create_git_repo(remote_path)
 
         # rosinstall the remote repo and fake ros
         _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- git: {local-name: clone, uri: ../remote}")
@@ -76,15 +90,7 @@ class RosinstallDiffGitTest(AbstractSCMTest):
 
         clone_path = os.path.join(self.local_path, "clone")
 
-        # make local modifications
-        subprocess.check_call(["rm", "deleted-fs.txt"], cwd=clone_path)
-        subprocess.check_call(["git", "rm", "deleted.txt"], cwd=clone_path)
-        _add_to_file(os.path.join(clone_path, "modified-fs.txt"), u"foo\n")
-        _add_to_file(os.path.join(clone_path, "modified.txt"), u"foo\n")
-        subprocess.check_call(["git", "add", "modified.txt"], cwd=clone_path)
-        _add_to_file(os.path.join(clone_path, "added-fs.txt"), u"tada\n")
-        _add_to_file(os.path.join(clone_path, "added.txt"), u"flam\n")
-        subprocess.check_call(["git", "add", "added.txt"], cwd=clone_path)
+        modify_git_repo(clone_path)
 
     def check_diff_output(self, output):
         # sha ids are always same with git
@@ -109,7 +115,7 @@ class RosinstallDiffGitTest(AbstractSCMTest):
         self.check_diff_output(output)
 
         cli = RoswsCLI()
-        self.assertEqual(0,cli.cmd_diff(os.path.join(self.test_root_path, 'ws'), []))
+        self.assertEqual(0 ,cli.cmd_diff(os.path.join(self.test_root_path, 'ws'), []))
 
 
     def test_Rosinstall_diff_git_inside(self):
@@ -143,7 +149,7 @@ class RosinstallDiffGitTest(AbstractSCMTest):
         rosinstall_main(cmd)
         output = output.getvalue()
 
-        self.assertEqual('A       clone/added.txt\n D      clone/deleted-fs.txt\nD       clone/deleted.txt\n M      clone/modified-fs.txt\nM       clone/modified.txt\n\n', output)
+        self.assertEqual('A       clone/added.txt\n D      clone/deleted-fs.txt\nD       clone/deleted.txt\n M      clone/modified-fs.txt\nM       clone/modified.txt\n', output)
 
         cmd = ["rosws", "status"]
         os.chdir(directory)
@@ -151,7 +157,7 @@ class RosinstallDiffGitTest(AbstractSCMTest):
         rosws_main(cmd)
         output = output.getvalue()
         sys.stdout = sys.__stdout__
-        self.assertEqual('A       clone/added.txt\n D      clone/deleted-fs.txt\nD       clone/deleted.txt\n M      clone/modified-fs.txt\nM       clone/modified.txt\n\n', output)
+        self.assertEqual('A       clone/added.txt\n D      clone/deleted-fs.txt\nD       clone/deleted.txt\n M      clone/modified-fs.txt\nM       clone/modified.txt\n', output)
 
         cli = RoswsCLI()
         self.assertEqual(0,cli.cmd_diff(directory, []))
@@ -166,7 +172,7 @@ class RosinstallDiffGitTest(AbstractSCMTest):
         rosinstall_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
-        self.assertEqual('A       clone/added.txt\n D      clone/deleted-fs.txt\nD       clone/deleted.txt\n M      clone/modified-fs.txt\nM       clone/modified.txt\n\n', output)
+        self.assertEqual('A       clone/added.txt\n D      clone/deleted-fs.txt\nD       clone/deleted.txt\n M      clone/modified-fs.txt\nM       clone/modified.txt\n', output)
 
         cmd = ["rosws", "status", "-t", "ws"]
         os.chdir(self.test_root_path)
@@ -174,7 +180,7 @@ class RosinstallDiffGitTest(AbstractSCMTest):
         rosws_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
-        self.assertEqual('A       clone/added.txt\n D      clone/deleted-fs.txt\nD       clone/deleted.txt\n M      clone/modified-fs.txt\nM       clone/modified.txt\n\n', output)
+        self.assertEqual('A       clone/added.txt\n D      clone/deleted-fs.txt\nD       clone/deleted.txt\n M      clone/modified-fs.txt\nM       clone/modified.txt\n', output)
 
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_status(os.path.join(self.test_root_path, 'ws'), []))
@@ -187,7 +193,7 @@ class RosinstallDiffGitTest(AbstractSCMTest):
         rosinstall_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
-        self.assertEqual('A       clone/added.txt\n D      clone/deleted-fs.txt\nD       clone/deleted.txt\n M      clone/modified-fs.txt\nM       clone/modified.txt\n??      clone/added-fs.txt\n\n', output)
+        self.assertEqual('A       clone/added.txt\n D      clone/deleted-fs.txt\nD       clone/deleted.txt\n M      clone/modified-fs.txt\nM       clone/modified.txt\n??      clone/added-fs.txt\n', output)
 
         cmd = ["rosws", "status", "-t", "ws", "--untracked"]
         os.chdir(self.test_root_path)
@@ -195,7 +201,7 @@ class RosinstallDiffGitTest(AbstractSCMTest):
         rosws_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
-        self.assertEqual('A       clone/added.txt\n D      clone/deleted-fs.txt\nD       clone/deleted.txt\n M      clone/modified-fs.txt\nM       clone/modified.txt\n??      clone/added-fs.txt\n\n', output)
+        self.assertEqual('A       clone/added.txt\n D      clone/deleted-fs.txt\nD       clone/deleted.txt\n M      clone/modified-fs.txt\nM       clone/modified.txt\n??      clone/added-fs.txt\n', output)
 
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_status(os.path.join(self.test_root_path, 'ws'), ["--untracked"]))
@@ -220,38 +226,38 @@ class RosinstallDiffGitTest(AbstractSCMTest):
 class RosinstallInfoGitTest(AbstractSCMTest):
 
     def setUp(self):
-	AbstractSCMTest.setUp(self)
-	remote_path = os.path.join(self.test_root_path, "remote")
-	os.makedirs(remote_path)
+        AbstractSCMTest.setUp(self)
+        remote_path = os.path.join(self.test_root_path, "remote")
+        os.makedirs(remote_path)
 
-	# create a "remote" repo
-	subprocess.check_call(["git", "init"], cwd=remote_path)
-	subprocess.check_call(["touch", "test.txt"], cwd=remote_path)
-	subprocess.check_call(["git", "add", "*"], cwd=remote_path)
-	subprocess.check_call(["git", "commit", "-m", "modified"], cwd=remote_path)
-	po = subprocess.Popen(["git", "log", "-n", "1", "--pretty=format:\"%H\""], cwd=remote_path, stdout=subprocess.PIPE)
-	self.version_init = po.stdout.read().rstrip('"').lstrip('"')[0:12]
-	subprocess.check_call(["git", "tag", "footag"], cwd=remote_path)
-	subprocess.check_call(["touch", "test2.txt"], cwd=remote_path)
-	subprocess.check_call(["git", "add", "*"], cwd=remote_path)
-	subprocess.check_call(["git", "commit", "-m", "modified"], cwd=remote_path)
-	po = subprocess.Popen(["git", "log", "-n", "1", "--pretty=format:\"%H\""], cwd=remote_path, stdout=subprocess.PIPE)
-	self.version_end = po.stdout.read().rstrip('"').lstrip('"')[0:12]
+        # create a "remote" repo
+        subprocess.check_call(["git", "init"], cwd=remote_path)
+        subprocess.check_call(["touch", "test.txt"], cwd=remote_path)
+        subprocess.check_call(["git", "add", "*"], cwd=remote_path)
+        subprocess.check_call(["git", "commit", "-m", "modified"], cwd=remote_path)
+        po = subprocess.Popen(["git", "log", "-n", "1", "--pretty=format:\"%H\""], cwd=remote_path, stdout=subprocess.PIPE)
+        self.version_init = po.stdout.read().rstrip('"').lstrip('"')[0:12]
+        subprocess.check_call(["git", "tag", "footag"], cwd=remote_path)
+        subprocess.check_call(["touch", "test2.txt"], cwd=remote_path)
+        subprocess.check_call(["git", "add", "*"], cwd=remote_path)
+        subprocess.check_call(["git", "commit", "-m", "modified"], cwd=remote_path)
+        po = subprocess.Popen(["git", "log", "-n", "1", "--pretty=format:\"%H\""], cwd=remote_path, stdout=subprocess.PIPE)
+        self.version_end = po.stdout.read().rstrip('"').lstrip('"')[0:12]
 
-	# rosinstall the remote repo and fake ros
-	_add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- git: {local-name: clone, uri: ../remote}")
+        # rosinstall the remote repo and fake ros
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- git: {local-name: clone, uri: ../remote}")
 
-	cmd = ["rosws", "update"]
+        cmd = ["rosws", "update"]
         os.chdir(self.local_path)
         sys.stdout = output = StringIO();
         rosws_main(cmd)
         output = output.getvalue()
-	sys.stdout = sys.__stdout__
+        sys.stdout = sys.__stdout__
 
 
 
     def test_rosinstall_detailed_locapath_info(self):
-	cmd = ["rosws", "info", "-t", "ws"]
+        cmd = ["rosws", "info", "-t", "ws"]
         os.chdir(self.test_root_path)
         sys.stdout = output = StringIO();
         rosws_main(cmd)

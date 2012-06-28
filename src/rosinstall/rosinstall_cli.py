@@ -181,11 +181,11 @@ Later URIs will shadow packages of earlier URIs.\n",
 
   if options.vcs_status or options.vcs_status_untracked:
     statuslist = multiproject_cmd.cmd_status(config, untracked = options.vcs_status_untracked)
-    allstatus = []
+    allstatus=""
     for entrystatus in statuslist:
-      if entrystatus['status'] != None and entrystatus['status'] != '':
-        allstatus.append(entrystatus['status'])
-    print('\n'.join(allstatus))
+      if entrystatus['status'] != None:
+        allstatus += entrystatus['status']
+    print(allstatus, end='')
     return True
 
   print("rosinstall operating on", options.path,

@@ -163,7 +163,7 @@ class MultiprojectCLI:
         for entrystatus in statuslist:
             if entrystatus['status'] != None:
                 allstatus += entrystatus['status']
-        print(allstatus)
+        print(allstatus, end='')
         return 0
 
     
