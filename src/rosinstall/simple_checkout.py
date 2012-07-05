@@ -32,6 +32,7 @@
 
 from __future__ import print_function
 
+import sys
 import vcstools
 
 def checkout_rosinstall(rosinstall_data, verbose=False):
@@ -39,7 +40,7 @@ def checkout_rosinstall(rosinstall_data, verbose=False):
         for vcs_type, data in frag.items(): 
             for reqd in ['local-name', 'uri']:
                 if not reqd in data:
-                    parser.error('invalid rosinstall snippet, missing key [%s]'%(reqd))
+                    sys.stderr.write('invalid rosinstall snippet, missing key [%s]\n'%(reqd))
                 path = data['local-name']
                 uri = data['uri']
                 version = data.get('version', '')

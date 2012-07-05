@@ -2,17 +2,18 @@ from __future__ import print_function
 import os
 import sys
 import distutils
+import shutil
 from subprocess import Popen, PIPE
 from optparse import OptionParser
 
 import yaml
 
 from rosinstall.helpers import ROSInstallException, ROSINSTALL_FILENAME
-import rosinstall.helpers
-import rosinstall.cli_common
+from rosinstall.common import MultiProjectException
+from rosinstall.cli_common import get_workspace
 import rosinstall.rosws_cli
 import rosinstall.rosinstall_cmd
-import rosinstall.multiproject_cmd
+from rosinstall.multiproject_cmd import get_config, cmd_persist_config, cmd_install_or_update
 import rosinstall.config_yaml
 
 
@@ -33,12 +34,12 @@ def get_stack_element_in_config(config, stack):
 def roslocate_info(stack, distro, dev):
   """
   Looks up stack yaml on the web
-  
+
   :raises: ROSInstallException on errors
   """
   # TODO: use roslocate from code
   cmd = ['roslocate', 'info', '--distro=%s'%(distro), stack]
-  if dev == True:
+  if dev is True:
     cmd.append('--dev')
   try:
     p = Popen(cmd, stdout=PIPE, stderr=PIPE)
@@ -51,7 +52,7 @@ def roslocate_info(stack, distro, dev):
     # Could be that the stack hasn't been released; try roslocate
     # again, without specifying the distro.
     cmd = ['roslocate', 'info', stack]
-    if dev == True:
+    if dev is True:
       cmd.append('--dev')
     try:
       p = Popen(cmd, stdout=PIPE, stderr=PIPE)
@@ -134,7 +135,7 @@ def cmd_add_stack(config, stackname, released = False, recurse = False):
   Attempts to get ROS stack from source if it is not already in config.
   Attempts the same for all stacks it depents, if recurse is given.
   Fails if any stack failed.
-  
+
   :param released: use the released or the dev version
   :param recurse: also get dependant version
   :returns: True if stack has been added
@@ -147,7 +148,8 @@ def cmd_add_stack(config, stackname, released = False, recurse = False):
     yaml_dict = roslocate_info(stackname, distro, not released)
     if yaml_dict is not None and len(yaml_dict) > 0:
       path_spec = rosinstall.config_yaml.get_path_spec_from_yaml(yaml_dict[0])
-      if config.add_path_specs([path_spec]) == False:
+      
+      if config.add_path_spec(path_spec, merge_strategy="MergeKeep") is False:
         print("Config did not add element %s"%path_spec)
         return False
       return True
@@ -156,28 +158,27 @@ def cmd_add_stack(config, stackname, released = False, recurse = False):
 
   ver = get_ros_stack_version()
   distro = rosversion_to_distro_name(ver)
-  if _add_stack(config, stackname, distro, released, recurse) == False:
+  if _add_stack(config, stackname, distro, released, recurse) is False:
     return False
-  
+
   if recurse:
-    deps = get_dependent_stacks(stack)
+    deps = get_dependent_stacks(stackname)
     # Also switch anything that depends on this stack
     for s in deps:
-      if add_stack_rec(config, s, distro, not released) == False:
-        return False
+      _add_stack(config, s, distro=distro, released=released)
   return True
 
-def cmd_delete_stack(config, stackname, delete = False, recurse = False):
+def cmd_delete_stack(config, stackname, delete=False, recurse=False):
   """
   Attempts to get ROS stack from source if it is not already in config.
   Attempts the same for all stacks it depents, if recurse is given.
   Fails if any stack failed.
-  
+
   :param released: use the released or the dev version
   :param recurse: also get dependant version
   :returns: True if stack has been added
   """
-  def _del_stack(config, stackname, delete = False, recurse = False):
+  def _del_stack(config, stackname, delete=False, recurse=False):
     stack_element = get_stack_element_in_config(config, stackname)
     if stack_element is None:
       print("stack not in config: %s "%stackname)
@@ -185,14 +186,14 @@ def cmd_delete_stack(config, stackname, delete = False, recurse = False):
     config.remove_element(stack_element.get_local_name())
     if delete:
       # TODO confirm each delete
-      shutil.rmtree(os.path.join(self.path, stack), ignore_errors=True)
+      shutil.rmtree(os.path.join(config.base_path, stack), ignore_errors=True)
     return True
 
-  if _del_stack(config, stackname, delete, recurse) == False:
+  if _del_stack(config, stackname, delete, recurse) is False:
     return False
-  
+
   if recurse:
-    deps = get_dependent_stacks(stack)
+    deps = get_dependent_stacks(stackname)
     # Also switch anything that depends on this stack
     for s in deps:
       _del_stack(config, s, delete, recurse)
@@ -204,7 +205,7 @@ class RosWsStacksCLI():
 
     def __init__(self):
         self.config_filename = ROSINSTALL_FILENAME
-  
+
     def cmd_add_stack(self, target_path, argv):
         parser = OptionParser(usage="usage: rosws add-stack [PATH] localname",
                         epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
@@ -227,7 +228,19 @@ class RosWsStacksCLI():
                           help="backup the local copy of a directory before changing uri to this directory.",
                           action="store")
         (options, args) = parser.parse_args(argv)
-        mode = rosinstall.rosws_cli._get_mode_from_options(parser, options)
+        mode = 'prompt'
+        if options.delete_changed:
+          mode = 'delete'
+        if options.abort_changed:
+          if mode == 'delete':
+            parser.error("delete-changed-uris is mutually exclusive with abort-changed-uris")
+          mode = 'abort'
+        if options.backup_changed != '':
+          if mode == 'delete':
+            parser.error("delete-changed-uris is mutually exclusive with backup-changed-uris")
+          if mode == 'abort':
+            parser.error("abort-changed-uris is mutually exclusive with backup-changed-uris")
+          mode = 'backup'
         if len(args) < 1:
             print("Error: Too few arguments.")
             print(parser.usage)
@@ -237,14 +250,17 @@ class RosWsStacksCLI():
             print(parser.usage)
             return -1
         stack = args[0]
-        config = rosinstall.multiproject_cmd.get_config(target_path, [], config_filename = self.config_filename)
-        if cmd_add_stack(config, stack) == True:
-            rosinstall.multiproject_cmd.cmd_persist_config(config, self.config_filename)
+        config = get_config(target_path, [], config_filename = self.config_filename)
+        if cmd_add_stack(config,
+                         stack,
+                         released=options.released,
+                         recurse=(not options.norecurse)) is True:
+            cmd_persist_config(config, self.config_filename)
             # install or update each element
-            install_success = rosinstall.multiproject_cmd.cmd_install_or_update(config,
-                                                                     backup_changed = options.backup_changed,
-                                                                     mode = mode,
-                                                                     robust = options.robust)
+            install_success = cmd_install_or_update(config,
+                                                    backup_path=options.backup_changed,
+                                                    mode=mode,
+                                                    robust=options.robust)
             if install_success:
               return 0
         return 1
@@ -270,14 +286,14 @@ class RosWsStacksCLI():
             print(parser.usage)
             return -1
         uri = args[0]
-        config = rosinstall.multiproject_cmd.get_config(target_path, [], config_filename = self.config_filename)
-        if cmd_delete_stack(config, uri):
-            rosinstall.multiproject_cmd.cmd_persist_config(config, self.config_filename)
+        config = get_config(target_path, [], config_filename=self.config_filename)
+        if cmd_delete_stack(config, uri, delete=options.delete, recurse=(not options.norecurse)):
+            cmd_persist_config(config, self.config_filename)
             return 0
         return 1
-    
 
-  
+
+
 
 def usage():
   print("""%(prog)s is an experimental command to add and remove stack from ROS workspaces.
@@ -288,19 +304,22 @@ Usage:
 
 Type '%(prog)s --help' for usage.
 """%{'prog': 'rosws-stacks'})
-    
+
 def rosws_stacks_main(argv=None):
   """
   Calls the function corresponding to the first argument.
   """
-  if argv == None:
+  if argv is None:
       argv = sys.argv
   if ('--help' in argv):
       usage()
       return 0
   if len(argv) < 2:
       try:
-          workspace = rosinstall.cli_common.get_workspace(argv, os.getcwd(), config_filename = ROSINSTALL_FILENAME, varname = "ROS_WORKSPACE")
+          workspace = get_workspace(argv,
+                                    os.getcwd(),
+                                    config_filename=ROSINSTALL_FILENAME,
+                                    varname="ROS_WORKSPACE")
           argv.append('info')
       except MultiProjectException as e:
         print(str(e))
@@ -338,7 +357,9 @@ def rosws_stacks_main(argv=None):
           print("Error: unknown command: %s"%command)
         usage()
         return 1
-    workspace = rosinstall.cli_common.get_workspace(args, os.getcwd(), config_filename = ROSINSTALL_FILENAME)
+    workspace = get_workspace(args,
+                              os.getcwd(),
+                              config_filename=ROSINSTALL_FILENAME)
     result = commands[command](workspace, args) or 0
     return result
 
