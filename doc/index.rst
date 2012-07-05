@@ -62,7 +62,7 @@ Tutorials
    :maxdepth: 2
 
    rosws_tutorial
-
+   rosws_ros_tutorial
 
 
 Rosinstall File Format:

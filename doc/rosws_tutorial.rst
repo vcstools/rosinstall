@@ -2,7 +2,20 @@ rosws Tutorial
 ==============
 
 In this tutorial we will set up a workspace using different SCM
-providers and introduce the ``rosws`` commands.
+providers and introduce the ``rosws`` commands to run SCM 
+configuration operations in this workspace.
+
+In the context of rosws, a workspace is a set of folders on 
+your harddisk that are listed in a special file named ``.rosinstall``.
+Also this file stores for each folder whether this folder is managed
+under some version control system (subversion, mercurial, git, bazaar).
+This allows you to deal with many common version control operations
+using a single interface.
+
+rosws also generates a file called setup.sh. This adds all folders
+listed in the .rosinstall to an environment variable called 
+ROS_PACKAGE_PATH. This variable can the be used by other tools to 
+e.g. find folders with libraries you want to compile against.
 
 In you get stuck with a technical problem, you may check out
 the answers page: http://answers.ros.org/questions/tags:rosinstall
@@ -83,8 +96,8 @@ We can run ``rosws info`` to see an overview of the environment:
   ROS_ROOT: None
 
 As you can see the workspace is empty and we do not have a ros root in
-the workspace. For this tutorial, we will use the ROS fuerte release,
-not though that you do not need a ros root to have a valid workspace 
+the workspace. For this tutorial, we will use the ROS fuerte release.
+Note though that you do not need a ros root to have a valid workspace 
 with rosws.
 
 Now is a good time to check out the ``help`` and ``--version`` commands::
@@ -96,67 +109,7 @@ Now is a good time to check out the ``help`` and ``--version`` commands::
 
 Remember this help is available if you get in trouble.
 
-Binding a workspace to a ROS distribution
------------------------------------------
 
-.. note:: This step requires ROS installation. If you have none, you can 
-  skip to the next section.
-
-A good way to add a ros root is to use the .rosinstall file it 
-provides (this also works with earlier ROS distributions, just 
-replace 'fuerte' with 'electric', 'diamondback', etc.). 
-
-.. note:: What also works it to provide the folder to a .rosinstall to rosws, 
-  as in::
-    $ rosws init ~/fuerte /opt/ros/fuerte
-  but we do not do that in this tutorial.
-
-::
-  
-  $ rosws merge /opt/ros/fuerte/.rosinstall
-       Performing actions: 
-
-       Add new elements:
-    /opt/ros/fuerte/share,  /opt/ros/fuerte/share/ros,  /opt/ros/fuerte/setup.sh,  /opt/ros/fuerte/stacks
-  
-  Overwriting /tmp/rosws_tutorial/.rosinstall
-  
-  rosws update complete.
-  
-  Do not forget to do ...
-  $ source /tmp/rosws_tutorial/setup.sh
-  ... in every open terminal.
-  Config changed, maybe you need run rosws update to update SCM entries.
-
-You can read from the output that the given elements were added to
-your config. You can verify this using again ``rosws info``::
-
-  $ rosws info
-  workspace: /tmp/rosws_tutorial
-  ROS_ROOT: /opt/ros/fuerte/share/ros
-
-   Localname                 S SCM  Version-Spec UID  (Spec) URI  (Spec) (https://...)
-   ---------                 - ---- ------------ ----------- -------------------------
-   /opt/ros/fuerte/stacks                                    
-   /opt/ros/fuerte/share                                     
-   /opt/ros/fuerte/share/ros 
-
-You see in the second output line that now there is a defined ROS_ROOT in our workspace.
-The info table has many columns, all of which are empty so far, we will get to that in a moment.
-You may notice that ``rosws merge`` listed an added setup.sh, which is not shown in the table,
-it is hidden because that entry is of no further interest to you in your daily work.
-
-To start using this workspace, we need to source the setup.bash:
-
-::
-
-  $ source setup.bash
-
-This changes several environment variables and enables several ros based 
-commands if the ROS_ROOT is set.
-
-You can add this line somewhere in your .bashrc to load the environment 
-every time you start a new terminal.
 
 Extending your workspace
 ------------------------
@@ -261,36 +214,7 @@ with the ``.rosinstall.bak``.
 
   $ mv .rosinstall.bak .rosinstall
 
-Combining merge with roslocate
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A usecase that was considered in the design of rosws was to quickly
-get ROS stacks into a workspace. The ``roslocate`` script uses an
-online index to lookup stack or package source information by name.
-
-We can pipe that information to rosws to add the definition to 
-our workspace. 
-
-As an example we will add the navigation stack. Just to show you what
-is happening, we first call ``roslocate``, and then call it again
-passing the output to ``rosws merge -``::
-
-  $ roslocate info navigation
-  - hg:
-      local-name: navigation
-      meta:
-        repo-name: wg-kforge
-      uri: https://kforge.ros.org/navigation/navigation
-      version: default
-
-  $ roslocate info navigation | rosws merge -
-       Performing actions: 
-
-       Add new elements:
-    navigation    hg  https://kforge.ros.org/navigation/navigation   default
-
-If you wanted, you could next checkout the source code calling ``rosws
-update navigation``.
 
 Working with Entries
 --------------------
@@ -315,8 +239,8 @@ confirm.
 
 We will go ahead and check this stack out, as it is fairly small it should not take too long.
 
-Puling entries
-~~~~~~~~~~~~~~
+Pulling entries
+~~~~~~~~~~~~~~~
 
 :: 
 
