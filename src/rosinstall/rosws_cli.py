@@ -40,7 +40,7 @@ rosws will try to infer install path from context
 Type '%(prog)s help' for usage.
 """
 
-from __future__ import print_function
+
 import os
 import sys
 import yaml
@@ -48,14 +48,15 @@ import shutil
 
 from optparse import OptionParser
 
-import cli_common
-import rosinstall_cmd
-import multiproject_cmd
+from rosinstall.cli_common import get_info_list, get_info_table, get_workspace
+import rosinstall.rosinstall_cmd as rosinstall_cmd
+from rosinstall.multiproject_cmd import get_config, cmd_install_or_update, cmd_persist_config, cmd_snapshot, cmd_version, cmd_info
+import rosinstall.__version__
 
-from common import MultiProjectException, select_elements
-from helpers import ROSInstallException, ROSINSTALL_FILENAME, get_ros_package_path, get_ros_stack_path
-from multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__, IndentedHelpFormatterWithNL
-from config_yaml import get_path_spec_from_yaml
+from rosinstall.common import MultiProjectException, select_elements
+from rosinstall.helpers import ROSInstallException, ROSINSTALL_FILENAME, get_ros_package_path, get_ros_stack_path
+from rosinstall.multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__, IndentedHelpFormatterWithNL
+from rosinstall.config_yaml import get_path_spec_from_yaml
 
 ## This file adds or extends commands from multiproject_cli where ROS
 ## specific output has to be generated.
@@ -126,9 +127,9 @@ $ rosws init ~/fuerte /opt/ros/fuerte
         if len(config_uris) > 0:
             print('Using ROS_ROOT: %s'%config_uris[0])
 
-        config = multiproject_cmd.get_config(basepath=target_path,
-                                             additional_uris=config_uris,
-                                             config_filename=self.config_filename)
+        config = get_config(basepath=target_path,
+                            additional_uris=config_uris,
+                            config_filename=self.config_filename)
 
         # includes ROS specific files
 
@@ -136,7 +137,7 @@ $ rosws init ~/fuerte /opt/ros/fuerte
         rosinstall_cmd.cmd_persist_config(config)
 
         ## install or update each element
-        install_success = multiproject_cmd.cmd_install_or_update(
+        install_success = cmd_install_or_update(
             config,
             robust=False,
             num_threads=int(options.jobs))
@@ -292,7 +293,7 @@ accidentally.
             return -1
 
         if config is None:
-            config = multiproject_cmd.get_config(
+            config = get_config(
                 target_path,
                 additional_uris=[],
                 config_filename=self.config_filename)
@@ -367,7 +368,7 @@ $ rosws info --only=path,cur_uri,cur_revision robot_model geometry
         (options, args) = parser.parse_args(argv)
 
         if config is None:
-            config = multiproject_cmd.get_config(
+            config = get_config(
                 target_path,
                 additional_uris=[],
                 config_filename=self.config_filename)
@@ -417,27 +418,26 @@ $ rosws info --only=path,cur_uri,cur_revision robot_model geometry
                 print(','.join(output))
             return 0
         if options.yaml:
-            source_aggregate = multiproject_cmd.cmd_snapshot(config,
-                                                             localnames=args)
+            source_aggregate = cmd_snapshot(config, localnames=args)
             print(yaml.safe_dump(source_aggregate))
             return 0
 
         # this call takes long, as it invokes scms.
-        outputs = multiproject_cmd.cmd_info(config, localnames=args)
+        outputs = cmd_info(config, localnames=args)
         if args is not None and len(outputs) == 1:
-            print(cli_common.get_info_list(config.get_base_path(),
-                                           outputs[0],
-                                           options.data_only))
+            print(get_info_list(config.get_base_path(),
+                                outputs[0],
+                                options.data_only))
             return 0
 
         header = 'workspace: %s\nROS_ROOT: %s'%(target_path,
                                                 get_ros_stack_path(config))
         print(header)
         if not options.no_pkg_path:
-            table = cli_common.get_info_table(config.get_base_path(),
-                                              outputs,
-                                              options.data_only,
-                                              reverse=reverse)
+            table = get_info_table(config.get_base_path(),
+                                   outputs,
+                                   options.data_only,
+                                   reverse=reverse)
             if table is not None and table != '':
                 print("\n%s"%table)
 
@@ -472,16 +472,15 @@ def rosws_main(argv=None):
     if (sys.argv[0] == '-c'):
         sys.argv = ['rosws'] + sys.argv[1:]
     if '--version' in argv:
-        import __version__
-        print("rosws: \t%s\n%s"%(__version__.version, multiproject_cmd.cmd_version()))
+        print("rosws: \t%s\n%s"%(rosinstall.__version__.version, cmd_version()))
         sys.exit(0)
     workspace = None
     if len(argv) < 2:
         try:
-            workspace = cli_common.get_workspace(argv,
-                                                 os.getcwd(),
-                                                 config_filename=ROSINSTALL_FILENAME,
-                                                 varname="ROS_WORKSPACE")
+            workspace = get_workspace(argv,
+                                      os.getcwd(),
+                                      config_filename=ROSINSTALL_FILENAME,
+                                      varname="ROS_WORKSPACE")
             argv.append('info')
         except MultiProjectException as e:
             print(str(e))
@@ -540,10 +539,10 @@ def rosws_main(argv=None):
             return commands[command](args)
         else:
             if workspace is None and not '--help' in args and not '-h' in args:
-                workspace = cli_common.get_workspace(args,
-                                                     os.getcwd(),
-                                                     config_filename=ROSINSTALL_FILENAME,
-                                                     varname="ROS_WORKSPACE")
+                workspace = get_workspace(args,
+                                          os.getcwd(),
+                                          config_filename=ROSINSTALL_FILENAME,
+                                          varname="ROS_WORKSPACE")
             return ws_commands[command](workspace, args)
 
     except KeyboardInterrupt:

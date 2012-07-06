@@ -30,12 +30,12 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import print_function
+
 import os
 import subprocess
-import multiproject_cmd
-import setupfiles
-from helpers import ROSINSTALL_FILENAME, is_path_ros
+import rosinstall.multiproject_cmd
+from rosinstall import setupfiles
+from rosinstall.helpers import ROSINSTALL_FILENAME, is_path_ros
 
 
 def cmd_persist_config(config, config_filename=ROSINSTALL_FILENAME):
@@ -47,7 +47,9 @@ def cmd_persist_config(config, config_filename=ROSINSTALL_FILENAME):
 # USE THE rosinstall TOOL INSTEAD.
 # IF YOU CHANGE IT, USE rosinstall FOR THE CHANGES TO TAKE EFFECT
 """
-    multiproject_cmd.cmd_persist_config(config, config_filename, header)
+    rosinstall.multiproject_cmd.cmd_persist_config(config,
+                                                   config_filename,
+                                                   header)
 
 
 def _ros_requires_boostrap(config):

@@ -30,12 +30,17 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+
 import sys
 import traceback
 import os
 import copy
 # choosing multiprocessing over threading for clean Control-C interrupts (provides terminate())
-from urlparse import urlparse
+try:
+    from urlparse import urlparse    
+except ImportError:
+    from urllib.parse import urlparse
+        
 from multiprocessing import Process, Manager
 from vcstools.vcs_base import VcsError
 

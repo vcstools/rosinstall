@@ -33,8 +33,10 @@
 # Author: kwc
 
 import yaml
-import urllib2
-
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
 BRANCH_RELEASE = 'release'
 BRANCH_DEVEL = 'devel'
 
@@ -72,7 +74,7 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
         raise InvalidData("rosinstall malformed for %s %s\n"%(type_, name))
 
     prefix = prefix or ''
-    for k, v in ri_entry.iteritems():
+    for k, v in ri_entry.items():
         if 'local-name' in v:
             local_name = v['local-name']                
             # 3513
@@ -92,7 +94,7 @@ def get_vcs_uri_for_branch(data, branch=None):
     ri_entry = None
     if branch and 'rosinstalls' in data:
         ri_entry = data['rosinstalls'].get(branch, None)
-        vcs_type = ri_entry.keys()[0]
+        vcs_type = list(ri_entry.keys())[0]
         return ri_entry[vcs_type]['uri']
     else:
         return data.get('vcs_uri', '')
@@ -139,7 +141,7 @@ def get_rosdoc_manifest(arg, distro_name=None):
             url = 'http://ros.org/doc/%s/api/%s/stack.yaml'%(distro_name, arg)
         else:
             url = 'http://ros.org/doc/api/%s/stack.yaml'%(arg)
-        r = urllib2.urlopen(url)
+        r = urlopen(url)
         return yaml.load(r), 'stack'
     except:
         try:
@@ -147,7 +149,7 @@ def get_rosdoc_manifest(arg, distro_name=None):
                 url = 'http://ros.org/doc/%s/api/%s/manifest.yaml'%(distro_name, arg)
             else:
                 url = 'http://ros.org/doc/api/%s/manifest.yaml'%(arg)
-            r = urllib2.urlopen(url)
+            r = urlopen(url)
             return yaml.load(r), 'package'
         except:
             raise IOError(arg)

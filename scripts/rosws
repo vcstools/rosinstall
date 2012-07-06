@@ -48,8 +48,6 @@ Type '%(prog)s --help' for usage.
 from __future__ import print_function
 import sys
 
-import pkg_resources # else python warning
-
 try:
     import rosinstall.rosws_cli
     from rosinstall.helpers import ROSInstallException

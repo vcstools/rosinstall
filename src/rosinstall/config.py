@@ -30,10 +30,10 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import print_function
+
 import os
-from config_elements import AVCSConfigElement, OtherConfigElement, SetupConfigElement
-from common import MultiProjectException, normabspath, realpath_relation, is_web_uri
+from .config_elements import AVCSConfigElement, OtherConfigElement, SetupConfigElement
+from .common import MultiProjectException, normabspath, realpath_relation, is_web_uri
 
 
 class Config:

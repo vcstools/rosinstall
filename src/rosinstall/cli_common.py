@@ -30,10 +30,11 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+
 import os
 import re
 from optparse import OptionParser
-from common import MultiProjectException
+from rosinstall.common import MultiProjectException
 
 # Support for any command line interface (CLI) for rosinstall
 
@@ -53,10 +54,10 @@ def get_workspace(argv, shell_path, config_filename=None, varname=None):
                       help="which workspace to use",
                       action="store")
     # suppress errors based on any other option this parser is agnostic about
-    argv2 = filter(lambda x: ((not x.startswith('-')) or
+    argv2 = [x for x in argv if ((not x.startswith('-')) or
                               x.startswith('--target-workspace=') or
                               x.startswith('-t=') or
-                              x in ['-t', '--target-workspace']), argv)
+                              x in ['-t', '--target-workspace'])]
     (options, args) = parser.parse_args(argv2)
     if options.workspace is not None:
         if (config_filename is not None and
@@ -244,7 +245,7 @@ def get_info_table(basepath, entries, data_only=False, reverse=False):
 
     # adjust column width
     column_length = {}
-    for header in headers.keys():
+    for header in list(headers.keys()):
         column_length[header] = len(headers[header])
         for entry in outputs:
             if entry[header] is not None:
@@ -314,7 +315,7 @@ def get_info_list(basepath, line, data_only=False):
     line['status'] = _get_status_flags(basepath, line)
 
     header_length = 0
-    for header in headers.keys():
+    for header in list(headers.keys()):
         header_length = max(header_length, len(headers[header]))
     result = ''
     for header in selected_headers:

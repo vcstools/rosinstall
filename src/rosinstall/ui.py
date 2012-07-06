@@ -55,10 +55,16 @@ class Ui(object):
 
     def get_backup_path(self):
         """Interactive function asking the user to choose a path for backup"""
-        backup_path = raw_input("Please enter backup pathname: ")
-        print("backing up to %s"%backup_path)
+        backup_path = self.get_input("Please enter backup pathname: ")
+        print(("backing up to %s"%backup_path))
         return backup_path
 
+    def get_input(self, prompt):
+        if sys.hexversion > 0x03000000:
+            return input(prompt)
+        else:
+            return raw_input(prompt)
+    
     def prompt_del_abort_retry(self, prompt, allow_skip=False):
         """
         Interactive function asking the user to choose a conflict resolution
@@ -78,7 +84,7 @@ class Ui(object):
         full_prompt = "%s %s: "%(prompt, ", ".join(valid_modes))
 
         while mode == "":
-            mode_input = raw_input(full_prompt)
+            mode_input = self.get_input(full_prompt)
             if mode_input == 'b' or mode_input == 'backup':
                 mode = 'backup'
             elif mode_input == 'd' or mode_input == 'delete':

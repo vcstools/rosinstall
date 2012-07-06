@@ -35,10 +35,11 @@ import os
 import textwrap
 import shutil
 from optparse import OptionParser, IndentedHelpFormatter
-from common import select_element, select_elements, MultiProjectException
-from config_yaml import PathSpec
 
-import multiproject_cmd
+from rosinstall.common import select_element, select_elements, MultiProjectException
+from rosinstall.config_yaml import PathSpec
+import rosinstall.multiproject_cmd as multiproject_cmd
+from rosinstall.ui import Ui
 
 # implementation of single CLI commands (extracted for use in several overlapping scripts)
 
@@ -326,7 +327,7 @@ $ rosws set robot_model --detached
             abort = None
             prompt = "Continue(y/n): "
             while abort is None:
-                mode_input = raw_input(prompt)
+                mode_input = Ui.get_ui().get_input(prompt)
                 if mode_input == 'y':
                     abort = False
                 elif mode_input == 'n':
@@ -573,7 +574,7 @@ The command removes entries from your configuration file, it does not affect you
             new_elements = []
             changed_elements = []
             discard_elements = []
-            for localname, (action, new_path_spec) in config_actions.items():
+            for localname, (action, new_path_spec) in list(config_actions.items()):
                 index = -1
                 if localname in local_names_old:
                     index = local_names_old.index(localname)
@@ -632,7 +633,7 @@ The command removes entries from your configuration file, it does not affect you
                 while(showhelp):
                     showhelp = False
                     prompt = "Continue: (y)es, (n)o, (v)erbosity, (a)dvance options: "
-                    mode_input = raw_input(prompt)
+                    mode_input = Ui.get_ui().get_input(prompt)
                     if mode_input == 'y':
                         return (newconfig, path_changed)
                     elif mode_input == 'n':
@@ -641,7 +642,7 @@ The command removes entries from your configuration file, it does not affect you
                         strategies = {'MergeKeep': "(k)eep",
                                       'MergeReplace': "(s)witch in",
                                       'KillAppend': "(a)ppending"}
-                        unselected = [v for k, v in strategies.items() if k != merge_strategy]
+                        unselected = [v for k, v in list(strategies.items()) if k != merge_strategy]
                         print("""New entries will just be appended to the config and
 appear at the beginning of your ROS_PACKAGE_PATH. The merge strategy
 decides how to deal with entries having a duplicate localname or path.
@@ -660,7 +661,7 @@ of elements in the order they were given.
 Switch append is the default.
 """)
                         prompt = """Change Strategy %s: """%(", ".join(unselected))
-                        mode_input = raw_input(prompt)
+                        mode_input = Ui.get_ui().get_input(prompt)
                         if mode_input == 's':
                             merge_strategy = 'MergeReplace'
                         elif mode_input == 'k':
@@ -674,4 +675,3 @@ Switch append is the default.
                 print("No changes made.")
                 return (None, False)
             print('==========================================')
-

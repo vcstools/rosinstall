@@ -32,9 +32,12 @@
 
 import os
 import yaml
-import urllib2
-
-from common import MultiProjectException
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
+    
+from .common import MultiProjectException
 
 __REPOTYPES__ = ['svn', 'bzr', 'hg', 'git', 'tar']
 __ALLTYPES__ = __REPOTYPES__ + ['other', 'setup-file']
@@ -61,7 +64,7 @@ def get_yaml_from_uri(uri):
                     "error opening file [%s]: %s\n" % (uri, e))
         else:
             try:
-                stream = urllib2.urlopen(uri)
+                stream = urlopen(uri)
             except IOError as e:
                 raise MultiProjectException(
                     "Is not a local file, nor able to download as a URL [%s]: %s\n" % (uri, e))
@@ -290,18 +293,18 @@ def get_path_spec_from_yaml(yaml_dict):
         raise MultiProjectException("no element in yaml dict.")
     if len(yaml_dict) > 1:
         raise MultiProjectException(
-            "too many keys in element dict %s" % (yaml_dict.keys()))
-    if not yaml_dict.keys()[0] in __ALLTYPES__:
+            "too many keys in element dict %s" % (list(yaml_dict.keys())))
+    if not list(yaml_dict.keys())[0] in __ALLTYPES__:
         raise MultiProjectException(
-            "Unknown element type '%s'" % (yaml_dict.keys()[0]))
-    firstkey = yaml_dict.keys()[0]
+            "Unknown element type '%s'" % (list(yaml_dict.keys())[0]))
+    firstkey = list(yaml_dict.keys())[0]
     if firstkey in __REPOTYPES__:
-        scmtype = yaml_dict.keys()[0]
+        scmtype = list(yaml_dict.keys())[0]
     if firstkey == 'setup-file':
         tags.append('setup-file')
     values = yaml_dict[firstkey]
     if values is not None:
-        for key, value in values.items():
+        for key, value in list(values.items()):
             if key == "local-name":
                 local_name = value
             elif key == "meta":

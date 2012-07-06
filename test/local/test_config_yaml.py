@@ -2,7 +2,6 @@ import os
 import unittest
 import copy
 import yaml
-import urllib2
 import tempfile
 import shutil
 

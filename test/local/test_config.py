@@ -39,7 +39,6 @@ import sys
 import tempfile
 import shutil
 import unittest
-import urllib2
 
 import rosinstall.config
 from rosinstall.config import MultiProjectException, Config

@@ -40,7 +40,6 @@ import sys
 import unittest
 import subprocess
 import tempfile
-import urllib
 import shutil
 
 import rosinstall

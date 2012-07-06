@@ -30,7 +30,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import print_function
+
 import os
 import shutil
 import datetime
@@ -38,9 +38,9 @@ import datetime
 from vcstools import VcsClient
 from vcstools.vcs_base import VcsError
 
-from common import MultiProjectException
-from config_yaml import PathSpec
-import ui
+from rosinstall.common import MultiProjectException
+from rosinstall.config_yaml import PathSpec
+from rosinstall.ui import Ui
 
 
 # helper class
@@ -291,8 +291,8 @@ class VCSConfigElement(ConfigElement):
                 if arg_mode == 'prompt':
                     print("Prepare updating %s (version %s) to %s"%(
                             self.uri, self.version, self.path))
-                    mode = ui.Ui.get_ui().prompt_del_abort_retry(error_message,
-                                                                 allow_skip=True)
+                    mode = Ui.get_ui().prompt_del_abort_retry(error_message,
+                                                              allow_skip=True)
                 else:
                     mode = arg_mode
                 if mode == 'backup':
@@ -300,7 +300,7 @@ class VCSConfigElement(ConfigElement):
                     if backup_path is None:
                         print("Prepare updating %s (version %s) to %s"%(
                                 self.uri, self.version, self.path))
-                        preparation_report.backup_path = ui.Ui.get_ui().get_backup_path()
+                        preparation_report.backup_path = Ui.get_ui().get_backup_path()
                     else:
                         preparation_report.backup_path = backup_path
                 if mode == 'abort':

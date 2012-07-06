@@ -30,15 +30,14 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import print_function
-import pkg_resources
 
 import os
-from common import MultiProjectException, DistributedWork, select_elements, normabspath
-from config import Config, realpath_relation
-from config_yaml import aggregate_from_uris, generate_config_yaml, get_path_specs_from_uri
+from .common import MultiProjectException, DistributedWork, select_elements, normabspath
+from .config import Config, realpath_relation
+from .config_yaml import aggregate_from_uris, generate_config_yaml, get_path_specs_from_uri
 
 import vcstools
+from vcstools import __version__, SvnClient, GitClient, HgClient, BzrClient, TarClient
 
 
 ## The _cmd python files attempt to provide a reasonably
@@ -154,14 +153,14 @@ def cmd_version():
     """Returns extensive version information"""
     def prettyversion(vdict):
         version = vdict.pop("version")
-        return "%s; %s"%(version, ",".join(vdict.values()))
+        return "%s; %s"%(version, ",".join(list(vdict.values())))
     return """vcstools:  %s
 SVN:       %s
 Mercurial: %s
 Git:       %s
 Tar:       %s
 Bzr:       %s
-"""%(pkg_resources.require("vcstools")[0].version,
+"""%(vcstools.__version__.version,
      prettyversion(vcstools.SvnClient.get_environment_metadata()),
      prettyversion(vcstools.HgClient.get_environment_metadata()),
      prettyversion(vcstools.GitClient.get_environment_metadata()),

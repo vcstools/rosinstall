@@ -55,7 +55,7 @@ import shutil
 
 from rosinstall import multiproject_cmd, rosinstall_cmd
 from rosinstall.helpers import ROSINSTALL_FILENAME
-
+import rosinstall.__version__
 
 def usage():
     print(__doc__%vars())
@@ -138,8 +138,7 @@ Later URIs will shadow packages of earlier URIs.\n",
     #  parser.error("rosinstall no longer bootstraps the build, it will not call rosmake or pass it rosdep options")
 
     if options.version:
-        import __version__
-        print("rosinstall %s\n%s"%(__version__.version, multiproject_cmd.cmd_version()))
+        print("rosinstall %s\n%s"%(rosinstall.__version__.version, multiproject_cmd.cmd_version()))
         sys.exit(0)
 
     if len(args) < 1:

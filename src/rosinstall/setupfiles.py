@@ -30,11 +30,11 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import print_function
+
 
 import os
 
-from helpers import ROSInstallException, get_ros_stack_path
+from rosinstall.helpers import ROSInstallException, get_ros_stack_path
 
 CATKIN_CMAKE_TOPLEVEL = """#
 #  TOPLEVEL cmakelists
