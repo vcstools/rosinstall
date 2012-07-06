@@ -228,7 +228,7 @@ def cmd_delete_stack(config, stackname, delete=False, recurse=False):
         deps = get_dependent_stacks(stackname)
         # Also switch anything that depends on this stack
         for s in deps:
-            _del_stack(config, s, delete, recurse)
+            _del_stack(config, s, delete)
     return True
 
 
