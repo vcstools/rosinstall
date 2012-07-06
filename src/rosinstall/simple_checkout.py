@@ -48,6 +48,6 @@ def checkout_rosinstall(rosinstall_data, verbose=False):
                 if verbose:
                     print(vcs_type, path, uri, version)
     
-        vcs_client = vcstools.VCSClient(vcs_type, path)
-        vcs_client.checkout(uri, version)
+                vcs_client = vcstools.VCSClient(vcs_type, path)
+                vcs_client.checkout(uri, version)
 
