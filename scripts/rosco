@@ -104,9 +104,9 @@ rosco also accepts piped rosinstall input:
         # yaml from rosinstall file
         if args:
             parser.error("invalid additional args: "%(args))
-        if not os.path.isfile(filename):
-            parser.error("no such file %s"%(filename))
-        yaml_string = _readfile(options.file)
+        if not os.path.isfile(options.file):
+            parser.error("no such file %s"%(options.file))
+        yaml_string = _readfile(parser, options.file)
     elif not sys.stdin.isatty():
         # yaml from piped input
         yaml_string = sys.stdin.read()

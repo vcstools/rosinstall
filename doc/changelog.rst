@@ -7,7 +7,7 @@ Changelog
 0.6.18
 ------
 
-- fix broken script py-rosws-stacks
+- fix broken scripts rosco, py-rosws-stacks
 - bugfix #56 setup.sh broken for python3 systems (arch linux)
 - bugfix #55 rosws and rosinstall, diff and status
 
