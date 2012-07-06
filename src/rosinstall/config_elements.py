@@ -237,14 +237,14 @@ class VCSConfigElement(ConfigElement):
           raise MultiProjectException("Update Failed of %s: %s"%(self.path, error_message))
         # prompt the user based on the error code
         if arg_mode == 'prompt':
-          print("Prepare updating %s (%s) to %s"%(self.uri, self.version, self.path))
+          print("Prepare updating %s (version %s) to %s"%(self.uri, self.version, self.path))
           mode = ui.Ui.get_ui().prompt_del_abort_retry(error_message, allow_skip=True)
         else:
           mode = arg_mode
         if mode == 'backup':
             preparation_report.backup = True
             if backup_path is None:
-              print("Prepare updating %s (%s) to %s"%(self.uri, self.version, self.path))
+              print("Prepare updating %s (version %s) to %s"%(self.uri, self.version, self.path))
               preparation_report.backup_path = ui.Ui.get_ui().get_backup_path()
             else:
               preparation_report.backup_path = backup_path
@@ -267,7 +267,7 @@ class VCSConfigElement(ConfigElement):
     :param backup_path: if checkout is true and backup is true, move folder to this location
     """
     if checkout is True:
-      print("[%s] Installing %s (%s) to %s"%(self.get_local_name(), self.uri, self.version, self.get_path()))
+      print("[%s] Installing %s (version %s) to %s"%(self.get_local_name(), self.uri, self.version, self.get_path()))
       if self.path_exists():
         if (backup is False):
           shutil.rmtree(self.path)
