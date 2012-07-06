@@ -54,88 +54,90 @@ def get_config(basepath,
                additional_uris=None,
                config_filename=None,
                merge_strategy='KillAppend'):
-  """
-  Create a Config element necessary for all other commands.
-  The command will look at the uris in sequence, each
-  can be a web resource, a filename or a folder. In case it is
-  a folder, when a config_filename is provided, the folder will
-  be searched for a file of that name, and that one will be used.
-  Else the folder will be considered a target location for the config.
-  All files will be parsed for config elements, thus conceptually
-  the input to Config is an expanded list of config elements. Config
-  takes this list and consolidates duplicate paths by keeping the last
-  one in the list.
+    """
+    Create a Config element necessary for all other commands.  The
+    command will look at the uris in sequence, each can be a web
+    resource, a filename or a folder. In case it is a folder, when a
+    config_filename is provided, the folder will be searched for a
+    file of that name, and that one will be used.  Else the folder
+    will be considered a target location for the config.  All files
+    will be parsed for config elements, thus conceptually the input to
+    Config is an expanded list of config elements. Config takes this
+    list and consolidates duplicate paths by keeping the last one in
+    the list.
 
-  :param basepath: where relative paths shall be resolved against
-  :param additional_uris: the location of config specifications or folders
-  :param config_filename: name of files which may be looked at for config information
-  :param merge_strategy: One of 'KillAppend, 'MergeKeep', 'MergeReplace'
-  :returns: a Config object
-  :raises MultiProjectException: on plenty of errors
-  """
-  if basepath is None:
-    raise MultiProjectException("Need to provide a basepath for Config.")
+    :param basepath: where relative paths shall be resolved against
+    :param additional_uris: the location of config specifications or folders
+    :param config_filename: name of files which may be looked at for config information
+    :param merge_strategy: One of 'KillAppend, 'MergeKeep', 'MergeReplace'
+    :returns: a Config object
+    :raises MultiProjectException: on plenty of errors
+    """
+    if basepath is None:
+        raise MultiProjectException("Need to provide a basepath for Config.")
 
-  #print("source...........................", path_specs)
+    #print("source...........................", path_specs)
 
 
-  ## Generate the config class with the uri and path
-  if (config_filename is not None
-      and basepath is not None
-      and os.path.isfile(os.path.join(basepath, config_filename))):
-    base_path_specs = get_path_specs_from_uri(os.path.join(basepath, config_filename), as_is=True)
-  else:
-    base_path_specs = []
+    ## Generate the config class with the uri and path
+    if (config_filename is not None
+        and basepath is not None
+        and os.path.isfile(os.path.join(basepath, config_filename))):
+      
+        base_path_specs = get_path_specs_from_uri(os.path.join(basepath, config_filename), as_is=True)
+    else:
+        base_path_specs = []
 
-  config = Config(base_path_specs, basepath,
-                  config_filename=config_filename,
-                  merge_strategy=merge_strategy)
+    config = Config(base_path_specs, basepath,
+                    config_filename=config_filename,
+                    merge_strategy=merge_strategy)
 
-  add_uris(config, additional_uris, merge_strategy)
+    add_uris(config, additional_uris, merge_strategy)
 
-  return config
+    return config
 
 def add_uris(config, additional_uris, merge_strategy="KillAppend"):
-  """
-  changes the given config by merging with the additional_uris
+    """
+    changes the given config by merging with the additional_uris
 
-  :param config: a Config objects
-  :param additional_uris: the location of config specifications or folders
-  :param config_filename: name of files which may be looked at for config information
-  :param merge_strategy: One of 'KillAppend, 'MergeKeep', 'MergeReplace'
-  :returns: a dict {<local-name>: (<action>, <path-spec>), <local-name>: ...} determined by the merge_strategy
-  :raises MultiProjectException: on plenty of errors
-  """
-  if config is None:
-    raise MultiProjectException("Need to provide a Config.")
+    :param config: a Config objects
+    :param additional_uris: the location of config specifications or folders
+    :param config_filename: name of files which may be looked at for config information
+    :param merge_strategy: One of 'KillAppend, 'MergeKeep', 'MergeReplace'
+    :returns: a dict {<local-name>: (<action>, <path-spec>), <local-name>: ...} determined by the merge_strategy
+    :raises MultiProjectException: on plenty of errors
+    """
+    if config is None:
+        raise MultiProjectException("Need to provide a Config.")
 
-  if additional_uris is None or len(additional_uris) == 0:
-    return {}
+    if additional_uris is None or len(additional_uris) == 0:
+        return {}
 
-  added_uris = []
-  if config.get_config_filename() is not None:
-    for uri in additional_uris:
-      comp_uri = None
-      if (os.path.isfile(uri)
-              and os.path.basename(uri) == config.get_config_filename()):
-        comp_uri = os.path.dirname(uri)
-      if (os.path.isdir(uri)
-          and os.path.isfile(os.path.join(uri, config.get_config_filename()))):
-        comp_uri = uri
-      if (comp_uri is not None and
-          realpath_relation(os.path.abspath(comp_uri), os.path.abspath(config.get_base_path())) == 'SAME_AS'):
-        print('Warning: Discarding config basepath as additional uri: %s'%uri)
-        continue
-      added_uris.append(uri)
+    added_uris = []
+    if config.get_config_filename() is not None:
+        for uri in additional_uris:
+            comp_uri = None
+            if (os.path.isfile(uri)
+                and os.path.basename(uri) == config.get_config_filename()):
+              
+                comp_uri = os.path.dirname(uri)
+            if (os.path.isdir(uri)
+                and os.path.isfile(os.path.join(uri, config.get_config_filename()))):
+                comp_uri = uri
+            if (comp_uri is not None and
+                realpath_relation(os.path.abspath(comp_uri), os.path.abspath(config.get_base_path())) == 'SAME_AS'):
+                print('Warning: Discarding config basepath as additional uri: %s'%uri)
+                continue
+            added_uris.append(uri)
 
-  path_specs = aggregate_from_uris(added_uris, config.get_config_filename())
+    path_specs = aggregate_from_uris(added_uris, config.get_config_filename())
 
-  actions = {}
-  for path_spec in path_specs:
-    action = config.add_path_spec(path_spec, merge_strategy)
-    actions[path_spec.get_local_name()] = (action, path_spec)
+    actions = {}
+    for path_spec in path_specs:
+        action = config.add_path_spec(path_spec, merge_strategy)
+        actions[path_spec.get_local_name()] = (action, path_spec)
 
-  return actions
+    return actions
 
 
 def cmd_persist_config(config, filename, header=None):
@@ -144,11 +146,11 @@ def cmd_persist_config(config, filename, header=None):
 
 
 def cmd_version():
-  """Returns extensive version information"""
-  def prettyversion(vdict):
-    version = vdict.pop("version")
-    return "%s; %s"%(version, ",".join(vdict.values()))
-  return """vcstools:  %s
+    """Returns extensive version information"""
+    def prettyversion(vdict):
+        version = vdict.pop("version")
+        return "%s; %s"%(version, ",".join(vdict.values()))
+    return """vcstools:  %s
 SVN:       %s
 Mercurial: %s
 Git:       %s
@@ -162,226 +164,227 @@ Bzr:       %s
      prettyversion(vcstools.BzrClient.get_environment_metadata()))
 
 def cmd_status(config, localnames=None, untracked=False):
-  """
-  calls SCM status for all SCM entries in config, relative to path
+    """
+    calls SCM status for all SCM entries in config, relative to path
 
-  :returns: List of dict {element: ConfigElement, diff: diffstring}
-  :param untracked: also show files not added to the SCM
-  :raises MultiProjectException: on plenty of errors
-  """
-  class StatusRetriever():
-    def __init__(self, element, path, untracked):
-      self.element = element
-      self.path = path
-      self.untracked = untracked
-    def do_work(self):
-      path_spec = self.element.get_path_spec()
-      scmtype = path_spec.get_scmtype()
-      status = self.element.get_status(self.path, self.untracked)
-      # align other scm output to svn
-      columns = -1
-      if scmtype == "git":
-        columns = 3
-      elif scmtype == "hg":
-        columns = 2
-      elif scmtype == "bzr":
-        columns = 4
-      if columns > -1 and status is not None:
-        status_aligned = ''
-        for line in status.splitlines():
-          status_aligned = status_aligned + line[:columns].ljust(8) + line[columns:] + '\n'
-        status = status_aligned
-      return {'status':status}
+    :returns: List of dict {element: ConfigElement, diff: diffstring}
+    :param untracked: also show files not added to the SCM
+    :raises MultiProjectException: on plenty of errors
+    """
+    class StatusRetriever():
+        def __init__(self, element, path, untracked):
+            self.element = element
+            self.path = path
+            self.untracked = untracked
+        def do_work(self):
+            path_spec = self.element.get_path_spec()
+            scmtype = path_spec.get_scmtype()
+            status = self.element.get_status(self.path, self.untracked)
+            # align other scm output to svn
+            columns = -1
+            if scmtype == "git":
+                columns = 3
+            elif scmtype == "hg":
+                columns = 2
+            elif scmtype == "bzr":
+                columns = 4
+            if columns > -1 and status is not None:
+                status_aligned = ''
+                for line in status.splitlines():
+                    status_aligned = status_aligned + line[:columns].ljust(8) + line[columns:] + '\n'
+                status = status_aligned
+            return {'status':status}
 
-  path = config.get_base_path()
-  # call SCM info in separate threads
-  elements = config.get_config_elements()
-  work = DistributedWork(len(elements))
-  elements = select_elements(config, localnames)
-  for element in elements:
-    if element.is_vcs_element():
-      work.add_thread(StatusRetriever(element, path, untracked))
-  outputs = work.run()
-  return outputs
+    path = config.get_base_path()
+    # call SCM info in separate threads
+    elements = config.get_config_elements()
+    work = DistributedWork(len(elements))
+    elements = select_elements(config, localnames)
+    for element in elements:
+        if element.is_vcs_element():
+            work.add_thread(StatusRetriever(element, path, untracked))
+    outputs = work.run()
+    return outputs
 
 
 def cmd_diff(config, localnames=None):
-  """
-  calls SCM diff for all SCM entries in config, relative to path
+    """
+    calls SCM diff for all SCM entries in config, relative to path
 
-  :returns: List of dict {element: ConfigElement, diff: diffstring}
-  :raises MultiProjectException: on plenty of errors
-  """
-  class DiffRetriever():
-    def __init__(self, element, path):
-      self.element = element
-      self.path = path
-    def do_work(self):
-      return {'diff':self.element.get_diff(self.path)}
+    :returns: List of dict {element: ConfigElement, diff: diffstring}
+    :raises MultiProjectException: on plenty of errors
+    """
+    class DiffRetriever():
+        def __init__(self, element, path):
+            self.element = element
+            self.path = path
+        def do_work(self):
+            return {'diff':self.element.get_diff(self.path)}
 
-  path = config.get_base_path()
-  elements = config.get_config_elements()
-  work = DistributedWork(len(elements))
-  elements = select_elements(config, localnames)
-  for element in elements:
-    if element.is_vcs_element():
-      work.add_thread(DiffRetriever(element, path))
-  outputs = work.run()
-  return outputs
+    path = config.get_base_path()
+    elements = config.get_config_elements()
+    work = DistributedWork(len(elements))
+    elements = select_elements(config, localnames)
+    for element in elements:
+        if element.is_vcs_element():
+            work.add_thread(DiffRetriever(element, path))
+    outputs = work.run()
+    return outputs
 
 def cmd_install_or_update(
-  config,
-  backup_path=None,
-  mode='abort',
-  robust=False,
-  localnames=None,
-  num_threads=1,
-  verbose=False):
-  """
-  performs many things, generally attempting to make
-  the local filesystem look like what the config specifies,
-  pulling from remote sources the most recent changes.
+    config,
+    backup_path=None,
+    mode='abort',
+    robust=False,
+    localnames=None,
+    num_threads=1,
+    verbose=False):
+    """
+    performs many things, generally attempting to make
+    the local filesystem look like what the config specifies,
+    pulling from remote sources the most recent changes.
 
-  The command may have stdin user interaction (TODO abstract)
+    The command may have stdin user interaction (TODO abstract)
 
-  :param backup_path: if and where to backup trees before deleting them
-  :param robust: proceed to next element even when one element fails
-  :returns: True on Success
-  :raises MultiProjectException: on plenty of errors
-  """
-  success = True
-  if not os.path.exists(config.get_base_path()):
-    os.mkdir(config.get_base_path())
-  # Prepare install operation check filesystem and ask user
-  preparation_reports = []
-  elements = select_elements(config, localnames)
-  for t in elements:
-    abs_backup_path = None
-    if backup_path is not None:
-      abs_backup_path = os.path.join(config.get_base_path(), backup_path)
+    :param backup_path: if and where to backup trees before deleting them
+    :param robust: proceed to next element even when one element fails
+    :returns: True on Success
+    :raises MultiProjectException: on plenty of errors
+    """
+    success = True
+    if not os.path.exists(config.get_base_path()):
+        os.mkdir(config.get_base_path())
+    # Prepare install operation check filesystem and ask user
+    preparation_reports = []
+    elements = select_elements(config, localnames)
+    for t in elements:
+        abs_backup_path = None
+        if backup_path is not None:
+            abs_backup_path = os.path.join(config.get_base_path(), backup_path)
+        try:
+            preparation_report = t.prepare_install(backup_path=abs_backup_path, arg_mode=mode, robust=robust)
+            if preparation_report is not None:
+                if preparation_report.abort:
+                    raise MultiProjectException("Aborting install because of %s"%preparation_report.error)
+                if not preparation_report.skip:
+                    preparation_reports.append(preparation_report)
+                else:
+                    if preparation_report.error is not None:
+                        print("Skipping install of %s because: %s"%(preparation_report.config_element.get_local_name(),
+                                                                    preparation_report.error))
+        except MultiProjectException as ex:
+            fail_str = "Failed to install tree '%s'\n %s"%(t.get_path(), ex)
+            if robust:
+                success = False
+                print("Continuing despite %s"%fail_str)
+            else:
+                raise MultiProjectException(fail_str)
+
+    class Installer():
+        def __init__(self, report):
+            self.element = report.config_element
+            self.report = report
+        def do_work(self):
+            self.element.install(checkout=self.report.checkout,
+                                 backup=self.report.backup,
+                                 backup_path=self.report.backup_path,
+                                 verbose=self.report.verbose)
+            return {}
+
+    work = DistributedWork(len(preparation_reports), num_threads, silent=False)
+    for report in preparation_reports:
+        report.verbose = verbose
+        thread = Installer(report)
+        work.add_thread(thread)
+
     try:
-      preparation_report = t.prepare_install(backup_path=abs_backup_path, arg_mode=mode, robust=robust)
-      if preparation_report is not None:
-        if preparation_report.abort:
-          raise MultiProjectException("Aborting install because of %s"%preparation_report.error)
-        if not preparation_report.skip:
-          preparation_reports.append(preparation_report)
-        else:
-          if preparation_report.error is not None:
-            print("Skipping install of %s because: %s"%(preparation_report.config_element.get_local_name(),
-                                                        preparation_report.error))
-    except MultiProjectException as ex:
-      fail_str = "Failed to install tree '%s'\n %s"%(t.get_path(), ex)
-      if robust:
+        work.run()
+    except MultiProjectException as e:
+        print ("Exception caught during install: %s"%e)
         success = False
-        print("Continuing despite %s"%fail_str)
-      else:
-        raise MultiProjectException(fail_str)
-
-  class Installer():
-    def __init__(self, report):
-      self.element = report.config_element
-      self.report = report
-    def do_work(self):
-      self.element.install(checkout=self.report.checkout,
-                           backup=self.report.backup,
-                           backup_path=self.report.backup_path,
-                           verbose=self.report.verbose)
-      return {}
-
-  work = DistributedWork(len(preparation_reports), num_threads, silent=False)
-  for report in preparation_reports:
-    report.verbose = verbose
-    thread = Installer(report)
-    work.add_thread(thread)
-
-  try:
-    work.run()
-  except MultiProjectException as e:
-    print ("Exception caught during install: %s"%e)
-    success = False
-    if not robust:
-      raise e
-  return success
-  # TODO go back and make sure that everything in options.path is described
-  # in the yaml, and offer to delete otherwise? not sure, but it could go here
+        if not robust:
+            raise e
+    return success
+    # TODO go back and make sure that everything in options.path is described
+    # in the yaml, and offer to delete otherwise? not sure, but it could go here
 
 def cmd_snapshot(config, localnames=None):
-  elements = select_elements(config, localnames)
-  source_aggregate = []
-  for element in elements:
-    source = element.get_versioned_path_spec().get_legacy_yaml()
-    source_aggregate.append(source)
-  return source_aggregate
+    elements = select_elements(config, localnames)
+    source_aggregate = []
+    for element in elements:
+        source = element.get_versioned_path_spec().get_legacy_yaml()
+        source_aggregate.append(source)
+    return source_aggregate
 
 def cmd_info(config, localnames=None):
-  """This function compares what should be (config_file) with what is
-  (directories) and returns a list of dictionary giving each local
-  path and all the state information about it available.
-  """
+    """This function compares what should be (config_file) with what is
+    (directories) and returns a list of dictionary giving each local
+    path and all the state information about it available.
+    """
 
-  class InfoRetriever():
-    def __init__(self, element, path):
-      self.element = element
-      self.path = path
+    class InfoRetriever():
+        def __init__(self, element, path):
+            self.element = element
+            self.path = path
 
-    def do_work(self):
-      localname = ""
-      scm = None
-      uri = ""
-      curr_uri = None
-      exists = False
-      version = ""# what is given in config file
-      modified = ""
-      actualversion = "" # revision number of version
-      specversion = "" # actual revision number
-      localname = self.element.get_local_name()
-      path = self.element.get_path() or localname
+        def do_work(self):
+            localname = ""
+            scm = None
+            uri = ""
+            curr_uri = None
+            exists = False
+            version = ""# what is given in config file
+            modified = ""
+            actualversion = "" # revision number of version
+            specversion = "" # actual revision number
+            localname = self.element.get_local_name()
+            path = self.element.get_path() or localname
 
-      if localname is None or localname == "":
-        raise MultiProjectException("Missing local-name in element: %s"%self.element)
-      abs_path = normabspath(path, self.path)
-      if (os.path.exists(abs_path)):
-        exists = True
-      if self.element.is_vcs_element():
-        if not exists:
-          path_spec = self.element.get_path_spec()
-          version = path_spec.get_version()
-        else:
-          path_spec = self.element.get_versioned_path_spec()
-          version = path_spec.get_version()
-          curr_uri = path_spec.get_curr_uri()
-          status = self.element.get_status(self.path)
-          if (status is not None
-              and status.strip() != ''):
-            modified = True
-          specversion = path_spec.get_revision()
-          if (version is not None
-              and version.strip() != ''
-              and (specversion is None or specversion.strip() == '')):
-            specversion = '"%s"'%version
-          actualversion = path_spec.get_current_revision()
-        scm = path_spec.get_scmtype()
-        uri = path_spec.get_uri()
-      return {'scm':scm,
-              'exists': exists,
-              'localname': localname,
-              'path': path,
-              'uri': uri,
-              'curr_uri': curr_uri,
-              'version': version,
-              'specversion': specversion,
-              'actualversion': actualversion,
-              'modified': modified,
-              'properties': self.element.get_properties()}
-  path = config.get_base_path()
-  # call SCM info in separate threads
-  elements = config.get_config_elements()
-  work = DistributedWork(len(elements))
-  elements = select_elements(config, localnames)
-  for element in elements:
-    if element.get_properties() is None or not 'setup-file' in element.get_properties():
-      work.add_thread(InfoRetriever(element, path))
-  outputs = work.run()
-  return outputs
+            if localname is None or localname == "":
+                raise MultiProjectException("Missing local-name in element: %s"%self.element)
+            abs_path = normabspath(path, self.path)
+            if (os.path.exists(abs_path)):
+                exists = True
+            if self.element.is_vcs_element():
+                if not exists:
+                    path_spec = self.element.get_path_spec()
+                    version = path_spec.get_version()
+                else:
+                    path_spec = self.element.get_versioned_path_spec()
+                    version = path_spec.get_version()
+                    curr_uri = path_spec.get_curr_uri()
+                    status = self.element.get_status(self.path)
+                    if (status is not None and
+                        status.strip() != ''):
+                        modified = True
+                    specversion = path_spec.get_revision()
+                    if (version is not None and
+                        version.strip() != '' and
+                        (specversion is None or specversion.strip() == '')):
+                      
+                        specversion = '"%s"'%version
+                    actualversion = path_spec.get_current_revision()
+                scm = path_spec.get_scmtype()
+                uri = path_spec.get_uri()
+            return {'scm':scm,
+                    'exists': exists,
+                    'localname': localname,
+                    'path': path,
+                    'uri': uri,
+                    'curr_uri': curr_uri,
+                    'version': version,
+                    'specversion': specversion,
+                    'actualversion': actualversion,
+                    'modified': modified,
+                    'properties': self.element.get_properties()}
+    path = config.get_base_path()
+    # call SCM info in separate threads
+    elements = config.get_config_elements()
+    work = DistributedWork(len(elements))
+    elements = select_elements(config, localnames)
+    for element in elements:
+        if element.get_properties() is None or not 'setup-file' in element.get_properties():
+            work.add_thread(InfoRetriever(element, path))
+    outputs = work.run()
+    return outputs
 

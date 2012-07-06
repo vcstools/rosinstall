@@ -32,8 +32,6 @@
 
 # Author: kwc
 
-import os
-import sys
 import yaml
 import urllib2
 

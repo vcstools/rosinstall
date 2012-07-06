@@ -32,51 +32,50 @@
 
 ## wrap user interaction, such that client libraries may provide own implementation
 
+
 class Ui(object):
 
-  # For now, primarily define this for replacement in unittests
-  GLOBAL_UI = None
+    # For now, primarily define this for replacement in unittests
+    GLOBAL_UI = None
 
-  @staticmethod
-  def get_ui():
-      if Ui.GLOBAL_UI is None:
-          return Ui()
-      return Ui.GLOBAL_UI
+    @staticmethod
+    def get_ui():
+        if Ui.GLOBAL_UI is None:
+            return Ui()
+        return Ui.GLOBAL_UI
 
-  @staticmethod
-  def set_ui(ui):
-       Ui.GLOBAL_UI = ui
-       
-  def __init__(self):
-      pass
+    @staticmethod
+    def set_ui(ui):
+        Ui.GLOBAL_UI = ui
+             
+    def __init__(self):
+        pass
 
-  def get_backup_path(self):
-    """Interactive function asking the user to choose a path for backup"""
-    backup_path = raw_input("Please enter backup pathname: ")
-    print("backing up to %s"%backup_path)
-    return backup_path
+    def get_backup_path(self):
+        """Interactive function asking the user to choose a path for backup"""
+        backup_path = raw_input("Please enter backup pathname: ")
+        print("backing up to %s"%backup_path)
+        return backup_path
 
-  def prompt_del_abort_retry(self, prompt, allow_skip=False):
-    """Interactive function asking the user to choose a conflict resolution"""
-    if allow_skip:
-      valid_modes = ['(d)elete and replace', '(a)bort', '(b)ackup and replace', '(s)kip']
-    else:
-      valid_modes = ['(d)elete and replace', '(a)bort', '(b)ackup and replace']
-  
-    mode = ""
-  
-    full_prompt = "%s %s: "%(prompt, ", ".join(valid_modes))
-  
-    while mode == "":
-  
-      mode_input = raw_input(full_prompt)
-      if mode_input == 'b' or mode_input == 'backup':
-        mode = 'backup'
-      elif mode_input == 'd' or mode_input == 'delete':
-        mode = 'delete'
-      elif mode_input == 'a' or mode_input == 'abort':
-        mode = 'abort'
-      elif allow_skip and mode_input == 's' or mode_input == 'skip':
-        mode = 'skip'
-    return mode
-
+    def prompt_del_abort_retry(self, prompt, allow_skip=False):
+        """Interactive function asking the user to choose a conflict resolution"""
+        if allow_skip:
+            valid_modes = ['(d)elete and replace', '(a)bort', '(b)ackup and replace', '(s)kip']
+        else:
+            valid_modes = ['(d)elete and replace', '(a)bort', '(b)ackup and replace']
+    
+        mode = ""
+    
+        full_prompt = "%s %s: "%(prompt, ", ".join(valid_modes))
+    
+        while mode == "":
+            mode_input = raw_input(full_prompt)
+            if mode_input == 'b' or mode_input == 'backup':
+                mode = 'backup'
+            elif mode_input == 'd' or mode_input == 'delete':
+                mode = 'delete'
+            elif mode_input == 'a' or mode_input == 'abort':
+                mode = 'abort'
+            elif allow_skip and mode_input == 's' or mode_input == 'skip':
+                mode = 'skip'
+        return mode

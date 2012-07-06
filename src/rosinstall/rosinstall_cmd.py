@@ -38,62 +38,62 @@ import setupfiles
 from helpers import ROSINSTALL_FILENAME, is_path_ros
 
 def cmd_persist_config(config, config_filename=ROSINSTALL_FILENAME):
-  ## Save .rosinstall
-  header = """# THIS IS A FILE WHICH IS MODIFIED BY rosinstall
+    ## Save .rosinstall
+    header = """# THIS IS A FILE WHICH IS MODIFIED BY rosinstall
 # IT IS UNLIKELY YOU WANT TO EDIT THIS FILE BY HAND,
 # UNLESS FOR REMOVING ENTRIES.
 # IF YOU WANT TO CHANGE THE ROS ENVIRONMENT VARIABLES
 # USE THE rosinstall TOOL INSTEAD.
 # IF YOU CHANGE IT, USE rosinstall FOR THE CHANGES TO TAKE EFFECT
 """
-  multiproject_cmd.cmd_persist_config(config, config_filename, header)
+    multiproject_cmd.cmd_persist_config(config, config_filename, header)
 
 def _ros_requires_boostrap(config):
-  """Whether we might need to bootstrap ros"""
-  for entry in config.get_source():
-    if is_path_ros(os.path.join(config.get_base_path(), entry.get_local_name())):
-      # we assume that if any of the elements we installed came
-      # from a VCS source, a bootsrap might be useful
-      if entry.get_scmtype() is not None:
-        return True
-  return False
+    """Whether we might need to bootstrap ros"""
+    for entry in config.get_source():
+        if is_path_ros(os.path.join(config.get_base_path(), entry.get_local_name())):
+            # we assume that if any of the elements we installed came
+            # from a VCS source, a bootsrap might be useful
+            if entry.get_scmtype() is not None:
+                return True
+    return False
 
 def cmd_maybe_refresh_ros_files(config):
-  """
-  Regenerates setup.* files if they exist already
-  """
-  if (os.path.isfile(os.path.join(config.get_base_path(), 'setup.sh'))):
-    print("Overwriting setup.sh, setup.bash, and setup.zsh in %s"%config.get_base_path())
-    setupfiles.generate_setup(config, no_ros_allowed=True)
+    """
+    Regenerates setup.* files if they exist already
+    """
+    if (os.path.isfile(os.path.join(config.get_base_path(), 'setup.sh'))):
+        print("Overwriting setup.sh, setup.bash, and setup.zsh in %s"%config.get_base_path())
+        setupfiles.generate_setup(config, no_ros_allowed=True)
 
 def cmd_generate_ros_files(config, path, nobuild=False, rosdep_yes=False, catkin=False, catkinpp=None, no_ros_allowed=False):
-  """
-  Generates ROS specific setup files
-  """
+    """
+    Generates ROS specific setup files
+    """
 
-  # Catkin must be enabled if catkinpp is set
-  if catkinpp is not None:
-    catkin = True
+    # Catkin must be enabled if catkinpp is set
+    if catkinpp is not None:
+        catkin = True
 
-  ## bootstrap the build if installing ros
-  if catkin:
-    setupfiles.generate_catkin_cmake(path, catkinpp)
+    ## bootstrap the build if installing ros
+    if catkin:
+        setupfiles.generate_catkin_cmake(path, catkinpp)
 
-  else: # DRY install case
-    ## Generate setup.sh and save
-    print("(Over-)Writing setup.sh, setup.bash, and setup.zsh in %s"%config.get_base_path())
-    setupfiles.generate_setup(config, no_ros_allowed)
+    else: # DRY install case
+        ## Generate setup.sh and save
+        print("(Over-)Writing setup.sh, setup.bash, and setup.zsh in %s"%config.get_base_path())
+        setupfiles.generate_setup(config, no_ros_allowed)
 
-    if _ros_requires_boostrap(config) and not nobuild:
-      print("Bootstrapping ROS build")
-      rosdep_yes_insert = ""
-      if rosdep_yes:
-        rosdep_yes_insert = " --rosdep-yes"
-      ros_comm_insert = ""
-      if 'ros_comm' in [os.path.basename(tree.get_path()) for tree in config.get_config_elements()]:
-        print("Detected ros_comm bootstrapping it too.")
-        ros_comm_insert = " ros_comm"
-      subprocess.check_call("source %s && rosmake ros%s --rosdep-install%s" % (os.path.join(path, 'setup.sh'), ros_comm_insert, rosdep_yes_insert), shell=True, executable='/bin/bash')
+        if _ros_requires_boostrap(config) and not nobuild:
+            print("Bootstrapping ROS build")
+            rosdep_yes_insert = ""
+            if rosdep_yes:
+                rosdep_yes_insert = " --rosdep-yes"
+            ros_comm_insert = ""
+            if 'ros_comm' in [os.path.basename(tree.get_path()) for tree in config.get_config_elements()]:
+                print("Detected ros_comm bootstrapping it too.")
+                ros_comm_insert = " ros_comm"
+            subprocess.check_call("source %s && rosmake ros%s --rosdep-install%s" % (os.path.join(path, 'setup.sh'), ros_comm_insert, rosdep_yes_insert), shell=True, executable='/bin/bash')
 
 
 

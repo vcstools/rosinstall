@@ -112,9 +112,9 @@ $ rosws init ~/fuerte /opt/ros/fuerte
 
         if not os.path.isdir(target_path):
             if not os.path.exists(target_path):
-              os.mkdir(target_path)
+                os.mkdir(target_path)
             else:
-              print('Error: Cannot create in target path %s '%target_path)
+                print('Error: Cannot create in target path %s '%target_path)
 
         if os.path.exists(os.path.join(target_path, self.config_filename)):
             print('Error: There already is a workspace config file %s at "%s". Use rosws install/modify.'%(self.config_filename, target_path))
@@ -411,10 +411,10 @@ $ rosws info --only=path,cur_uri,cur_revision robot_model geometry
         # this call takes long, as it invokes scms.
         outputs = multiproject_cmd.cmd_info(config, localnames=args)
         if args is not None and len(outputs) == 1:
-                print(cli_common.get_info_list(config.get_base_path(),
-                                               outputs[0],
-                                               options.data_only))
-                return 0
+            print(cli_common.get_info_list(config.get_base_path(),
+                                           outputs[0],
+                                           options.data_only))
+            return 0
 
         header = 'workspace: %s\nROS_ROOT: %s'%(target_path,
                                                 get_ros_stack_path(config))

@@ -43,16 +43,16 @@ import multiproject_cmd
 # implementation of single CLI commands (extracted for use in several overlapping scripts)
 
 __MULTIPRO_CMD_DICT__ = {
-  "help"     : "provide help for commands",
-  "init"     : "set up a directory as workspace",
-  "info"     : "Overview of some entries",
-  "merge"    : "merges your workspace with another config set",
-  "set"      : "add or changes one entry from your workspace config",
-  "update"   : "update or check out some of your config elements",
-  "remove"   : "remove an entry from your workspace config, without deleting files",
-  "snapshot" : "write a file specifying repositories to have the version they currently have",
-  "diff"     : "print a diff over some SCM controlled entries",
-  "status"   : "print the change status of files in some SCM controlled entries"}
+    "help"     : "provide help for commands",
+    "init"     : "set up a directory as workspace",
+    "info"     : "Overview of some entries",
+    "merge"    : "merges your workspace with another config set",
+    "set"      : "add or changes one entry from your workspace config",
+    "update"   : "update or check out some of your config elements",
+    "remove"   : "remove an entry from your workspace config, without deleting files",
+    "snapshot" : "write a file specifying repositories to have the version they currently have",
+    "diff"     : "print a diff over some SCM controlled entries",
+    "status"   : "print the change status of files in some SCM controlled entries"}
 
 class IndentedHelpFormatterWithNL(IndentedHelpFormatter):
     def format_description(self, description):
@@ -112,7 +112,7 @@ class MultiprojectCLI:
         parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
                           help="which workspace to use",
                           action="store")
-        (options, args) = parser.parse_args(argv)
+        (_, args) = parser.parse_args(argv)
 
         if config is None:
             config = multiproject_cmd.get_config(target_path, [], config_filename=self.config_filename)
@@ -317,7 +317,7 @@ $ rosws set robot_model --detached
         multiproject_cmd.cmd_persist_config(config, self.config_filename)
 
         if (spec.get_scmtype() is not None):
-          print("Config changed, remember to run 'rosws update %s' to update the folder from %s"%(spec.get_local_name(), spec.get_scmtype()))
+            print("Config changed, remember to run 'rosws update %s' to update the folder from %s"%(spec.get_local_name(), spec.get_scmtype()))
         # for element in config.get_config_elements():
         #   if element.get_local_name() == spec.get_local_name():
         #     if element.is_vcs_element():
@@ -394,7 +394,7 @@ $ rosws update robot_model geometry
 The command removes entries from your configuration file, it does not affect your filesystem.
 """,
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
-        (options, args) = parser.parse_args(argv)
+        (_, args) = parser.parse_args(argv)
         if len(args) < 1:
             print("Error: Too few arguments.")
             print(parser.usage)
@@ -447,7 +447,7 @@ The command removes entries from your configuration file, it does not affect you
 
             if old_element is None:
                 if new_path_spec.get_scmtype() is not None:
-                  output += "   \t%s  %s   %s"%(new_path_spec.get_scmtype(),
+                    output += "   \t%s  %s   %s"%(new_path_spec.get_scmtype(),
                                                 new_path_spec.get_uri(),
                                                 new_path_spec.get_version() or '')
             else:
@@ -456,20 +456,22 @@ The command removes entries from your configuration file, it does not affect you
                     if (attr in old_path_spec.__dict__
                         and old_path_spec.__dict__[attr] != new_path_spec.__dict__[attr]
                         and attr[1:] not in ['local_name', 'path']):
-                      old_val = old_path_spec.__dict__[attr]
-                      new_val = new_path_spec.__dict__[attr]
+                        
+                        old_val = old_path_spec.__dict__[attr]
+                        new_val = new_path_spec.__dict__[attr]
 
-                      commonprefix = new_val[:[x[0] == x[1] for x in zip(str(new_val), str(old_val))].index(0)]
-                      if len(commonprefix) > 11:
-                          new_val = "...%s"%new_val[len(commonprefix) - 7:]
-                      output += "  \t%s: %s -> %s;"%(attr[1:], old_val, new_val)
+                        commonprefix = new_val[:[x[0] == x[1] for x in zip(str(new_val), str(old_val))].index(0)]
+                        if len(commonprefix) > 11:
+                            new_val = "...%s"%new_val[len(commonprefix) - 7:]
+                        output += "  \t%s: %s -> %s;"%(attr[1:], old_val, new_val)
                     else:
-                      if (attr not in old_path_spec.__dict__
-                          and new_path_spec.__dict__[attr] is not None
-                          and new_path_spec.__dict__[attr] != ""
-                          and new_path_spec.__dict__[attr] != []
-                          and attr[1:] not in ['local_name', 'path']):
-                        output += "  %s = %s"%(attr[1:], new_path_spec.__dict__[attr])
+                        if (attr not in old_path_spec.__dict__ and
+                            new_path_spec.__dict__[attr] is not None and
+                            new_path_spec.__dict__[attr] != "" and
+                            new_path_spec.__dict__[attr] != [] and
+                            attr[1:] not in ['local_name', 'path']):
+                            
+                            output += "  %s = %s"%(attr[1:], new_path_spec.__dict__[attr])
         return output
 
 
@@ -489,12 +491,14 @@ The command removes entries from your configuration file, it does not affect you
         :returns: tupel (Config or None if no change, bool path_changed)
         """
         if config is None:
-            config = multiproject_cmd.get_config(target_path,
-                                                 additional_uris=[],
-                                                 config_filename=self.config_filename)
+            config = multiproject_cmd.get_config(
+                target_path,
+                additional_uris=[],
+                config_filename=self.config_filename)
         elif config.get_base_path() != target_path:
-            raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(),
-                                                                             target_path))
+            msg = "Config path does not match %s %s "%(config.get_base_path(),
+                                                       target_path)
+            raise MultiProjectException(msg)
         local_names_old = [x.get_local_name() for x in config.get_config_elements()]
 
         extra_verbose = confirmed
@@ -504,16 +508,18 @@ The command removes entries from your configuration file, it does not affect you
 
             if (last_merge_strategy is None
                 or last_merge_strategy != merge_strategy):
-              newconfig = multiproject_cmd.get_config(target_path,
-                                                      additional_uris=[],
-                                                      config_filename=self.config_filename)
-              config_actions = multiproject_cmd.add_uris(newconfig,
-                                                         additional_uris=additional_uris,
-                                                         merge_strategy=merge_strategy)
-              for path_spec in additional_specs:
-                  action = newconfig.add_path_spec(path_spec, merge_strategy)
-                  config_actions[path_spec.get_local_name()] = (action, path_spec)
-              last_merge_strategy = merge_strategy
+                newconfig = multiproject_cmd.get_config(
+                    target_path,
+                    additional_uris=[],
+                    config_filename=self.config_filename)
+                config_actions = multiproject_cmd.add_uris(
+                    newconfig,
+                    additional_uris=additional_uris,
+                    merge_strategy=merge_strategy)
+                for path_spec in additional_specs:
+                    action = newconfig.add_path_spec(path_spec, merge_strategy)
+                    config_actions[path_spec.get_local_name()] = (action, path_spec)
+                last_merge_strategy = merge_strategy
 
             local_names_new = [x.get_local_name() for x in newconfig.get_config_elements()]
 
@@ -545,17 +551,17 @@ The command removes entries from your configuration file, it does not affect you
                     discard_elements.append(self._get_element_diff(new_path_spec, config, extra_verbose))
                     ask_user = True
             if len(changed_elements) > 0:
-              output += "\n     Change details of element (Use --merge-keep or --merge-replace to change):\n"
-              if extra_verbose:
-                output += " %s\n"%("\n".join(changed_elements))
-              else:
-                output += " %s\n"%(", ".join(changed_elements))
+                output += "\n     Change details of element (Use --merge-keep or --merge-replace to change):\n"
+                if extra_verbose:
+                    output += " %s\n"%("\n".join(changed_elements))
+                else:
+                    output += " %s\n"%(", ".join(changed_elements))
             if len(new_elements) > 0:
                 output += "\n     Add new elements:\n"
                 if extra_verbose:
-                  output += " %s\n"%("\n".join(new_elements))
+                    output += " %s\n"%("\n".join(new_elements))
                 else:
-                  output += " %s\n"%(", ".join(new_elements))
+                    output += " %s\n"%(", ".join(new_elements))
 
 
             if local_names_old != local_names_new[:len(local_names_old)]:
@@ -613,7 +619,7 @@ Switch append is the default.
                             merge_strategy = 'KillAppend'
 
                     elif mode_input == 'v':
-                      extra_verbose = not extra_verbose
+                        extra_verbose = not extra_verbose
             if abort:
                 print("No changes made.")
                 return (None, False)
