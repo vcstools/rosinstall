@@ -305,6 +305,11 @@ class VCSConfigElement(ConfigElement):
       # revision is the UID of the version spec, can be them same
       revision = self._get_vcsc().get_version(self.version)
     currevision = self._get_vcsc().get_version()
+    uri = self.uri
+    curr_uri = self._get_vcsc().get_url()
+    # uri might be a shorthand notation equivalent to curr_uri
+    if self._get_vcsc().url_matches(curr_uri, uri):
+      curr_uri = uri
     return PathSpec(local_name=self.get_local_name(),
                     path=self.get_path(),
                     scmtype=self.get_vcs_type_name(),
@@ -312,7 +317,7 @@ class VCSConfigElement(ConfigElement):
                     version=version,
                     revision=revision,
                     currevision=currevision,
-                    curr_uri=self._get_vcsc().get_url(),
+                    curr_uri=curr_uri,
                     tags=self.get_properties())
 
 
