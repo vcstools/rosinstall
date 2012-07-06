@@ -7,6 +7,8 @@ Changelog
 0.6.18
 ------
 
+- code base cleaned with pychecker and friends
+- minor improvements to text output
 - fix #47 support for launchpad urls, no more conflict on update
 - fix broken scripts rosco, py-rosws-stacks
 - bugfix #56 setup.sh broken for python3 systems (arch linux)
