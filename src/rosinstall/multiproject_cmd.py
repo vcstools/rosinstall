@@ -41,7 +41,7 @@ from config_yaml import aggregate_from_uris, generate_config_yaml, get_path_spec
 
 ## The _cmd python files attempt to provide a reasonably
 ## complete level of abstraction to multiproject functionality.
-## 
+##
 ## Client code will need to pass the Config element through,
 ## and may use the ConfigElement API in places.
 ## There are no guarantees at this time for the API to
@@ -51,9 +51,9 @@ from config_yaml import aggregate_from_uris, generate_config_yaml, get_path_spec
 import vcstools
 
 def get_config(basepath,
-               additional_uris = None,
-               config_filename = None,
-               merge_strategy = 'KillAppend'):
+               additional_uris=None,
+               config_filename=None,
+               merge_strategy='KillAppend'):
   """
   Create a Config element necessary for all other commands.
   The command will look at the uris in sequence, each
@@ -65,7 +65,7 @@ def get_config(basepath,
   the input to Config is an expanded list of config elements. Config
   takes this list and consolidates duplicate paths by keeping the last
   one in the list.
-  
+
   :param basepath: where relative paths shall be resolved against
   :param additional_uris: the location of config specifications or folders
   :param config_filename: name of files which may be looked at for config information
@@ -75,30 +75,30 @@ def get_config(basepath,
   """
   if basepath is None:
     raise MultiProjectException("Need to provide a basepath for Config.")
-    
+
   #print("source...........................", path_specs)
 
-  
+
   ## Generate the config class with the uri and path
   if (config_filename is not None
       and basepath is not None
       and os.path.isfile(os.path.join(basepath, config_filename))):
-    base_path_specs = get_path_specs_from_uri(os.path.join(basepath, config_filename), as_is = True)
+    base_path_specs = get_path_specs_from_uri(os.path.join(basepath, config_filename), as_is=True)
   else:
     base_path_specs = []
-    
+
   config = Config(base_path_specs, basepath,
-                  config_filename = config_filename,
-                  merge_strategy = merge_strategy)
+                  config_filename=config_filename,
+                  merge_strategy=merge_strategy)
 
   add_uris(config, additional_uris, merge_strategy)
 
   return config
 
-def add_uris(config, additional_uris, merge_strategy = "KillAppend"):
+def add_uris(config, additional_uris, merge_strategy="KillAppend"):
   """
   changes the given config by merging with the additional_uris
-  
+
   :param config: a Config objects
   :param additional_uris: the location of config specifications or folders
   :param config_filename: name of files which may be looked at for config information
@@ -108,17 +108,17 @@ def add_uris(config, additional_uris, merge_strategy = "KillAppend"):
   """
   if config is None:
     raise MultiProjectException("Need to provide a Config.")
-  
+
   if additional_uris is None or len(additional_uris) == 0:
     return {}
 
-  add_uris = []
+  added_uris = []
   if config.get_config_filename() is not None:
     for uri in additional_uris:
       comp_uri = None
       if (os.path.isfile(uri)
               and os.path.basename(uri) == config.get_config_filename()):
-        comp_uri=os.path.dirname(uri)
+        comp_uri = os.path.dirname(uri)
       if (os.path.isdir(uri)
           and os.path.isfile(os.path.join(uri, config.get_config_filename()))):
         comp_uri = uri
@@ -126,28 +126,28 @@ def add_uris(config, additional_uris, merge_strategy = "KillAppend"):
           realpath_relation(os.path.abspath(comp_uri), os.path.abspath(config.get_base_path())) == 'SAME_AS'):
         print('Warning: Discarding config basepath as additional uri: %s'%uri)
         continue
-      add_uris.append(uri)
-  
-  path_specs = aggregate_from_uris(add_uris, config.get_config_filename())
-  
+      added_uris.append(uri)
+
+  path_specs = aggregate_from_uris(added_uris, config.get_config_filename())
+
   actions = {}
   for path_spec in path_specs:
     action = config.add_path_spec(path_spec, merge_strategy)
     actions[path_spec.get_local_name()] = (action, path_spec)
-  
+
   return actions
 
 
-def cmd_persist_config(config, filename, header = None):
+def cmd_persist_config(config, filename, header=None):
     """writes config to given file in yaml syntax"""
     generate_config_yaml(config, filename, header)
 
-    
+
 def cmd_version():
   """Returns extensive version information"""
   def prettyversion(vdict):
     version = vdict.pop("version")
-    return "%s; %s"%(version, ",".join(vdict.values()) )
+    return "%s; %s"%(version, ",".join(vdict.values()))
   return """vcstools:  %s
 SVN:       %s
 Mercurial: %s
@@ -161,10 +161,10 @@ Bzr:       %s
      prettyversion(vcstools.TarClient.get_environment_metadata()),
      prettyversion(vcstools.BzrClient.get_environment_metadata()))
 
-def cmd_status(config, localnames = None, untracked = False):
+def cmd_status(config, localnames=None, untracked=False):
   """
   calls SCM status for all SCM entries in config, relative to path
-  
+
   :returns: List of dict {element: ConfigElement, diff: diffstring}
   :param untracked: also show files not added to the SCM
   :raises MultiProjectException: on plenty of errors
@@ -186,7 +186,7 @@ def cmd_status(config, localnames = None, untracked = False):
         columns = 2
       elif scmtype == "bzr":
         columns = 4
-      if columns > -1 and status != None:
+      if columns > -1 and status is not None:
         status_aligned = ''
         for line in status.splitlines():
           status_aligned = status_aligned + line[:columns].ljust(8) + line[columns:] + '\n'
@@ -205,10 +205,10 @@ def cmd_status(config, localnames = None, untracked = False):
   return outputs
 
 
-def cmd_diff(config, localnames = None):
+def cmd_diff(config, localnames=None):
   """
   calls SCM diff for all SCM entries in config, relative to path
-  
+
   :returns: List of dict {element: ConfigElement, diff: diffstring}
   :raises MultiProjectException: on plenty of errors
   """
@@ -231,19 +231,19 @@ def cmd_diff(config, localnames = None):
 
 def cmd_install_or_update(
   config,
-  backup_path = None,
-  mode = 'abort',
-  robust = False,
-  localnames = None,
-  num_threads = 1,
-  verbose = False):
+  backup_path=None,
+  mode='abort',
+  robust=False,
+  localnames=None,
+  num_threads=1,
+  verbose=False):
   """
   performs many things, generally attempting to make
   the local filesystem look like what the config specifies,
   pulling from remote sources the most recent changes.
-  
+
   The command may have stdin user interaction (TODO abstract)
-  
+
   :param backup_path: if and where to backup trees before deleting them
   :param robust: proceed to next element even when one element fails
   :returns: True on Success
@@ -260,7 +260,7 @@ def cmd_install_or_update(
     if backup_path is not None:
       abs_backup_path = os.path.join(config.get_base_path(), backup_path)
     try:
-      preparation_report = t.prepare_install(backup_path = abs_backup_path, arg_mode = mode, robust = robust)
+      preparation_report = t.prepare_install(backup_path=abs_backup_path, arg_mode=mode, robust=robust)
       if preparation_report is not None:
         if preparation_report.abort:
           raise MultiProjectException("Aborting install because of %s"%preparation_report.error)
@@ -277,16 +277,16 @@ def cmd_install_or_update(
         print("Continuing despite %s"%fail_str)
       else:
         raise MultiProjectException(fail_str)
-      
+
   class Installer():
     def __init__(self, report):
       self.element = report.config_element
       self.report = report
     def do_work(self):
-      self.element.install(checkout = self.report.checkout,
-                           backup = self.report.backup,
-                           backup_path = self.report.backup_path,
-                           verbose = self.report.verbose)
+      self.element.install(checkout=self.report.checkout,
+                           backup=self.report.backup,
+                           backup_path=self.report.backup_path,
+                           verbose=self.report.verbose)
       return {}
 
   work = DistributedWork(len(preparation_reports), num_threads, silent=False)
@@ -294,7 +294,7 @@ def cmd_install_or_update(
     report.verbose = verbose
     thread = Installer(report)
     work.add_thread(thread)
- 
+
   try:
     work.run()
   except MultiProjectException as e:
@@ -306,7 +306,7 @@ def cmd_install_or_update(
   # TODO go back and make sure that everything in options.path is described
   # in the yaml, and offer to delete otherwise? not sure, but it could go here
 
-def cmd_snapshot(config, localnames = None):
+def cmd_snapshot(config, localnames=None):
   elements = select_elements(config, localnames)
   source_aggregate = []
   for element in elements:
@@ -314,33 +314,33 @@ def cmd_snapshot(config, localnames = None):
     source_aggregate.append(source)
   return source_aggregate
 
-def cmd_info(config, localnames = None):
+def cmd_info(config, localnames=None):
   """This function compares what should be (config_file) with what is
   (directories) and returns a list of dictionary giving each local
   path and all the state information about it available.
   """
-  
+
   class InfoRetriever():
     def __init__(self, element, path):
       self.element = element
       self.path = path
 
     def do_work(self):
-      localname=""
+      localname = ""
       scm = None
-      uri=""
+      uri = ""
       curr_uri = None
-      exists=False
+      exists = False
       version = ""# what is given in config file
       modified = ""
-      actualversion="" # revision number of version
+      actualversion = "" # revision number of version
       specversion = "" # actual revision number
       localname = self.element.get_local_name()
       path = self.element.get_path() or localname
 
       if localname is None or localname == "":
         raise MultiProjectException("Missing local-name in element: %s"%self.element)
-      abs_path = normabspath(path, self.path)  
+      abs_path = normabspath(path, self.path)
       if (os.path.exists(abs_path)):
         exists = True
       if self.element.is_vcs_element():
@@ -356,9 +356,9 @@ def cmd_info(config, localnames = None):
               and status.strip() != ''):
             modified = True
           specversion = path_spec.get_revision()
-          if (version != None
+          if (version is not None
               and version.strip() != ''
-              and (specversion == None or specversion.strip() =='')):
+              and (specversion is None or specversion.strip() == '')):
             specversion = '"%s"'%version
           actualversion = path_spec.get_current_revision()
         scm = path_spec.get_scmtype()
@@ -384,3 +384,4 @@ def cmd_info(config, localnames = None):
       work.add_thread(InfoRetriever(element, path))
   outputs = work.run()
   return outputs
+

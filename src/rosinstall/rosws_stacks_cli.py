@@ -48,7 +48,7 @@ def roslocate_info(stack, distro, dev):
 
   stdout, stderr = p.communicate()
   if p.returncode != 0:
-    sys.stderr.write('[rosws] Warning: failed to locate stack "%s" in distro "%s".  Falling back on non-distro-specific search; compatibility problems may ensue.\n'%(stack,distro))
+    sys.stderr.write('[rosws] Warning: failed to locate stack "%s" in distro "%s".  Falling back on non-distro-specific search; compatibility problems may ensue.\n'%(stack, distro))
     # Could be that the stack hasn't been released; try roslocate
     # again, without specifying the distro.
     cmd = ['roslocate', 'info', stack]
@@ -123,14 +123,14 @@ def get_dependent_stacks(stack):
     raise ROSInstallException('rosstack failed: %s'%(stderr))
   # Make sure to exclude empty lines
   deps = []
-  for l in stdout.split('\n'):
-    if len(l) > 0:
-      deps.append(l)
+  for line in stdout.splitlines():
+    if len(line) > 0:
+      deps.append(line)
   return deps
 
 
 
-def cmd_add_stack(config, stackname, released = False, recurse = False):
+def cmd_add_stack(config, stackname, released=False, recurse=False):
   """
   Attempts to get ROS stack from source if it is not already in config.
   Attempts the same for all stacks it depents, if recurse is given.
@@ -140,7 +140,7 @@ def cmd_add_stack(config, stackname, released = False, recurse = False):
   :param recurse: also get dependant version
   :returns: True if stack has been added
   """
-  def _add_stack(config, stackname, distro, released = False, recurse = False):
+  def _add_stack(config, stackname, distro, released=False):
     stack_element = get_stack_element_in_config(config, stackname)
     if stack_element is not None:
       print("stack %stackname already in config at %s"%(stackname, stack_element.get_path()))
@@ -158,7 +158,7 @@ def cmd_add_stack(config, stackname, released = False, recurse = False):
 
   ver = get_ros_stack_version()
   distro = rosversion_to_distro_name(ver)
-  if _add_stack(config, stackname, distro, released, recurse) is False:
+  if _add_stack(config, stackname, distro, released) is False:
     return False
 
   if recurse:
@@ -178,7 +178,7 @@ def cmd_delete_stack(config, stackname, delete=False, recurse=False):
   :param recurse: also get dependant version
   :returns: True if stack has been added
   """
-  def _del_stack(config, stackname, delete=False, recurse=False):
+  def _del_stack(config, stackname, delete=False):
     stack_element = get_stack_element_in_config(config, stackname)
     if stack_element is None:
       print("stack not in config: %s "%stackname)
@@ -186,10 +186,10 @@ def cmd_delete_stack(config, stackname, delete=False, recurse=False):
     config.remove_element(stack_element.get_local_name())
     if delete:
       # TODO confirm each delete
-      shutil.rmtree(os.path.join(config.base_path, stack), ignore_errors=True)
+      shutil.rmtree(os.path.join(config.base_path, stackname), ignore_errors=True)
     return True
 
-  if _del_stack(config, stackname, delete, recurse) is False:
+  if _del_stack(config, stackname, delete) is False:
     return False
 
   if recurse:
@@ -250,7 +250,7 @@ class RosWsStacksCLI():
             print(parser.usage)
             return -1
         stack = args[0]
-        config = get_config(target_path, [], config_filename = self.config_filename)
+        config = get_config(target_path, [], config_filename=self.config_filename)
         if cmd_add_stack(config,
                          stack,
                          released=options.released,
@@ -337,9 +337,9 @@ def rosws_stacks_main(argv=None):
         return 0
 
       else:
-        command=argv[2]
+        command = argv[2]
         args = argv[3:]
-        args.insert(0,"-h")
+        args.insert(0, "-h")
 
     cli = RosWsStacksCLI()
     commands = {
@@ -365,3 +365,4 @@ def rosws_stacks_main(argv=None):
 
   except KeyboardInterrupt:
     pass
+

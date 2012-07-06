@@ -39,7 +39,7 @@ ROSINSTALL_FILENAME = ".rosinstall"
 
 def is_path_stack(path):
   """
-  
+
   @return: True if the path provided is the root of a stack.
   """
   stack_path = os.path.join(path, 'stack.xml')

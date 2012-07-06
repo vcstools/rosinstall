@@ -50,11 +50,6 @@ from rosinstall.config_yaml import PathSpec
 
 from test.scm_test_base import AbstractSCMTest, _add_to_file, _nth_line_split
 
-def _add_to_file(path, content):
-    """Util function to append to file to get a modification"""
-    f = io.open(path, 'a')
-    f.write(unicode(content))
-    f.close()
 
 class GetWorkspaceTest(unittest.TestCase):
 

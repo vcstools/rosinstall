@@ -40,12 +40,12 @@ index at ROS.org.
 
 NAME='roslocate'
 
-import os
+
 import sys
 try:
-    from os import EX_OK, EX_DATAERR, EX_USAGE
-except:
-    EX_OK, EX_DATAERR, EX_USAGE = 0, 1, 2
+    from os import EX_USAGE
+except ImportError:
+    EX_USAGE = 0, 1, 2
 
 from rosinstall.locate import get_rosdoc_manifest, \
      get_www, get_repo, get_vcs, get_vcs_uri_for_branch,\

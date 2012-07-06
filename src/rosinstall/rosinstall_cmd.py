@@ -35,9 +35,9 @@ import os
 import subprocess
 import multiproject_cmd
 import setupfiles
-from helpers import ROSInstallException, ROSINSTALL_FILENAME, is_path_ros
+from helpers import ROSINSTALL_FILENAME, is_path_ros
 
-def cmd_persist_config(config, config_filename = ROSINSTALL_FILENAME):
+def cmd_persist_config(config, config_filename=ROSINSTALL_FILENAME):
   ## Save .rosinstall
   header = """# THIS IS A FILE WHICH IS MODIFIED BY rosinstall
 # IT IS UNLIKELY YOU WANT TO EDIT THIS FILE BY HAND,
@@ -64,9 +64,9 @@ def cmd_maybe_refresh_ros_files(config):
   """
   if (os.path.isfile(os.path.join(config.get_base_path(), 'setup.sh'))):
     print("Overwriting setup.sh, setup.bash, and setup.zsh in %s"%config.get_base_path())
-    setupfiles.generate_setup(config, no_ros_allowed = True)
-  
-def cmd_generate_ros_files(config, path, nobuild = False, rosdep_yes = False, catkin = False, catkinpp = None, no_ros_allowed = False):
+    setupfiles.generate_setup(config, no_ros_allowed=True)
+
+def cmd_generate_ros_files(config, path, nobuild=False, rosdep_yes=False, catkin=False, catkinpp=None, no_ros_allowed=False):
   """
   Generates ROS specific setup files
   """
@@ -74,11 +74,11 @@ def cmd_generate_ros_files(config, path, nobuild = False, rosdep_yes = False, ca
   # Catkin must be enabled if catkinpp is set
   if catkinpp is not None:
     catkin = True
-  
+
   ## bootstrap the build if installing ros
   if catkin:
     setupfiles.generate_catkin_cmake(path, catkinpp)
-                
+
   else: # DRY install case
     ## Generate setup.sh and save
     print("(Over-)Writing setup.sh, setup.bash, and setup.zsh in %s"%config.get_base_path())
@@ -95,5 +95,5 @@ def cmd_generate_ros_files(config, path, nobuild = False, rosdep_yes = False, ca
         ros_comm_insert = " ros_comm"
       subprocess.check_call("source %s && rosmake ros%s --rosdep-install%s" % (os.path.join(path, 'setup.sh'), ros_comm_insert, rosdep_yes_insert), shell=True, executable='/bin/bash')
 
-  
-    
+
+

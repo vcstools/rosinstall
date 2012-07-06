@@ -34,7 +34,7 @@ import os
 import yaml
 import urllib2
 
-from common import MultiProjectException, conditional_abspath
+from common import MultiProjectException
 
 __REPOTYPES__ = ['svn', 'bzr', 'hg', 'git', 'tar']
 __ALLTYPES__ = __REPOTYPES__ + ['other', 'setup-file']
@@ -51,33 +51,36 @@ __ALLTYPES__ = __REPOTYPES__ + ['other', 'setup-file']
 
 def get_yaml_from_uri(uri):
   """reads and parses yaml from a local file or remote uri"""
-  stream = 0
-  if os.path.isfile(uri):
-    try:
-      stream = open(uri, 'r')
-    except IOError as e:
-      raise MultiProjectException("error opening file [%s]: %s\n" % (uri, e))
-  else:
-    try:
-      stream = urllib2.urlopen(uri)
-    except IOError as e:
-      raise MultiProjectException("Is not a local file, nor able to download as a URL [%s]: %s\n" % (uri, e))
-    except ValueError as e:
-      raise MultiProjectException("Is not a local file, nor a valid URL [%s] : %s\n" % (uri,e))
-  if not stream:
-    raise MultiProjectException("couldn't load config uri %s\n" % uri)
+  stream = None
   try:
-    y = yaml.load(stream);
-    stream.close()
-  except yaml.YAMLError as e:
-    raise MultiProjectException("Invalid multiproject yaml format in [%s]: %s\n" % (uri, e))
+    if os.path.isfile(uri):
+      try:
+        stream = open(uri, 'r')
+      except IOError as e:
+        raise MultiProjectException("error opening file [%s]: %s\n" % (uri, e))
+    else:
+      try:
+        stream = urllib2.urlopen(uri)
+      except IOError as e:
+        raise MultiProjectException("Is not a local file, nor able to download as a URL [%s]: %s\n" % (uri, e))
+      except ValueError as e:
+        raise MultiProjectException("Is not a local file, nor a valid URL [%s] : %s\n" % (uri, e))
+    if not stream:
+      raise MultiProjectException("couldn't load config uri %s\n" % uri)
+    try:
+      y = yaml.load(stream)
+    except yaml.YAMLError as e:
+      raise MultiProjectException("Invalid multiproject yaml format in [%s]: %s\n" % (uri, e))
+  finally:
+    if stream is not None:
+      stream.close()
   return y
 
-def get_path_specs_from_uri(uri, config_filename = None, as_is = False):
+def get_path_specs_from_uri(uri, config_filename=None, as_is=False):
   """
   Builds a list of PathSpec elements from several types of input locations, "uris".
   The function treats other workspace folders/files as special uris to prevent mutual conflicts.
-  
+
   :param uri: a folder, a file, or a web url
   :param config_filename: name for files to be treated special as other workspaces
   :param as_is: do not rewrite, used for loading the current workspace config without rewriting
@@ -89,11 +92,11 @@ def get_path_specs_from_uri(uri, config_filename = None, as_is = False):
     else:
       # plain folders returned as themselves
       return [PathSpec(uri)]
-  yaml = get_yaml_from_uri(uri)
-  if yaml is None:
+  yaml_spec = get_yaml_from_uri(uri)
+  if yaml_spec is None:
     return []
-  specs = [get_path_spec_from_yaml(x) for x in yaml]
-  
+  specs = [get_path_spec_from_yaml(x) for x in yaml_spec]
+
   if (config_filename is not None
       and not as_is
       and os.path.isfile(uri)
@@ -122,7 +125,7 @@ def rewrite_included_source(source_path_specs, source_dir):
     source_path_specs[index] = pathspec
   return source_path_specs
 
-def aggregate_from_uris(config_uris, config_filename = None):
+def aggregate_from_uris(config_uris, config_filename=None):
   """
   Builds a List of PathSpec from a list of location strings (uri,
   paths). If locations is a folder, attempts to find config_filename in it,
@@ -148,14 +151,14 @@ def aggregate_from_uris(config_uris, config_filename = None):
 class PathSpec:
   def __init__(self,
                local_name, # localname is used as ID, currently also is used as path
-               scmtype = None,
-               uri = None,
-               version = None,
-               tags = [],
-               revision = None,
-               currevision = None,
-               path = None,
-               curr_uri = None):
+               scmtype=None,
+               uri=None,
+               version=None,
+               tags=None,
+               revision=None,
+               currevision=None,
+               path=None,
+               curr_uri=None):
     """Fills in local properties based on dict, unifies different syntaxes"""
     self._local_name = local_name
     self._path = path
@@ -163,7 +166,7 @@ class PathSpec:
     self._curr_uri = curr_uri
     self._version = version
     self._scmtype = scmtype
-    self._tags = tags
+    self._tags = tags or []
     self._revision = revision
     self._currevision = currevision
 
@@ -178,7 +181,7 @@ class PathSpec:
 
   def __ne__(self, other):
     return not self.__eq__(other)
-  
+
   def detach_vcs_info(self):
     """if wrapper has VCS information, remove it to make it a plain folder"""
     if self._scmtype is not None:
@@ -211,8 +214,8 @@ class PathSpec:
             properties.update(tag)
           else:
             properties[tag] = None
-    yaml = {self.get_legacy_type(): properties}
-    return yaml
+    yaml_dict = {self.get_legacy_type(): properties}
+    return yaml_dict
 
   def get_local_name(self):
     return self._local_name
@@ -240,7 +243,7 @@ class PathSpec:
 
   def get_current_revision(self):
     return self._currevision
-  
+
   def get_uri(self):
     return self._uri
 
@@ -268,9 +271,9 @@ def get_path_spec_from_yaml(yaml_dict):
   if yaml_dict is None or len(yaml_dict) == 0:
     raise MultiProjectException("no element in yaml dict.")
   if len(yaml_dict) > 1:
-    raise MultiProjectException("too many keys in element dict %s"%(yaml_dict.keys()))
+    raise MultiProjectException("too many keys in element dict %s" % (yaml_dict.keys()))
   if not yaml_dict.keys()[0] in __ALLTYPES__:
-    raise MultiProjectException("Unknown element type '%s'"%(yaml_dict.keys()[0]))
+    raise MultiProjectException("Unknown element type '%s'" % (yaml_dict.keys()[0]))
   firstkey = yaml_dict.keys()[0]
   if firstkey in __REPOTYPES__:
     scmtype = yaml_dict.keys()[0]
@@ -282,26 +285,26 @@ def get_path_spec_from_yaml(yaml_dict):
       if key == "local-name":
         local_name = value
       elif key == "meta":
-        tags.append({key: value})        
+        tags.append({key: value})
       elif key == "uri":
         uri = value
       elif key == "version":
         version = value
       else:
-        raise MultiProjectException("Unknown key %s in %s"%(key, yaml_dict))
+        raise MultiProjectException("Unknown key %s in %s" % (key, yaml_dict))
   # global validation
-  if local_name == None:
-    raise MultiProjectException("Config element without a local-name: %s"%(yaml_dict))
+  if local_name is None:
+    raise MultiProjectException("Config element without a local-name: %s" % (yaml_dict))
   if scmtype != None:
-    if uri == None:
-      raise MultiProjectException("scm type without declared uri in %s"%(value))
+    if uri is None:
+      raise MultiProjectException("scm type without declared uri in %s" % (values))
   path = local_name # local_name is fixed, path may be normalized, made absolute, etc.
-  return PathSpec(local_name = local_name,
-                  path = path,
-                  scmtype = scmtype,
-                  uri = uri,
-                  version = version,
-                  tags = tags)
+  return PathSpec(local_name=local_name,
+                  path=path,
+                  scmtype=scmtype,
+                  uri=uri,
+                  version=version,
+                  tags=tags)
 
 def generate_config_yaml(config, filename, header):
   """
@@ -313,3 +316,4 @@ def generate_config_yaml(config, filename, header):
     if header is not None:
       f.write(header)
     f.write(yaml.safe_dump([x.get_legacy_yaml() for x in config.get_source()]))
+

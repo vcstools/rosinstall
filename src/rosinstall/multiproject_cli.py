@@ -31,7 +31,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import print_function
-import sys
 import os
 import textwrap
 import shutil
@@ -43,7 +42,7 @@ import multiproject_cmd
 
 # implementation of single CLI commands (extracted for use in several overlapping scripts)
 
-__MULTIPRO_CMD_DICT__={
+__MULTIPRO_CMD_DICT__ = {
   "help"     : "provide help for commands",
   "init"     : "set up a directory as workspace",
   "info"     : "Overview of some entries",
@@ -53,8 +52,7 @@ __MULTIPRO_CMD_DICT__={
   "remove"   : "remove an entry from your workspace config, without deleting files",
   "snapshot" : "write a file specifying repositories to have the version they currently have",
   "diff"     : "print a diff over some SCM controlled entries",
-  "status"   : "print the change status of files in some SCM controlled entries",
-}
+  "status"   : "print the change status of files in some SCM controlled entries"}
 
 class IndentedHelpFormatterWithNL(IndentedHelpFormatter):
     def format_description(self, description):
@@ -70,7 +68,7 @@ class IndentedHelpFormatterWithNL(IndentedHelpFormatter):
                           subsequent_indent=indent)
             for bit in bits]
         result = "\n".join(formatted_bits) + "\n"
-        return result 
+        return result
 
 
 def _get_mode_from_options(parser, options):
@@ -89,24 +87,24 @@ def _get_mode_from_options(parser, options):
         mode = 'backup'
     return mode
 
-  
+
 
 class MultiprojectCLI:
 
-    def __init__(self, config_filename = None):
+    def __init__(self, config_filename=None):
         self.config_filename = config_filename
 
     # def cmd_init(self, argv):
     #     raise Exception("Not implemented yet")
     # TODO enable when making multiproject an independent CLI
 
-    
-    # def cmd_merge(self, target_path, argv, config = None):
+
+    # def cmd_merge(self, target_path, argv, config=None):
     #     raise Exception("Not implemented yet")
     # TODO enable when making multiproject an independent CLI
 
 
-    def cmd_diff(self, target_path, argv, config = None):
+    def cmd_diff(self, target_path, argv, config=None):
         parser = OptionParser(usage="usage: rosws diff [localname]* ",
                               description=__MULTIPRO_CMD_DICT__["diff"],
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
@@ -115,27 +113,27 @@ class MultiprojectCLI:
                           help="which workspace to use",
                           action="store")
         (options, args) = parser.parse_args(argv)
-        
-        if config == None:
-            config = multiproject_cmd.get_config(target_path, [], config_filename = self.config_filename)
+
+        if config is None:
+            config = multiproject_cmd.get_config(target_path, [], config_filename=self.config_filename)
         elif config.get_base_path() != target_path:
             raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
 
-        
+
         if len(args) > 0:
-            difflist = multiproject_cmd.cmd_diff(config, localnames = args)
+            difflist = multiproject_cmd.cmd_diff(config, localnames=args)
         else:
             difflist = multiproject_cmd.cmd_diff(config)
         alldiff = []
         for entrydiff in difflist:
-            if entrydiff['diff'] != None and entrydiff['diff'] != '':
+            if entrydiff['diff'] is not None and entrydiff['diff'] != '':
                 alldiff.append(entrydiff['diff'])
         print('\n'.join(alldiff))
-            
+
         return False
-    
-    
-    def cmd_status(self, target_path, argv, config = None):
+
+
+    def cmd_status(self, target_path, argv, config=None):
         parser = OptionParser(usage="usage: rosws status [localname]* ",
                               description=__MULTIPRO_CMD_DICT__["status"] + ". The status columns meanings are as the respective SCM defines them.",
                               epilog="""See: http://www.ros.org/wiki/rosinstall for details""")
@@ -147,34 +145,34 @@ class MultiprojectCLI:
                           help="which workspace to use",
                           action="store")
         (options, args) = parser.parse_args(argv)
-    
-        if config == None:
-            config = multiproject_cmd.get_config(target_path, [], config_filename = self.config_filename)
+
+        if config is None:
+            config = multiproject_cmd.get_config(target_path, [], config_filename=self.config_filename)
         elif config.get_base_path() != target_path:
             raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
 
         if len(args) > 0:
             statuslist = multiproject_cmd.cmd_status(config,
-                                                     localnames = args,
-                                                     untracked = options.untracked)
+                                                     localnames=args,
+                                                     untracked=options.untracked)
         else:
-            statuslist = multiproject_cmd.cmd_status(config, untracked = options.untracked)
-        allstatus=""
+            statuslist = multiproject_cmd.cmd_status(config, untracked=options.untracked)
+        allstatus = ""
         for entrystatus in statuslist:
-            if entrystatus['status'] != None:
+            if entrystatus['status'] is not None:
                 allstatus += entrystatus['status']
         print(allstatus, end='')
         return 0
 
-    
-    def cmd_set(self, target_path, argv, config = None):
+
+    def cmd_set(self, target_path, argv, config=None):
         """
         command for modifying/adding a single entry
         :param target_path: where to look for config
         :param config: config to use instead of parsing file anew
         """
         parser = OptionParser(usage="usage: rosws set [localname] [SCM-URI]?  [--(detached|svn|hg|git|bzr)] [--version=VERSION]]",
-                              formatter = IndentedHelpFormatterWithNL(),
+                              formatter=IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["set"] + """
 The command will infer whether you want to add or modify an entry. If
 you modify, it will only change the details you provide, keeping
@@ -193,7 +191,7 @@ $ rosws set robot_model --detached
         parser.add_option("--detached", dest="detach", default=False,
                           help="make an entry unmanaged (default for new element)",
                           action="store_true")
-        parser.add_option("-v","--version-new", dest="version", default=None,
+        parser.add_option("-v", "--version-new", dest="version", default=None,
                           help="point SCM to this version",
                           action="store")
         parser.add_option("--git", dest="git", default=False,
@@ -221,9 +219,9 @@ $ rosws set robot_model --detached
             print("Error: Too many arguments.")
             print(parser.usage)
             return -1
-        
-        if config == None:
-            config = multiproject_cmd.get_config(target_path, [], config_filename = self.config_filename)
+
+        if config is None:
+            config = multiproject_cmd.get_config(target_path, [], config_filename=self.config_filename)
         elif config.get_base_path() != target_path:
             raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
 
@@ -231,24 +229,24 @@ $ rosws set robot_model --detached
         count_scms = 0
         if options.git:
             scmtype = 'git'
-            count_scms +=1
+            count_scms += 1
         if options.svn:
             scmtype = 'svn'
-            count_scms +=1
+            count_scms += 1
         if options.hg:
             scmtype = 'hg'
-            count_scms +=1
+            count_scms += 1
         if options.bzr:
             scmtype = 'bzr'
-            count_scms +=1
+            count_scms += 1
         if options.detach:
-            count_scms +=1
+            count_scms += 1
         if count_scms > 1:
             parser.error("You cannot provide more than one scm provider option")
-          
+
         if len(args) == 0:
             parser.error("Must provide a localname")
-        
+
         element = select_element(config.get_config_elements(), args[0])
 
         uri = None
@@ -257,7 +255,7 @@ $ rosws set robot_model --detached
         version = None
         if options.version is not None:
             version = options.version.strip("'\"")
-        
+
         if element is None:
             # asssume is insert, choose localname
             localname = os.path.normpath(args[0])
@@ -276,36 +274,36 @@ $ rosws set robot_model --detached
                     if not rel_path.startswith('..'):
                         localname = rel_path
 
-            spec = PathSpec(local_name = localname,
-                            uri = uri,
-                            version = version,
-                            scmtype = scmtype)
+            spec = PathSpec(local_name=localname,
+                            uri=uri,
+                            version=version,
+                            scmtype=scmtype)
             print("     Add element: \n %s"%spec)
         else:
             # modify
             old_spec = element.get_path_spec()
             if options.detach:
-                spec = PathSpec(local_name = element.get_local_name())
+                spec = PathSpec(local_name=element.get_local_name())
             else:
                 # '' evals to False, we do not want that
                 if version is None:
                     version = old_spec.get_version()
-                spec = PathSpec(local_name = element.get_local_name(),
-                                uri = uri or old_spec.get_uri(),
-                                version = version,
-                                scmtype = scmtype or old_spec.get_scmtype(),
-                                path = old_spec.get_path())
+                spec = PathSpec(local_name=element.get_local_name(),
+                                uri=uri or old_spec.get_uri(),
+                                version=version,
+                                scmtype=scmtype or old_spec.get_scmtype(),
+                                path=old_spec.get_path())
             if spec.get_legacy_yaml() == old_spec.get_legacy_yaml():
                 if not options.detach:
                     parser.error("No change provided, did you mean --detach ?")
                 parser.error("No change provided.")
             print("     Change element from: \n %s\n     to\n %s"%(old_spec, spec))
 
-        config.add_path_spec(spec, merge_strategy = 'MergeReplace')
+        config.add_path_spec(spec, merge_strategy='MergeReplace')
         if not options.confirm:
             abort = None
             prompt = "Continue(y/n): "
-            while abort == None:
+            while abort is None:
                 mode_input = raw_input(prompt)
                 if mode_input == 'y':
                     abort = False
@@ -323,14 +321,14 @@ $ rosws set robot_model --detached
         # for element in config.get_config_elements():
         #   if element.get_local_name() == spec.get_local_name():
         #     if element.is_vcs_element():
-        #       element.install(checkout = not os.path.exists(os.path.join(config.get_base_path(), spec.get_local_name())))
+        #       element.install(checkout=not os.path.exists(os.path.join(config.get_base_path(), spec.get_local_name())))
         #       break
         return 0
 
 
-    def cmd_update(self, target_path, argv, config = None):
+    def cmd_update(self, target_path, argv, config=None):
         parser = OptionParser(usage="usage: rosws update [localname]*",
-                              formatter = IndentedHelpFormatterWithNL(),
+                              formatter=IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["update"] + """
 
 This command calls the SCM provider to pull changes from remote to
@@ -366,8 +364,8 @@ $ rosws update robot_model geometry
                           action="store")
         (options, args) = parser.parse_args(argv)
 
-        if config == None:
-            config = multiproject_cmd.get_config(target_path, [], config_filename = self.config_filename)
+        if config is None:
+            config = multiproject_cmd.get_config(target_path, [], config_filename=self.config_filename)
         elif config.get_base_path() != target_path:
             raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
         success = True
@@ -378,20 +376,20 @@ $ rosws update robot_model geometry
         if success:
             install_success = multiproject_cmd.cmd_install_or_update(
               config,
-              localnames = args,
-              backup_path = options.backup_changed,
-              mode = mode,
-              robust = options.robust,
-              num_threads = int(options.jobs),
-              verbose = options.verbose)
+              localnames=args,
+              backup_path=options.backup_changed,
+              mode=mode,
+              robust=options.robust,
+              num_threads=int(options.jobs),
+              verbose=options.verbose)
             if install_success or options.robust:
                 return 0
         return 1
 
 
-    def cmd_remove(self, target_path, argv, config = None):
+    def cmd_remove(self, target_path, argv, config=None):
         parser = OptionParser(usage="usage: rosws remove [localname]*",
-                              formatter = IndentedHelpFormatterWithNL(),
+                              formatter=IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["remove"] + """
 The command removes entries from your configuration file, it does not affect your filesystem.
 """,
@@ -402,8 +400,8 @@ The command removes entries from your configuration file, it does not affect you
             print(parser.usage)
             return -1
 
-        if config == None:
-            config = multiproject_cmd.get_config(target_path, [], config_filename = self.config_filename)
+        if config is None:
+            config = multiproject_cmd.get_config(target_path, [], config_filename=self.config_filename)
         elif config.get_base_path() != target_path:
             raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
         success = True
@@ -415,13 +413,16 @@ The command removes entries from your configuration file, it does not affect you
                 break
         if success:
             print("Overwriting %s"%os.path.join(config.get_base_path(), self.config_filename))
-            shutil.move(os.path.join(config.get_base_path(), self.config_filename), "%s.bak"%os.path.join(config.get_base_path(), self.config_filename))
+            shutil.move(os.path.join(config.get_base_path(),
+                                     self.config_filename),
+                        "%s.bak"%os.path.join(config.get_base_path(),
+                                              self.config_filename))
             multiproject_cmd.cmd_persist_config(config, self.config_filename)
             print("Removed entries %s"%args)
-            
+
         return 0
 
-    # def cmd_info(self, target_path, argv, reverse = False, config = None):
+    # def cmd_info(self, target_path, argv, reverse=False, config=None):
     #     """
     #     :param target_path: where to look for config
     #     :param config: config to use instead of parsing file anew
@@ -431,7 +432,7 @@ The command removes entries from your configuration file, it does not affect you
     # TODO enable when making multiproject an independent CLI
 
 
-    def _get_element_diff(self, new_path_spec, config_old, extra_verbose = False):
+    def _get_element_diff(self, new_path_spec, config_old, extra_verbose=False):
         """
         :returns: a string telling what changed for element compared to old config
         """
@@ -441,11 +442,14 @@ The command removes entries from your configuration file, it does not affect you
         if extra_verbose:
             old_element = None
             if config_old is not None:
-                old_element = select_element(config_old.get_config_elements(), new_path_spec.get_local_name())
+                old_element = select_element(config_old.get_config_elements(),
+                                             new_path_spec.get_local_name())
 
             if old_element is None:
                 if new_path_spec.get_scmtype() is not None:
-                  output += "   \t%s  %s   %s"%(new_path_spec.get_scmtype(), new_path_spec.get_uri(), new_path_spec.get_version() or '')
+                  output += "   \t%s  %s   %s"%(new_path_spec.get_scmtype(),
+                                                new_path_spec.get_uri(),
+                                                new_path_spec.get_version() or '')
             else:
                 old_path_spec = old_element.get_path_spec()
                 for attr in new_path_spec.__dict__:
@@ -454,10 +458,10 @@ The command removes entries from your configuration file, it does not affect you
                         and attr[1:] not in ['local_name', 'path']):
                       old_val = old_path_spec.__dict__[attr]
                       new_val = new_path_spec.__dict__[attr]
-                      
-                      commonprefix = new_val[:[x[0]==x[1] for x in zip(str(new_val), str(old_val))].index(0)]
+
+                      commonprefix = new_val[:[x[0] == x[1] for x in zip(str(new_val), str(old_val))].index(0)]
                       if len(commonprefix) > 11:
-                          new_val = "...%s"%new_val[len(commonprefix)-7:]
+                          new_val = "...%s"%new_val[len(commonprefix) - 7:]
                       output += "  \t%s: %s -> %s;"%(attr[1:], old_val, new_val)
                     else:
                       if (attr not in old_path_spec.__dict__
@@ -467,47 +471,52 @@ The command removes entries from your configuration file, it does not affect you
                           and attr[1:] not in ['local_name', 'path']):
                         output += "  %s = %s"%(attr[1:], new_path_spec.__dict__[attr])
         return output
-          
+
 
     def prompt_merge(self,
                      target_path,
                      additional_uris,
                      additional_specs,
-                     path_change_message = None,
-                     merge_strategy = 'KillAppend',
-                     confirmed = False,
-                     config = None):
+                     path_change_message=None,
+                     merge_strategy='KillAppend',
+                     confirmed=False,
+                     config=None):
         """
         Prompts the user for the resolution of a merge
-        
+
         :param target_path: Location of the config workspace
         :param additional_uris: what needs merging in
         :returns: tupel (Config or None if no change, bool path_changed)
         """
-        if config == None:
-            config = multiproject_cmd.get_config(target_path, additional_uris = [], config_filename = self.config_filename)
+        if config is None:
+            config = multiproject_cmd.get_config(target_path,
+                                                 additional_uris=[],
+                                                 config_filename=self.config_filename)
         elif config.get_base_path() != target_path:
-            raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
+            raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(),
+                                                                             target_path))
         local_names_old = [x.get_local_name() for x in config.get_config_elements()]
 
         extra_verbose = confirmed
         abort = None
         last_merge_strategy = None
-        while abort == None:
+        while abort is None:
 
             if (last_merge_strategy is None
                 or last_merge_strategy != merge_strategy):
-              newconfig = multiproject_cmd.get_config(target_path, additional_uris = [], config_filename = self.config_filename)
+              newconfig = multiproject_cmd.get_config(target_path,
+                                                      additional_uris=[],
+                                                      config_filename=self.config_filename)
               config_actions = multiproject_cmd.add_uris(newconfig,
-                                                         additional_uris = additional_uris,
-                                                         merge_strategy = merge_strategy)
+                                                         additional_uris=additional_uris,
+                                                         merge_strategy=merge_strategy)
               for path_spec in additional_specs:
                   action = newconfig.add_path_spec(path_spec, merge_strategy)
                   config_actions[path_spec.get_local_name()] = (action, path_spec)
               last_merge_strategy = merge_strategy
-            
+
             local_names_new = [x.get_local_name() for x in newconfig.get_config_elements()]
-            
+
             path_changed = False
             ask_user = False
             output = ""
@@ -520,12 +529,12 @@ The command removes entries from your configuration file, it does not affect you
                     index = local_names_old.index(localname)
                 if action == 'KillAppend':
                     ask_user = True
-                    if (index > -1 and local_names_old[:index+1] == local_names_new[:index+1]):
+                    if (index > -1 and local_names_old[:index + 1] == local_names_new[:index + 1]):
                         action = 'MergeReplace'
                     else:
                         changed_elements.append(self._get_element_diff(new_path_spec, config, extra_verbose))
                         path_changed = True
-     
+
                 if action == 'Append':
                     path_changed = True
                     new_elements.append(self._get_element_diff(new_path_spec, config, extra_verbose))
@@ -538,23 +547,23 @@ The command removes entries from your configuration file, it does not affect you
             if len(changed_elements) > 0:
               output += "\n     Change details of element (Use --merge-keep or --merge-replace to change):\n"
               if extra_verbose:
-                output += " %s\n"%"\n".join(changed_elements)
+                output += " %s\n"%("\n".join(changed_elements))
               else:
-                output += " %s\n"%", ".join(changed_elements)
+                output += " %s\n"%(", ".join(changed_elements))
             if len(new_elements) > 0:
                 output += "\n     Add new elements:\n"
                 if extra_verbose:
-                  output += " %s\n"%"\n".join(new_elements)
+                  output += " %s\n"%("\n".join(new_elements))
                 else:
-                  output += " %s\n"%", ".join(new_elements)
-                
-     
+                  output += " %s\n"%(", ".join(new_elements))
+
+
             if local_names_old != local_names_new[:len(local_names_old)]:
                 old_order = ' '.join(reversed(local_names_old))
                 new_order = ' '.join(reversed(local_names_new))
                 output += "\n     %s (Use --merge-keep or --merge-replace to prevent) from\n %s\n     to\n %s\n\n"%(path_change_message or "Element Order change", old_order, new_order)
                 ask_user = True
-     
+
             if output == "":
                 return (None, False)
             if confirmed or not ask_user:
@@ -577,7 +586,7 @@ The command removes entries from your configuration file, it does not affect you
                                       'MergeReplace': "(s)witch in",
                                       'KillAppend': "(a)ppending"}
                         unselected = [strategies[x] for x in strategies if x != merge_strategy]
-                        print( """New entries will just be appended to the config and
+                        print("""New entries will just be appended to the config and
 appear at the beginning of your ROS_PACKAGE_PATH. The merge strategy
 decides how to deal with entries having a duplicate localname or path.
 
@@ -594,7 +603,7 @@ of elements in the order they were given.
 
 Switch append is the default.
 """)
-                        prompt = """Change Strategy %s: """%", ".join(unselected)
+                        prompt = """Change Strategy %s: """%(", ".join(unselected))
                         mode_input = raw_input(prompt)
                         if mode_input == 's':
                             merge_strategy = 'MergeReplace'
@@ -602,11 +611,11 @@ Switch append is the default.
                             merge_strategy = 'MergeKeep'
                         elif mode_input == 'a':
                             merge_strategy = 'KillAppend'
-                        
+
                     elif mode_input == 'v':
                       extra_verbose = not extra_verbose
             if abort:
                 print("No changes made.")
                 return (None, False)
             print('==========================================')
-          
+

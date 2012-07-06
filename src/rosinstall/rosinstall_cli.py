@@ -52,15 +52,15 @@ import sys
 from optparse import OptionParser
 import yaml
 import shutil
-import pkg_resources
-from rosinstall import multiproject_cmd, rosinstall_cmd
 
-from rosinstall.helpers import ROSInstallException, ROSINSTALL_FILENAME
-from rosinstall.common import MultiProjectException
+from rosinstall import multiproject_cmd, rosinstall_cmd
+from rosinstall.helpers import ROSINSTALL_FILENAME
+
 
 def usage():
-  print(__doc__ % vars())
+  print(__doc__%vars())
   exit(1)
+
 
 def rosinstall_main(argv):
   if len(argv) < 2:
@@ -121,19 +121,19 @@ Later URIs will shadow packages of earlier URIs.\n",
                     action="store_true")
   parser.add_option("-j", "--parallel", dest="jobs", default=1,
                     help="How many parallel threads to use for installing",
-                    action="store")  
+                    action="store")
   parser.add_option("--generate-versioned-rosinstall", dest="generate_versioned", default=None,
                     help="generate a versioned rosinstall file", action="store")
   (options, args) = parser.parse_args(args)
 
   #if options.rosdep_yes:
-  #  parser.error("rosinstall no longer bootstraps the build, it will not call rosmake or pass it rosdep options") 
+  #  parser.error("rosinstall no longer bootstraps the build, it will not call rosmake or pass it rosdep options")
 
   if options.version:
     import __version__
     print("rosinstall %s\n%s"%(__version__.version, multiproject_cmd.cmd_version()))
     sys.exit(0)
-  
+
   if len(args) < 1:
     parser.error("rosinstall requires at least 1 argument")
 
@@ -155,12 +155,14 @@ Later URIs will shadow packages of earlier URIs.\n",
   if options.catkinpp:
     options.catkin = True
 
-  # Get the path to the rosinstall 
+  # Get the path to the rosinstall
   options.path = os.path.abspath(args[0])
 
   config_uris = args[1:]
-  
-  config = multiproject_cmd.get_config(basepath = options.path, additional_uris = config_uris, config_filename = ROSINSTALL_FILENAME)
+
+  config = multiproject_cmd.get_config(basepath=options.path,
+                                       additional_uris=config_uris,
+                                       config_filename=ROSINSTALL_FILENAME)
 
   if options.generate_versioned:
     filename = os.path.abspath(options.generate_versioned)
@@ -174,16 +176,16 @@ Later URIs will shadow packages of earlier URIs.\n",
     difflist = multiproject_cmd.cmd_diff(config)
     alldiff = []
     for entrydiff in difflist:
-      if entrydiff['diff'] != None and entrydiff['diff'] != '':
+      if entrydiff['diff'] is not None and entrydiff['diff'] != '':
         alldiff.append(entrydiff['diff'])
     print('\n'.join(alldiff))
     return True
 
   if options.vcs_status or options.vcs_status_untracked:
-    statuslist = multiproject_cmd.cmd_status(config, untracked = options.vcs_status_untracked)
-    allstatus=""
+    statuslist = multiproject_cmd.cmd_status(config, untracked=options.vcs_status_untracked)
+    allstatus = ""
     for entrystatus in statuslist:
-      if entrystatus['status'] != None:
+      if entrystatus['status'] is not None:
         allstatus += entrystatus['status']
     print(allstatus, end='')
     return True
@@ -198,16 +200,16 @@ Later URIs will shadow packages of earlier URIs.\n",
     shutil.move(os.path.join(options.path, ROSINSTALL_FILENAME),
                 "%s.bak"%os.path.join(options.path, ROSINSTALL_FILENAME))
   rosinstall_cmd.cmd_persist_config(config)
-  
+
   ## install or update each element
   install_success = multiproject_cmd.cmd_install_or_update(
     config,
-    backup_path = options.backup_changed,
-    mode = mode,
-    robust = options.robust,
-    num_threads = int(options.jobs),
-    verbose = options.verbose)
-  
+    backup_path=options.backup_changed,
+    mode=mode,
+    robust=options.robust,
+    num_threads=int(options.jobs),
+    verbose=options.verbose)
+
   rosinstall_cmd.cmd_generate_ros_files(
     config,
     options.path,
@@ -222,5 +224,6 @@ Later URIs will shadow packages of earlier URIs.\n",
   print("\nrosinstall update complete.")
   if (options.catkin is False
       and options.catkinpp is None):
-    print("\n\nNow, type 'source %s/setup.bash' to set up your environment.\nAdd that to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % options.path)
+    print("\n\nNow, type 'source %s/setup.bash' to set up your environment.\nAdd that to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells "%options.path)
   return True
+

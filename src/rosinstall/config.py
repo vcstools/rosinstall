@@ -41,13 +41,13 @@ class Config:
   A config is a set of config elements, each of which defines a folder or file
   and possibly a VCS from which to update the folder.
   """
-  
-  def __init__(self, path_specs, install_path, config_filename = None, extended_types=None, merge_strategy = 'KillAppend'):
+
+  def __init__(self, path_specs, install_path, config_filename=None, extended_types=None, merge_strategy='KillAppend'):
     """
     :param config_source_dict: A list (e.g. from yaml) describing the config, list of dict, each dict describing one element.
     :param config_filename: When given a folder, Config
     :param merge_strategy: how to deal with entries with equivalent path. See insert_element
-    
+
     will look in folder for file of that name for more config source, str.
     """
     assert install_path is not None
@@ -84,11 +84,11 @@ class Config:
   def __str__(self):
     return str([str(x) for x in self.trees])
 
-  def add_path_spec(self, path_spec, merge_strategy = 'KillAppend'):
+  def add_path_spec(self, path_spec, merge_strategy='KillAppend'):
     """
    goes through path_specs and builds up self.trees.
    May recursively pull elements from remote sources.
-   
+
    :param merge_strategy: see insert_element
    :param path_specs: PathSpec objects
    :returns: merge action taken, see insert_element
@@ -99,7 +99,9 @@ class Config:
       return self._insert_vcs_path_spec(path_spec, local_path, merge_strategy)
     else:
       if path_spec.get_tags() is not None and 'setup-file' in path_spec.get_tags():
-        elem = SetupConfigElement(local_path, os.path.normpath(path_spec.get_local_name()), properties = path_spec.get_tags())
+        elem = SetupConfigElement(local_path,
+                                  os.path.normpath(path_spec.get_local_name()),
+                                  properties=path_spec.get_tags())
         return self.insert_element(elem, merge_strategy)
       else:
         # we dont want files or other Config folders in this Config
@@ -113,16 +115,16 @@ class Config:
                                     local_name,
                                     path_spec.get_uri(),
                                     path_spec.get_version(),
-                                    properties = path_spec.get_tags())
+                                    properties=path_spec.get_tags())
           return self.insert_element(elem, merge_strategy)
         else:
           print("!!!!!Warning: Not recursing into other config folder %s"%local_path)
 
 
-  def _insert_vcs_path_spec(self, path_spec, local_path, merge_strategy = 'KillAppend'):
+  def _insert_vcs_path_spec(self, path_spec, local_path, merge_strategy='KillAppend'):
     # Get the version and source_uri elements
     source_uri = path_spec.get_uri()
-    
+
     if (source_uri is not None
         and not is_web_uri(source_uri)
         and not os.path.isabs(source_uri)):
@@ -136,22 +138,22 @@ class Config:
                                              local_name,
                                              source_uri,
                                              version,
-                                             properties = path_spec.get_tags())
+                                             properties=path_spec.get_tags())
       return self.insert_element(elem, merge_strategy)
     except LookupError as ex:
-      raise MultiProjectException("Abstracted VCS Config failed. Exception: %s" % ex)
+      raise MultiProjectException("Abstracted VCS Config failed. Exception: %s"%ex)
 
-  def insert_element(self, new_config_elt, merge_strategy = 'KillAppend'):
+  def insert_element(self, new_config_elt, merge_strategy='KillAppend'):
     """
    Insert ConfigElement to self.trees, checking for duplicate local-name or path first.
    In case local_name matches, follow given strategy
-   
+
    - KillAppend (default): remove old element, append new at the end
    - MergeReplace: remove first such old element, insert new at that position.
    - MergeKeep: Discard new element
-   
+
    In case local path matches but local name does not, raise Exception
-   
+
    :returns: the action performed None, 'Append', 'KillAppend', 'MergeReplace', 'MergeKeep'"""
     removals = []
     replaced = False
@@ -165,7 +167,7 @@ class Config:
           if (loop_elt == new_config_elt):
             return None
           if (merge_strategy == 'MergeReplace'
-              or (merge_strategy == 'KillAppend' and index == len(self.trees)-1)):
+              or (merge_strategy == 'KillAppend' and index == len(self.trees) - 1)):
             self.trees[index] = new_config_elt
             # keep looping to check for overlap when replacing non-scm with scm entry
             replaced = True
@@ -196,7 +198,7 @@ class Config:
   def remove_element(self, local_name):
     """
     Removes element in the tree with the given local name (should be only one)
-    
+
     :returns: True if such an element was found
     """
     removals = []
@@ -209,19 +211,24 @@ class Config:
       return True
     return False
 
-  def _create_vcs_config_element(self, scmtype, path, local_name, uri, version = '', properties = None):
+  def _create_vcs_config_element(self, scmtype, path, local_name, uri, version='', properties=None):
     try:
       eclass = self.registry[scmtype]
     except LookupError:
       raise MultiProjectException("No VCS client registered for vcs type %s"%scmtype)
-    return eclass(scmtype = scmtype, path = path, local_name = local_name, uri = uri, version = version, properties = properties)
+    return eclass(scmtype=scmtype,
+                  path=path,
+                  local_name=local_name,
+                  uri=uri,
+                  version=version,
+                  properties=properties)
 
   def get_base_path(self):
     return self.base_path
 
   def get_config_filename(self):
     return self.config_filename
-  
+
 
   def get_source(self):
     """
@@ -230,9 +237,9 @@ class Config:
     source_aggregate = []
     for t in self.trees:
       source_aggregate.append(t.get_path_spec())
-    return source_aggregate  
+    return source_aggregate
 
-  
+
   def get_config_elements(self):
     source_aggregate = []
     for t in self.trees:

@@ -30,7 +30,6 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import sys
 import os
 import re
 from optparse import OptionParser
@@ -38,7 +37,7 @@ from common import MultiProjectException
 
 # Support for any command line interface (CLI) for rosinstall
 
-def get_workspace(argv, shell_path, config_filename = None, varname = None):
+def get_workspace(argv, shell_path, config_filename=None, varname=None):
   """
   If target option -t is given return value of that one. Else, varname
   is given and exists, considers that one, plus,
@@ -52,8 +51,11 @@ def get_workspace(argv, shell_path, config_filename = None, varname = None):
   parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
                       help="which workspace to use",
                       action="store")
-  # suppress errors based on invalid option
-  argv2 = filter(lambda x: (not x.startswith('-') or x.startswith('--target-workspace=') or x.startswith('-t=') or x in ['-t', '--target-workspace']), argv)
+  # suppress errors based on any other option this parser is agnostic about
+  argv2 = filter(lambda x: ((not x.startswith('-')) or
+                            x.startswith('--target-workspace=') or
+                            x.startswith('-t=') or
+                            x in ['-t', '--target-workspace']), argv)
   (options, args) = parser.parse_args(argv2)
   if options.workspace is not None:
     if (config_filename is not None
@@ -135,19 +137,23 @@ def get_info_table_elements(basepath, entries, headers):
       line['curr_version'] = None
     if not 'version' in line:
       line['version'] = None
-    output_dict = {'scm': line['scm'], 'uri': line['uri'], 'curr_uri': None, 'version': line['version'], 'localname': line['localname']}
+    output_dict = {'scm': line['scm'],
+                   'uri': line['uri'],
+                   'curr_uri': None,
+                   'version': line['version'],
+                   'localname': line['localname']}
 
-    if line == None:
+    if line is None:
       print("Bug Warning, an element is missing")
       continue
     
     if line['scm'] == 'git':
       if (line['specversion'] is not None and len(line['specversion']) > 12):
         line['specversion'] = line['specversion'][0:12]
-      if (line['actualversion'] is not None and len(line['actualversion'])>12):
+      if (line['actualversion'] is not None and len(line['actualversion']) > 12):
         line['actualversion'] = line['actualversion'][0:12]
         
-    if line['scm'] != None:
+    if line['scm'] is not None:
       
       if line['scm'] == 'svn':
         # in case of SVN, we can use the final part of standard uri as version
@@ -183,7 +189,7 @@ def get_info_table_elements(basepath, entries, headers):
       if (line['specversion'] is not None
         and line['specversion'] != ''
         and line['actualversion'] != line['specversion']):
-        output_dict['matching'] = "%s (%s)"%( line['actualversion'], line['specversion'])
+        output_dict['matching'] = "%s (%s)"%(line['actualversion'], line['specversion'])
       else:
         output_dict['matching'] = line['actualversion']
 
@@ -208,7 +214,7 @@ def get_info_table_elements(basepath, entries, headers):
     
   return outputs
 
-def get_info_table(basepath, entries, data_only = False, reverse = False):
+def get_info_table(basepath, entries, data_only=False, reverse=False):
   """return a refined textual representation of the entries"""
   headers = {
     'uri':"URI  (Spec) [https://...]",
@@ -220,19 +226,19 @@ def get_info_table(basepath, entries, data_only = False, reverse = False):
     }
 
   # table design
-  selected_headers=['localname', 'status', 'scm', 'version', 'matching', 'uri'  ]
+  selected_headers = ['localname', 'status', 'scm', 'version', 'matching', 'uri'  ]
 
   outputs = get_info_table_elements(
-    basepath = basepath,
-    entries = entries,
-    headers = headers)
+    basepath=basepath,
+    entries=entries,
+    headers=headers)
 
   # adjust column width
   column_length = {}
   for header in headers.keys():
     column_length[header] = len(headers[header])
     for entry in outputs:
-      if entry[header] != None:
+      if entry[header] is not None:
         column_length[header] = max(column_length[header], len(entry[header]))
         
   resultlines = []
@@ -240,14 +246,14 @@ def get_info_table(basepath, entries, data_only = False, reverse = False):
     header_line = ' '
     for i, header in enumerate(selected_headers):
       output = headers[header]
-      if i < len(selected_headers) -1:
+      if i < len(selected_headers) - 1:
         output = output.ljust(column_length[header]) + " "
       header_line += output
     resultlines.append(header_line)
-    header_line=' '
+    header_line = ' '
     for i, header in enumerate(selected_headers):
       output = '-' * len(headers[header])
-      if i < len(selected_headers) -1:
+      if i < len(selected_headers) - 1:
         output = output.ljust(column_length[header]) + " "
       header_line += output
     resultlines.append(header_line)
@@ -255,27 +261,27 @@ def get_info_table(basepath, entries, data_only = False, reverse = False):
   if reverse:
     outputs = reversed(outputs)
   for entry in outputs:
-    if entry == None:
+    if entry is None:
       print("Bug Warning, an element is missing")
       continue
     data_line = ' '
     for i, header in enumerate(selected_headers):
       output = entry[header]
-      if output == None:
+      if output is None:
         output = ''
-      if i < len(selected_headers) -1:
+      if i < len(selected_headers) - 1:
         output = output.ljust(column_length[header]) + " "
       data_line += output
     resultlines.append(data_line)
   return "\n".join(resultlines)
 
 
-def get_info_list(basepath, line, data_only = False):
+def get_info_list(basepath, line, data_only=False):
   """
   Info for a single config entry
   """
 
-  if line == None:
+  if line is None:
     print("Bug Warning, an element is missing")
     return
 
@@ -293,7 +299,7 @@ def get_info_list(basepath, line, data_only = False):
     }
 
   # table design
-  selected_headers=['localname', 'path', 'status', 'scm', 'uri', 'curr_uri', 'version', 'specversion', 'actualversion', 'properties' ]
+  selected_headers = ['localname', 'path', 'status', 'scm', 'uri', 'curr_uri', 'version', 'specversion', 'actualversion', 'properties' ]
 
   line['status'] = _get_status_flags(basepath, line)
 
@@ -303,12 +309,13 @@ def get_info_list(basepath, line, data_only = False):
   result = ''
   for header in selected_headers:
     if not data_only:
-      title = "%s  "%headers[header].ljust(header_length)
+      title = "%s  "%(headers[header].ljust(header_length))
     else:
       title = ''
     if header in line:
       output = line[header]
-    if output == None:
+    if output is None:
       output = ''
-    result += "%s\n"%"%s%s"%(title, output)
+    result += "%s%s\n"%(title, output)
   return result
+

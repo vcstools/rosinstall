@@ -58,7 +58,7 @@ from multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__, IndentedHel
 from config_yaml import get_path_spec_from_yaml
 
 ## This file adds or extends commands from multiproject_cli where ROS
-## specific output has to be generated. 
+## specific output has to be generated.
 
 # extend the commands of multiproject
 __ROSWS_CMD_DICT__ = {
@@ -69,15 +69,15 @@ __ROSWS_CMD_DICT__.update(__MULTIPRO_CMD_DICT__)
 
 class RoswsCLI(MultiprojectCLI):
 
-    def __init__(self, config_filename = ROSINSTALL_FILENAME):
+    def __init__(self, config_filename=ROSINSTALL_FILENAME):
         MultiprojectCLI.__init__(self, config_filename)
 
     def cmd_init(self, argv):
-        if self.config_filename == None:
+        if self.config_filename is None:
             print('Error: Bug: config filename required for init')
             return 1
         parser = OptionParser(usage="""usage: rosws init [TARGET_PATH [SOURCE_PATH]]?""",
-                              formatter = IndentedHelpFormatterWithNL(),
+                              formatter=IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["init"] + """
 
 rosws init does the following:
@@ -109,13 +109,13 @@ $ rosws init ~/fuerte /opt/ros/fuerte
             target_path = '.'
         else:
             target_path = args[0]
-            
+
         if not os.path.isdir(target_path):
             if not os.path.exists(target_path):
               os.mkdir(target_path)
             else:
               print('Error: Cannot create in target path %s '%target_path)
-                                
+
         if os.path.exists(os.path.join(target_path, self.config_filename)):
             print('Error: There already is a workspace config file %s at "%s". Use rosws install/modify.'%(self.config_filename, target_path))
             return 1
@@ -127,38 +127,40 @@ $ rosws init ~/fuerte /opt/ros/fuerte
         if len(config_uris) > 0:
             print('Using ROS_ROOT: %s'%config_uris[0])
 
-        config = multiproject_cmd.get_config(basepath = target_path,
-                                                        additional_uris = config_uris,
-                                                        config_filename = self.config_filename)
-       
+        config = multiproject_cmd.get_config(basepath=target_path,
+                                             additional_uris=config_uris,
+                                             config_filename=self.config_filename)
+
         # includes ROS specific files
-        
+
         print("Writing %s"%os.path.join(config.get_base_path(), self.config_filename))
         rosinstall_cmd.cmd_persist_config(config)
 
         ## install or update each element
-        install_success = multiproject_cmd.cmd_install_or_update(config, robust = False, num_threads = int(options.jobs))
-      
+        install_success = multiproject_cmd.cmd_install_or_update(config,
+                                                                 robust=False,
+                                                                 num_threads=int(options.jobs))
+
         rosinstall_cmd.cmd_generate_ros_files(config,
                                               target_path,
-                                              nobuild = True,
-                                              rosdep_yes = False,
-                                              catkin = options.catkin,
-                                              catkinpp = options.catkinpp,
-                                              no_ros_allowed = True)
-    
+                                              nobuild=True,
+                                              rosdep_yes=False,
+                                              catkin=options.catkin,
+                                              catkinpp=options.catkinpp,
+                                              no_ros_allowed=True)
+
         if not install_success:
             print("Warning: installation encountered errors, but --continue-on-error was requested.  Look above for warnings.")
         print("\nrosinstall update complete.")
         if (options.catkin is False
             and options.catkinpp is None):
-            print("\nType 'source %s/setup.bash' to change into this environment. Add that source command to the bottom of your ~/.bashrc to set it up every time you log in.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % target_path)
+            print("\nType 'source %s/setup.bash' to change into this environment. Add that source command to the bottom of your ~/.bashrc to set it up every time you log in.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells "%target_path)
         return 0
 
-    def cmd_merge(self, target_path, argv, config = None):
+    def cmd_merge(self, target_path, argv, config=None):
         parser = OptionParser(usage="usage: rosws merge [URI] [OPTIONS]",
-                              formatter = IndentedHelpFormatterWithNL(),
-                              description=__MULTIPRO_CMD_DICT__["merge"] +""".
+                              formatter=IndentedHelpFormatterWithNL(),
+                              description=__MULTIPRO_CMD_DICT__["merge"] + """.
 
 The command merges config with given other rosinstall element sets, from files or web uris.
 
@@ -203,16 +205,16 @@ $ roslocate info robot_mode | rosws merge -
             print("Error: Too few arguments.")
             print(parser.usage)
             return -1
-        
+
         config_uris = args
 
         specs = []
         if config_uris[0] == '-':
             pipedata = "".join(sys.stdin.readlines())
             try:
-                yamldicts = yaml.load(pipedata);
+                yamldicts = yaml.load(pipedata)
             except yaml.YAMLError as e:
-                raise MultiProjectException("Invalid yaml format: \n%s \n%s" %(pipedata, e))
+                raise MultiProjectException("Invalid yaml format: \n%s \n%s"%(pipedata, e))
             if yamldicts is None:
                 parser.error("No Input read from stdin")
             options.confirm_all = True # cant have user interaction and piped input
@@ -223,13 +225,13 @@ $ roslocate info robot_mode | rosws merge -
         count_mergeoptions = 0
         if options.merge_kill_append:
             merge_strategy = 'KillAppend'
-            count_mergeoptions +=1
+            count_mergeoptions += 1
         if options.merge_keep:
             merge_strategy = 'MergeKeep'
-            count_mergeoptions +=1
+            count_mergeoptions += 1
         if options.merge_replace:
             merge_strategy = 'MergeReplace'
-            count_mergeoptions +=1
+            count_mergeoptions += 1
         if count_mergeoptions > 1:
             parser.error("You can only provide one merge-strategy")
         # default option
@@ -237,12 +239,12 @@ $ roslocate info robot_mode | rosws merge -
             merge_strategy = 'MergeReplace'
 
         (newconfig, path_changed) = self.prompt_merge(target_path,
-                                                      additional_uris = config_uris,
-                                                      additional_specs = specs,
-                                                      path_change_message = "ROS_PACKAGE_PATH order changed",
-                                                      merge_strategy = merge_strategy,
-                                                      confirmed = options.confirm_all,
-                                                      config = config)
+                                                      additional_uris=config_uris,
+                                                      additional_specs=specs,
+                                                      path_change_message="ROS_PACKAGE_PATH order changed",
+                                                      merge_strategy=merge_strategy,
+                                                      confirmed=options.confirm_all,
+                                                      config=config)
         if newconfig is not None:
             print("Config changed, maybe you need run rosws update to update SCM entries.")
             print("Overwriting %s"%os.path.join(newconfig.get_base_path(), self.config_filename))
@@ -251,16 +253,16 @@ $ roslocate info robot_mode | rosws merge -
             rosinstall_cmd.cmd_maybe_refresh_ros_files(newconfig)
             print("\nrosws update complete.")
             if path_changed:
-                print("\nDo not forget to do ...\n$ source %s/setup.sh\n... in every open terminal." % target_path)
+                print("\nDo not forget to do ...\n$ source %s/setup.sh\n... in every open terminal."%target_path)
         else:
             print("Merge caused no change, matching elements already exist")
         return 0
 
-    
 
-    def cmd_regenerate(self, target_path, argv, config = None):
+
+    def cmd_regenerate(self, target_path, argv, config=None):
         parser = OptionParser(usage="usage: rosws regenerate",
-                              formatter = IndentedHelpFormatterWithNL(),
+                              formatter=IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["remove"] + """
 
 this command without options generates files setup.sh, setup.bash and
@@ -283,24 +285,24 @@ accidentally.
             print(parser.usage)
             return -1
 
-        if config == None:
-            config = multiproject_cmd.get_config(target_path, [], config_filename = self.config_filename)
+        if config is None:
+            config = multiproject_cmd.get_config(target_path, [], config_filename=self.config_filename)
         elif config.get_base_path() != target_path:
             raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
         rosinstall_cmd.cmd_generate_ros_files(config,
                                               target_path,
-                                              nobuild = True,
-                                              rosdep_yes = False,
-                                              catkin = options.catkin,
-                                              catkinpp = options.catkinpp,
-                                              no_ros_allowed = True)
+                                              nobuild=True,
+                                              rosdep_yes=False,
+                                              catkin=options.catkin,
+                                              catkinpp=options.catkinpp,
+                                              no_ros_allowed=True)
         return 0
 
-   
-    def cmd_info(self, target_path, argv, reverse = True, config = None):
-        only_option_valid_attrs=['path', 'localname', 'version', 'revision', 'cur_revision', 'uri', 'cur_uri', 'scmtype']
+
+    def cmd_info(self, target_path, argv, reverse=True, config=None):
+        only_option_valid_attrs = ['path', 'localname', 'version', 'revision', 'cur_revision', 'uri', 'cur_uri', 'scmtype']
         parser = OptionParser(usage="usage: rosws info [localname]* [OPTIONS]",
-                              formatter = IndentedHelpFormatterWithNL(),
+                              formatter=IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["info"] + """
 
 The Status (S) column shows
@@ -353,8 +355,8 @@ $ rosws info --only=path,cur_uri,cur_revision robot_model geometry
                           action="store")
         (options, args) = parser.parse_args(argv)
 
-        if config == None:
-            config = multiproject_cmd.get_config(target_path, [], config_filename = self.config_filename)
+        if config is None:
+            config = multiproject_cmd.get_config(target_path, [], config_filename=self.config_filename)
         elif config.get_base_path() != target_path:
             raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
         if args == []:
@@ -373,7 +375,7 @@ $ rosws info --only=path,cur_uri,cur_revision robot_model geometry
                 if not attr in only_option_valid_attrs:
                     parser.error("Invalid --only option '%s', valids are %s"%(attr, only_option_valid_attrs))
                 if attr in ['cur_revision', 'cur_uri', 'revision']:
-                    lookup_required=True
+                    lookup_required = True
             elements = select_elements(config, args)
             for element in elements:
                 if lookup_required and element.is_vcs_element():
@@ -401,23 +403,30 @@ $ rosws info --only=path,cur_uri,cur_revision robot_model geometry
                 print(','.join(output))
             return 0
         if options.yaml:
-            source_aggregate = multiproject_cmd.cmd_snapshot(config, localnames = args)
+            source_aggregate = multiproject_cmd.cmd_snapshot(config,
+                                                             localnames=args)
             print(yaml.safe_dump(source_aggregate))
             return 0
 
         # this call takes long, as it invokes scms.
-        outputs = multiproject_cmd.cmd_info(config, localnames = args)
+        outputs = multiproject_cmd.cmd_info(config, localnames=args)
         if args is not None and len(outputs) == 1:
-                print(cli_common.get_info_list(config.get_base_path(), outputs[0], options.data_only))
+                print(cli_common.get_info_list(config.get_base_path(),
+                                               outputs[0],
+                                               options.data_only))
                 return 0
-                
-        header = 'workspace: %s\nROS_ROOT: %s'%(target_path, get_ros_stack_path(config))
+
+        header = 'workspace: %s\nROS_ROOT: %s'%(target_path,
+                                                get_ros_stack_path(config))
         print(header)
         if not options.no_pkg_path:
-            table = cli_common.get_info_table(config.get_base_path(), outputs, options.data_only, reverse = reverse)
+            table = cli_common.get_info_table(config.get_base_path(),
+                                              outputs,
+                                              options.data_only,
+                                              reverse=reverse)
             if table is not None and table != '':
                 print("\n%s"%table)
-      
+
         return 0
 
 
@@ -433,10 +442,10 @@ def usage():
     #   if k in gkeys:
     #     keys.append(k)
     # keys.sort()
-    keys=['help', 'init', None, 'set', 'merge', 'remove', None, 'update', None, 'info', 'status', 'diff', None, 'regenerate']
+    keys = ['help', 'init', None, 'set', 'merge', 'remove', None, 'update', None, 'info', 'status', 'diff', None, 'regenerate']
     for k in keys:
         if k in __ROSWS_CMD_DICT__:
-            print("  " + k.ljust(10)+'   \t'+__ROSWS_CMD_DICT__[k])
+            print("  " + k.ljust(10) + '   \t' + __ROSWS_CMD_DICT__[k])
         else:
             print('')
 
@@ -444,7 +453,7 @@ def rosws_main(argv=None):
     """
     Calls the function corresponding to the first argument.
     """
-    if argv == None:
+    if argv is None:
         argv = sys.argv
     if (sys.argv[0] == '-c'):
         sys.argv = ['rosws'] + sys.argv[1:]
@@ -455,36 +464,39 @@ def rosws_main(argv=None):
     workspace = None
     if len(argv) < 2:
         try:
-            workspace = cli_common.get_workspace(argv, os.getcwd(), config_filename = ROSINSTALL_FILENAME, varname = "ROS_WORKSPACE")
+            workspace = cli_common.get_workspace(argv,
+                                                 os.getcwd(),
+                                                 config_filename=ROSINSTALL_FILENAME,
+                                                 varname="ROS_WORKSPACE")
             argv.append('info')
         except MultiProjectException as e:
             print(str(e))
             usage()
             return 0
-      
+
     if '--help' == argv[1]:
         usage()
         return 0
-  
+
     try:
         command = argv[1]
         args = argv[2:]
-    
+
         if command == 'help':
             if len(argv) < 3:
                 usage()
                 return 0
 
             else:
-                command=argv[2]
+                command = argv[2]
                 args = argv[3:]
-                args.insert(0,"--help")
+                args.insert(0, "--help")
                 # help help
                 if command == 'help':
                     usage()
                     return 0
         cli = RoswsCLI()
-    
+
         # commands for which we do not infer target workspace
         commands = {'init': cli.cmd_init}
         # commands which work on a workspace
@@ -498,7 +510,7 @@ def rosws_main(argv=None):
           'status'       : cli.cmd_status,
           'update'       : cli.cmd_update,
           }
-       
+
         if command not in commands and command not in ws_commands:
             if os.path.exists(command):
                 args = ['-t', command] + args
@@ -515,9 +527,12 @@ def rosws_main(argv=None):
             return commands[command](args)
         else:
             if workspace is None and not '--help' in args and not '-h' in args:
-                workspace = cli_common.get_workspace(args, os.getcwd(), config_filename = ROSINSTALL_FILENAME, varname = "ROS_WORKSPACE")
+                workspace = cli_common.get_workspace(args,
+                                                     os.getcwd(),
+                                                     config_filename=ROSINSTALL_FILENAME,
+                                                     varname="ROS_WORKSPACE")
             return ws_commands[command](workspace, args)
-    
+
     except KeyboardInterrupt:
         pass
     except ROSInstallException as e:
@@ -526,3 +541,4 @@ def rosws_main(argv=None):
     except MultiProjectException as e:
         sys.stderr.write("ERROR: %s\n"%str(e))
         return 1
+

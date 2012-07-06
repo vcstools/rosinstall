@@ -137,14 +137,14 @@ def select_elements(config, localnames):
           and os.path.realpath(localnames[0]) == os.path.realpath(config.get_base_path())):
         return config.get_elements()
   return result
-  
-  
+
+
 ## Multithreading The following classes help with distributing work
 ## over several instances, providing wrapping for starting, joining,
 ## collecting results, and catching Exceptions. Also they provide
 ## support for running groups of threads sequentially, for the case
 ## that some library is not thread-safe.
-  
+
 class WorkerThread(Process):
 
   def __init__(self, worker, outlist, index):
@@ -178,7 +178,7 @@ class WorkerThread(Process):
     self.outlist[self.index] = result
 
 class DistributedWork():
-  
+
   def __init__(self, capacity, num_threads=10, silent=True):
     man = Manager() # need managed array since we need the results later
     self.outputs = man.list([None for _ in range(capacity)])
@@ -187,14 +187,14 @@ class DistributedWork():
     self.index = 0
     self.num_threads = num_threads
     self.silent = silent
-    
+
   def add_thread(self, worker):
     thread = WorkerThread(worker, self.outputs, self.index)
     if self.index >= len(self.outputs):
       raise MultiProjectException("Bug: Declared capacity exceeded %s >= %s"%(self.index, len(self.outputs)))
     self.index += 1
     self.threads.append(thread)
-    
+
   # def add_to_sequential_thread_group(self, worker, group):
   #   """Workers in each sequential thread group run one after the other, groups run in parallel"""
   #   class ThreadSequentializer(Process):
@@ -217,7 +217,7 @@ class DistributedWork():
   #     self.threads.append(self.sequentializers[group])
   #   else:
   #     self.sequentializers[group].add_worker(thread)
-    
+
   def run(self):
     """
     Execute all collected workers, terminate all on KeyboardInterrupt
@@ -261,7 +261,7 @@ class DistributedWork():
             print("[%s] terminated while active"%thread.worker.element.get_local_name())
             thread.terminate()
         raise k
-    
+
     self.outputs = filter(lambda x: x is not None, self.outputs)
     message = ''
     for output in self.outputs:
@@ -273,3 +273,4 @@ class DistributedWork():
     if message != '':
       raise MultiProjectException(message)
     return self.outputs
+
