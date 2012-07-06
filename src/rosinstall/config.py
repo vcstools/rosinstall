@@ -50,7 +50,7 @@ class Config:
 
         will look in folder for file of that name for more config source, str.
         """
-        assert install_path is not None
+        assert install_path is not None, "Install path is None"
         if path_specs is None:
             raise MultiProjectException("Passed empty source to create config")
         # All API operations must grant that elements in trees have unique local_name and paths

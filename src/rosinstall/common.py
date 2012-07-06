@@ -79,8 +79,8 @@ def realpath_relation(abspath1, abspath2):
     Computes the relationship abspath1 to abspath2
     :returns: None, 'SAME_AS', 'PARENT_OF', 'CHILD_OF'
     """
-    assert os.path.isabs(abspath1)
-    assert os.path.isabs(abspath2)
+    assert os.path.isabs(abspath1), "Bug, %s is not absolute path"%abspath1
+    assert os.path.isabs(abspath2), "Bug, %s is not absolute path"%abspath2
     realpath1 = os.path.realpath(abspath1)
     realpath2 = os.path.realpath(abspath2)
     if os.path.dirname(realpath1) == os.path.dirname(realpath2):

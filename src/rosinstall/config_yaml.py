@@ -147,7 +147,7 @@ def aggregate_from_uris(config_uris, config_filename=None):
             source_path_specs = get_path_specs_from_uri(loop_uri, config_filename)
             # deal with duplicates in Config class
             if source_path_specs is not None:
-                assert type(source_path_specs) == list
+                assert type(source_path_specs) == list, 'Probable bug: expected list, was %s'%type(source_path_specs)
                 aggregate_source_yaml.extend(source_path_specs)
     return aggregate_source_yaml
 
