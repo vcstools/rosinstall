@@ -45,8 +45,8 @@ def checkout_rosinstall(rosinstall_data, verbose=False):
                 uri = data['uri']
                 version = data.get('version', '')
 
-        if verbose:
-            print(vcs_type, path, uri, version)
+                if verbose:
+                    print(vcs_type, path, uri, version)
     
         vcs_client = vcstools.VCSClient(vcs_type, path)
         vcs_client.checkout(uri, version)
