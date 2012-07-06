@@ -193,15 +193,19 @@ def get_info_table_elements(basepath, entries, headers):
       else:
         output_dict['matching'] = line['actualversion']
 
-      common_prefix = "https://"
-      if (line['uri'] is not None and
-          line['uri'].startswith(common_prefix)):
-        line['uri'] = line['uri'][len(common_prefix):]
+      common_prefixes = ["https://", "http://"]
+      if line['uri'] is not None:
+        for pre in common_prefixes:
+          if line['uri'].startswith(pre):
+            line['uri'] = line['uri'][len(pre):]
+            break
         output_dict['uri'] = line['uri']
         
-      if (line['curr_uri'] is not None
-          and line['curr_uri'].startswith(common_prefix)):
-        line['curr_uri'] = line['curr_uri'][len(common_prefix):]
+      if line['curr_uri'] is not None:
+        for pre in common_prefixes:
+          if line['curr_uri'].startswith(pre):
+            line['curr_uri'] = line['curr_uri'][len(pre):]
+            break
         
       if (not _uris_match(basepath, line['uri'], line['curr_uri'])):
         output_dict['uri'] = "%s  (%s)"%(line['curr_uri'], line['uri'])
@@ -217,7 +221,7 @@ def get_info_table_elements(basepath, entries, headers):
 def get_info_table(basepath, entries, data_only=False, reverse=False):
   """return a refined textual representation of the entries"""
   headers = {
-    'uri':"URI  (Spec) [https://...]",
+    'uri':"URI  (Spec) [http(s)://...]",
     'scm':"SCM ",
     'localname':"Localname",
     'version':"Version-Spec",
