@@ -42,7 +42,7 @@ import unittest
 import rosinstall.config
 from rosinstall.common import MultiProjectException
 from mock_client import MockVcsClient
- 
+
 class ConfigElements_Test(unittest.TestCase):
 
     def test_simple_config_element_API(self):
@@ -109,7 +109,7 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertEqual("mocktype mockstatusNone,False", vcsc.get_status())
         self.assertEqual({'mock': {'local-name': 'some/local/name', 'uri': 'some/uri'}}, vcsc.get_path_spec().get_legacy_yaml())
         self.assertEqual({'mock': {'local-name': 'some/local/name', 'uri': 'some/uri', }}, vcsc.get_versioned_path_spec().get_legacy_yaml())
-        
+
         vcsc = rosinstall.config_elements.AVCSConfigElement("mock", path, localname, uri, None, vcsc = MockVcsClient())
         self.assertEqual(path, vcsc.get_path())
         self.assertEqual(localname, vcsc.get_local_name())
@@ -139,7 +139,18 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertEqual("mocktype mockstatusNone,False", vcsc.get_status())
         self.assertEqual({'mock': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri', 'meta': {'repo-name': 'skynetish-ros-pkg'}}}, vcsc.get_path_spec().get_legacy_yaml())
         self.assertEqual({'mock': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri', 'meta': {'repo-name': 'skynetish-ros-pkg'}}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
-        
+
+        # this time using 'uri_shortcut' in MockVcsClient, get special treatment un url_matches()
+        uri2 = 'some/uri2'
+        vcsc = rosinstall.config_elements.AVCSConfigElement("mock", path, localname, uri2, version, vcsc = MockVcsClient(url='url_shortcut'), properties = [{'meta': {'repo-name': 'skynetish-ros-pkg'}}])
+        self.assertEqual(path, vcsc.get_path())
+        self.assertEqual(localname, vcsc.get_local_name())
+        self.assertEqual(uri2, vcsc.uri)
+        self.assertTrue(vcsc.is_vcs_element())
+        self.assertEqual("mocktypemockdiffNone", vcsc.get_diff())
+        self.assertEqual("mocktype mockstatusNone,False", vcsc.get_status())
+        self.assertEqual({'mock': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri2', 'meta': {'repo-name': 'skynetish-ros-pkg'}}}, vcsc.get_path_spec().get_legacy_yaml())
+        self.assertEqual({'mock': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri2', 'meta': {'repo-name': 'skynetish-ros-pkg'}}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
 
     def test_mock_install(self):
         path = "some/path"

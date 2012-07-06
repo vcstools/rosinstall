@@ -57,4 +57,6 @@ class MockVcsClient():
         return self.mockurl
 
     def url_matches(self, url, url_or_shortcut):
-        return url == url_or_shortcut
+        return (url == url_or_shortcut or
+                url_or_shortcut is None or
+                url_or_shortcut.endswith('_shortcut'))
