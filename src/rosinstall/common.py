@@ -30,6 +30,8 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import sys
+import traceback
 import os
 import copy
 # choosing multiprocessing over threading for clean Control-C interrupts (provides terminate())
@@ -38,7 +40,8 @@ from multiprocessing import Process, Manager
 from vcstools.vcs_base import VcsError
 
 
-class MultiProjectException(Exception): pass
+class MultiProjectException(Exception):
+    pass
 
 
 def conditional_abspath(uri):
@@ -46,8 +49,9 @@ def conditional_abspath(uri):
     @param uri: The uri to check
     @return: abspath(uri) if local path otherwise pass through uri
     """
-    u = urlparse(uri)
-    if u.scheme == '': # maybe it's a local file?
+    uri2 = urlparse(uri)
+    # maybe it's a local file?
+    if uri2.scheme == '':
         return os.path.abspath(uri)
     else:
         return uri
@@ -60,13 +64,15 @@ def is_web_uri(source_uri):
     if (parsed_uri.scheme == '' and
         parsed_uri.netloc == '' and
         not '@' in parsed_uri.path.split('/')[0]):
+
         return False
     return True
 
 
 def normabspath(localname, path):
     """
-    if localname is absolute, return it normalized. If relative, return normalized join of path and localname
+    if localname is absolute, return it normalized. If relative,
+    return normalized join of path and localname
     """
     if os.path.isabs(localname) or path is None:
         return os.path.realpath(localname)
@@ -115,8 +121,9 @@ def select_element(elements, localname):
 
 def select_elements(config, localnames):
     """
-    selects config elements with given localnames, returns in the order given in config
-    If localnames has one element which is path of the config, return all elements
+    selects config elements with given localnames, returns in the
+    order given in config If localnames has one element which is path
+    of the config, return all elements
     """
     if config is None:
         return []
@@ -172,24 +179,25 @@ class WorkerThread(Process):
                 result.update(result_dict)
             else:
                 result.update({'error': MultiProjectException("worker returned None")})
-        except MultiProjectException as e:
-            result.update({'error': e})
-        except VcsError as e:
-            result.update({'error': e})
-        except OSError as e:
-            result.update({'error': e})
-        except Exception as e:
-            # this would be a bug, and we need trace to find them in multithreaded cases.
-            import sys, traceback
+        except MultiProjectException as mpe:
+            result.update({'error': mpe})
+        except VcsError as vcse:
+            result.update({'error': vcse})
+        except OSError as ose:
+            result.update({'error': ose})
+        except Exception as exc:
+            # this would be a bug, and we need trace to find them in
+            # multithreaded cases.
             traceback.print_exc(file=sys.stderr)
-            result.update({'error': e})
+            result.update({'error': exc})
         self.outlist[self.index] = result
 
 
 class DistributedWork():
 
     def __init__(self, capacity, num_threads=10, silent=True):
-        man = Manager() # need managed array since we need the results later
+         # need managed array since we need the results later
+        man = Manager()
         self.outputs = man.list([None for _ in range(capacity)])
         self.threads = []
         self.sequentializers = {}
@@ -200,32 +208,11 @@ class DistributedWork():
     def add_thread(self, worker):
         thread = WorkerThread(worker, self.outputs, self.index)
         if self.index >= len(self.outputs):
-            raise MultiProjectException("Bug: Declared capacity exceeded %s >= %s"%(self.index, len(self.outputs)))
+            raise MultiProjectException(
+                "Bug: Declared capacity exceeded %s >= %s"%(self.index,
+                                                            len(self.outputs)))
         self.index += 1
         self.threads.append(thread)
-
-    # def add_to_sequential_thread_group(self, worker, group):
-    #     """Workers in each sequential thread group run one after the other, groups run in parallel"""
-    #     class ThreadSequentializer(Process):
-    #         """helper class to run 'threads' one after the other"""
-    #         def __init__(self):
-    #             Process.__init__(self)
-    #             self.workers = []
-    #         def add_worker(self, worker):
-    #             self.workers.append(worker)
-    #         def run(self):
-    #         for worker in self.workers:
-    #             worker.run() # not calling start on purpose
-    #     thread = WorkerThread(worker, self.outputs, self.index)
-    #     if self.index >= len(self.outputs):
-    #         raise MultiProjectException("Bug: Declared capacity exceeded %s >= %s"%(self.index, len(self.outputs)))
-    #     self.index += 1
-    #     if group not in self.sequentializers:
-    #         self.sequentializers[group] = ThreadSequentializer()
-    #         self.sequentializers[group].add_worker(thread)
-    #         self.threads.append(self.sequentializers[group])
-    #     else:
-    #         self.sequentializers[group].add_worker(thread)
 
     def run(self):
         """
@@ -251,7 +238,9 @@ class DistributedWork():
                 while len(missing_threads) > 0:
                     # we spawn more threads whenever some threads have finished
                     if len(running_threads) < maxthreads:
-                        to_index = min(waiting_index + maxthreads - len(running_threads), len(self.threads))
+                        to_index = min(
+                            waiting_index + maxthreads - len(running_threads),
+                            len(self.threads))
                         for i in range(waiting_index, to_index):
                             self.threads[i].start()
                             running_threads.append(self.threads[i])
@@ -264,7 +253,8 @@ class DistributedWork():
 
                         print("[%s] still active"%",".join([th.worker.element.get_local_name() for th in running_threads]))
                     for thread in running_threads:
-                        thread.join(1) # this should prevent busy waiting
+                        # this should prevent busy waiting
+                        thread.join(1)
             except KeyboardInterrupt as k:
                 for thread in self.threads:
                     if thread is not None and thread.is_alive():
@@ -272,7 +262,7 @@ class DistributedWork():
                         thread.terminate()
                 raise k
 
-        self.outputs = filter(lambda x: x is not None, self.outputs)
+        self.outputs = [x for x in self.outputs if x is not None]
         message = ''
         for output in self.outputs:
             if "error" in output:

@@ -101,28 +101,36 @@ Later URIs will shadow packages of earlier URIs.\n",
     parser.add_option("--continue-on-error", dest="robust", default=False,
                       help="Continue despite checkout errors",
                       action="store_true")
-    parser.add_option("--delete-changed-uris", dest="delete_changed", default=False,
+    parser.add_option("--delete-changed-uris", dest="delete_changed",
+                      default=False,
                       help="Delete the local copy of a directory before changing uri.",
                       action="store_true")
-    parser.add_option("--abort-changed-uris", dest="abort_changed", default=False,
+    parser.add_option("--abort-changed-uris", dest="abort_changed",
+                      default=False,
                       help="Abort if changed uri detected",
                       action="store_true")
-    parser.add_option("--backup-changed-uris", dest="backup_changed", default='',
+    parser.add_option("--backup-changed-uris", dest="backup_changed",
+                      default='',
                       help="backup the local copy of a directory before changing uri to this directory.",
                       action="store")
-    parser.add_option("--diff", dest="vcs_diff", default=False,
+    parser.add_option("--diff", dest="vcs_diff",
+                      default=False,
                       help="shows a combined diff over all SCM entries",
                       action="store_true")
-    parser.add_option("--status", dest="vcs_status", default=False,
+    parser.add_option("--status", dest="vcs_status",
+                      default=False,
                       help="shows a combined status command over all SCM entries",
                       action="store_true")
-    parser.add_option("--status-untracked", dest="vcs_status_untracked", default=False,
+    parser.add_option("--status-untracked", dest="vcs_status_untracked",
+                      default=False,
                       help="shows a combined status command over all SCM entries, also showing untracked files",
                       action="store_true")
-    parser.add_option("-j", "--parallel", dest="jobs", default=1,
+    parser.add_option("-j", "--parallel", dest="jobs",
+                      default=1,
                       help="How many parallel threads to use for installing",
                       action="store")
-    parser.add_option("--generate-versioned-rosinstall", dest="generate_versioned", default=None,
+    parser.add_option("--generate-versioned-rosinstall", dest="generate_versioned",
+                      default=None,
                       help="generate a versioned rosinstall file", action="store")
     (options, args) = parser.parse_args(args)
 
@@ -182,7 +190,9 @@ Later URIs will shadow packages of earlier URIs.\n",
         return True
 
     if options.vcs_status or options.vcs_status_untracked:
-        statuslist = multiproject_cmd.cmd_status(config, untracked=options.vcs_status_untracked)
+        statuslist = multiproject_cmd.cmd_status(
+          config,
+          untracked=options.vcs_status_untracked)
         allstatus = ""
         for entrystatus in statuslist:
             if entrystatus['status'] is not None:

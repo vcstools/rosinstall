@@ -32,9 +32,11 @@
 
 import os
 
-class ROSInstallException(Exception): pass
-
 ROSINSTALL_FILENAME = ".rosinstall"
+
+
+class ROSInstallException(Exception):
+    pass
 
 
 def is_path_stack(path):
@@ -46,6 +48,7 @@ def is_path_stack(path):
     if os.path.isfile(stack_path):
         return True
     return False
+
 
 def is_path_ros(path):
     """
@@ -68,7 +71,10 @@ def get_ros_stack_path(config):
     for t in config.get_config_elements():
         if is_path_ros(t.get_path()):
             if rp is not None:
-                raise ROSInstallException("Two ros roots defined in config, delete one: %s %s"%(rp, t.get_path()))
+                raise ROSInstallException(
+                    "Two ros roots defined in config, delete one: %s %s"%(
+                        rp,
+                        t.get_path()))
             rp = t.get_path()
     return rp
 

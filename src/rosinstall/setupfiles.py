@@ -66,6 +66,7 @@ endif()
 catkin_workspace()
 """
 
+
 def generate_catkin_cmake(path, catkinpp):
     with open(os.path.join(path, "CMakeLists.txt"), 'w') as cmake_file:
         cmake_file.write(CATKIN_CMAKE_TOPLEVEL)
@@ -74,6 +75,7 @@ def generate_catkin_cmake(path, catkinpp):
         with open(os.path.join(path, "workspace-config.cmake"), 'w') as config_file:
             config_file.write("set (CMAKE_PREFIX_PATH %s)"%catkinpp)
 
+            
 def generate_embedded_python():
     return """import sys, os, yaml;
 
@@ -215,6 +217,7 @@ unset _ROS_ROOT_ROSINSTALL
 
     return text
 
+
 def generate_setup_bash_text(shell, no_ros=False):
     if shell == 'bash':
         script_path = """
@@ -304,4 +307,3 @@ See http://ros.org/wiki/rosinstall."""%(candidates))
         setup_path = os.path.join(config.get_base_path(), 'setup.%s'%shell)
         with open(setup_path, 'w') as f:
             f.write(text)
-

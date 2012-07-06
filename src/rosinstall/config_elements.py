@@ -42,25 +42,30 @@ from common import MultiProjectException
 from config_yaml import PathSpec
 import ui
 
-# helper class
 
-class PreparationReport:
-    """Specifies after user interaction of how to perform install / update"""
+# helper class
+class PreparationReport(object):
+    """
+    Specifies after user interaction of how to perform install / update
+    """
+    
     def __init__(self, element):
         self.config_element = element
-        self.abort = False # abort ALL operations
-        self.skip = False # skip this tree
-        self.error = None # message
-        self.verbose = False # verbosity
-        self.checkout = True # checkout vs update
-        self.backup = False # backup vs delete
-        self.backup_path = None # where to move tree to
+        self.abort = False       # abort ALL operations
+        self.skip = False        # skip this tree
+        self.error = None        # message
+        self.verbose = False     # verbosity
+        self.checkout = True     # checkout vs update
+        self.backup = False      # backup vs delete
+        self.backup_path = None  # where to move tree to
 
+        
 ## Each Config element provides actions on a local folder
-
-class ConfigElement:
-    """ Base class for Config provides methods with not implemented
-    exceptions. Also a few shared methods."""
+class ConfigElement(object):
+    """
+    Base class for Config provides methods with not implemented
+    exceptions. Also a few shared methods.
+    """
 
     def __init__(self, path, local_name, properties=None):
         self.path = path
@@ -79,12 +84,17 @@ class ConfigElement:
 
     def prepare_install(self, backup_path=None, arg_mode='abort', robust=False):
         """
-        Check whether install can be performed, asking user for decision if necessary.
+        Check whether install can be performed, asking user for
+        decision if necessary.
 
-        :param arg_mode: one of prompt, backup, delete, skip. Determines how to handle error cases
+        :param arg_mode: one of prompt, backup, delete, skip.
+        Determines how to handle error cases
         :param backup_path: if arg_mode==backup, determines where to backup to
-        :param robust: if true, operation will be aborted without changes to the filesystem and without user interaction
-        :returns: A preparation_report instance, telling whether to checkout or to update, how to deal with existing tree, and where to backup to.
+        :param robust: if true, operation will be aborted without
+        changes to the filesystem and without user interaction
+        :returns: A preparation_report instance,
+        telling whether to checkout or to update,
+        how to deal with existing tree, and where to backup to.
         """
         preparation_report = PreparationReport(self)
         preparation_report.skip = True
@@ -92,43 +102,51 @@ class ConfigElement:
 
     def install(self, checkout=True, backup=False, backup_path=None, verbose=False):
         """
-        Attempt to make it so that self.path is the result of checking out / updating from remote repo.
+        Attempt to make it so that self.path is the result of checking
+        out / updating from remote repo.
+
         No user Interaction allowed here (for concurrent mode).
 
         :param checkout: whether to checkout or update
-        :param backup: if checking out, what to do if path exists. If true, backup_path must be set.
+        :param backup: if checking out, what to do if path exists.
+        If true, backup_path must be set.
         """
-        raise NotImplementedError, "ConfigElement install unimplemented"
+        raise NotImplementedError("ConfigElement install unimplemented")
 
     def get_path_spec(self):
         """PathSpec object with values as specified in file"""
-        raise NotImplementedError, "ConfigElement get_path_spec unimplemented"
-    
+        raise NotImplementedError("ConfigElement get_path_spec unimplemented")
+
     def get_properties(self):
         """Any meta information attached"""
         return self.properties
 
     def get_versioned_path_spec(self):
         """PathSpec where VCS elements have the version looked up"""
-        raise NotImplementedError, "ConfigElement get_versioned_path_spec unimplemented"
+        raise NotImplementedError("ConfigElement get_versioned_path_spec unimplemented")
 
     def is_vcs_element(self):
         # subclasses to override when appropriate
         return False
 
     def get_diff(self, basepath=None):
-        raise NotImplementedError, "ConfigElement get_diff unimplemented"
+        raise NotImplementedError("ConfigElement get_diff unimplemented")
 
     def get_status(self, basepath=None, untracked=False):
-        raise NotImplementedError, "ConfigElement get_status unimplemented"
+        raise NotImplementedError("ConfigElement get_status unimplemented")
 
     def backup(self, backup_path):
         if not backup_path:
-            raise MultiProjectException("[%s] Cannot install %s.  backup disabled."%(self.get_local_name(), self.get_path()))
-        backup_path = os.path.join(backup_path, 
-                                   "%s_%s"%(os.path.basename(self.path), 
-                                            datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")))
-        print("[%s] Backing up %s to %s"%(self.get_local_name(), self.get_path(), backup_path))
+            raise MultiProjectException(
+                "[%s] Cannot install %s.  backup disabled."%(self.get_local_name(),
+                                                             self.get_path()))
+        backup_path = os.path.join(
+            backup_path,
+            "%s_%s"%(os.path.basename(self.path),
+                     datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")))
+        print("[%s] Backing up %s to %s"%(self.get_local_name(),
+                                          self.get_path(),
+                                          backup_path))
         shutil.move(self.path, backup_path)
 
     def __str__(self):
@@ -144,16 +162,16 @@ class ConfigElement:
 class OtherConfigElement(ConfigElement):
 
     def __init__(self, path, local_name, uri=None, version='', properties=None):
-        ConfigElement.__init__(self, path, local_name, properties)
+        super(OtherConfigElement, self).__init__(path, local_name, properties)
         self.uri = uri
         self.version = version
-
 
     def install(self, checkout=True, backup=False, backup_path=None, verbose=False):
         return True
 
     def get_versioned_path_spec(self):
-        raise MultiProjectException("Cannot generate versioned outputs with non source types")
+        raise MultiProjectException(
+            "Cannot generate versioned outputs with non source types")
 
     def get_path_spec(self):
         "yaml as from source"
@@ -166,20 +184,36 @@ class OtherConfigElement(ConfigElement):
                         version=version,
                         tags=self.get_properties())
 
+    def get_diff(self, basepath=None):
+        return ''
+
+    def get_status(self, basepath=None, untracked=False):
+        return ''
+
 
 class SetupConfigElement(ConfigElement):
-    """A setup config element specifies a single file containing configuration data for a config."""
+    """
+    A setup config element specifies a single file containing
+    configuration data for a config.
+    """
 
     def install(self, checkout=True, backup=False, backup_path=None, verbose=False):
         return True
 
     def get_versioned_path_spec(self):
-        raise MultiProjectException("Cannot generate versioned outputs with non source types")
+        raise MultiProjectException(
+            "Cannot generate versioned outputs with non source types")
 
     def get_path_spec(self):
         return PathSpec(local_name=self.get_local_name(),
                         path=self.get_path(),
                         tags=['setup-file'] + (self.get_properties() or []))
+
+    def get_diff(self, basepath=None):
+        return ''
+
+    def get_status(self, basepath=None, untracked=False):
+        return ''
 
 
 class VCSConfigElement(ConfigElement):
@@ -194,14 +228,16 @@ class VCSConfigElement(ConfigElement):
         :param uri: VCS uri to checkout/pull from, str
         :param version: optional revision spec (tagname, SHAID, ..., str)
         """
-        ConfigElement.__init__(self, path, local_name, properties)
+        super(VCSConfigElement, self).__init__(path, local_name, properties)
         if uri is None:
-            raise MultiProjectException("Invalid scm entry having no uri attribute for path %s"%path)
-        self.uri = uri.rstrip('/') # strip trailing slashes if defined to not be too strict #3061
+            raise MultiProjectException(
+                "Invalid scm entry having no uri attribute for path %s"%path)
+        # strip trailing slashes if defined to not be too strict #3061
+        self.uri = uri.rstrip('/')
         self.version = version
 
     def _get_vcsc(self):
-        raise NotImplementedError, "VCSConfigElement _get_vcsc() unimplemented"
+        raise NotImplementedError("VCSConfigElement _get_vcsc() unimplemented")
 
     def is_vcs_element(self):
         return True
@@ -215,8 +251,9 @@ class VCSConfigElement(ConfigElement):
         return self._get_vcsc().detect_presence()
 
     def path_exists(self):
-        # we could use _get_vcsc().path_exit(), but this causes a time penalty for initializing
-        # this is crucial for bash tab completion
+        # we could use _get_vcsc().path_exit(), but this causes a time
+        # penalty for initializing this is crucial for bash tab
+        # completion
         return os.path.isdir(self.path)
 
     def prepare_install(self, backup_path=None, arg_mode='abort', robust=False):
@@ -227,7 +264,8 @@ class VCSConfigElement(ConfigElement):
             error_message = None
 
             if not present:
-                error_message = "Failed to detect %s presence at %s."%(self.get_vcs_type_name(), self.path)
+                error_message = "Failed to detect %s presence at %s."%(
+                    self.get_vcs_type_name(), self.path)
             else:
                 cur_url = self._get_vcsc().get_url()
                 if cur_url is not None:
@@ -238,24 +276,30 @@ class VCSConfigElement(ConfigElement):
                             os.path.isdir(cur_url) and
                             os.path.samefile(cur_url, self.uri)):
                         if not self._get_vcsc().url_matches(cur_url, self.uri):
-                            error_message = "Url %s does not match %s requested."%(cur_url, self.uri)
+                            error_message = "Url %s does not match %s requested."%(
+                                cur_url, self.uri)
             if error_message is None:
                 # update should be possible
                 preparation_report.checkout = False
             else:
-                # If robust ala continue-on-error, just error now and it will be continued at a higher level
+                # If robust ala continue-on-error, just error now and
+                # it will be continued at a higher level
                 if robust:
-                    raise MultiProjectException("Update Failed of %s: %s"%(self.path, error_message))
+                    raise MultiProjectException("Update Failed of %s: %s"%(
+                            self.path, error_message))
                 # prompt the user based on the error code
                 if arg_mode == 'prompt':
-                    print("Prepare updating %s (version %s) to %s"%(self.uri, self.version, self.path))
-                    mode = ui.Ui.get_ui().prompt_del_abort_retry(error_message, allow_skip=True)
+                    print("Prepare updating %s (version %s) to %s"%(
+                            self.uri, self.version, self.path))
+                    mode = ui.Ui.get_ui().prompt_del_abort_retry(error_message,
+                                                                 allow_skip=True)
                 else:
                     mode = arg_mode
                 if mode == 'backup':
                     preparation_report.backup = True
                     if backup_path is None:
-                        print("Prepare updating %s (version %s) to %s"%(self.uri, self.version, self.path))
+                        print("Prepare updating %s (version %s) to %s"%(
+                                self.uri, self.version, self.path))
                         preparation_report.backup_path = ui.Ui.get_ui().get_backup_path()
                     else:
                         preparation_report.backup_path = backup_path
@@ -271,31 +315,46 @@ class VCSConfigElement(ConfigElement):
 
     def install(self, checkout=True, backup=True, backup_path=None, verbose=False):
         """
-        Runs the equivalent of SCM checkout for new local repos or update for existing.
+        Runs the equivalent of SCM checkout for new local repos or
+        update for existing.
 
-        :param checkout: whether to use an update command or a checkout/clone command
-        :param backup: if checkout is True and folder exists, if backup is false folder will be DELETED.
-        :param backup_path: if checkout is true and backup is true, move folder to this location
+        :param checkout: whether to use an update command or
+        a checkout/clone command
+        :param backup: if checkout is True and folder exists,
+        if backup is false folder will be DELETED.
+        :param backup_path: if checkout is true and backup is true,
+        move folder to this location
         """
         if checkout is True:
-            print("[%s] Installing %s (version %s) to %s"%(self.get_local_name(), self.uri, self.version, self.get_path()))
+            print("[%s] Installing %s (version %s) to %s"%(
+                    self.get_local_name(), self.uri, self.version, self.get_path()))
             if self.path_exists():
                 if (backup is False):
                     shutil.rmtree(self.path)
                 else:
                     self.backup(backup_path)
-            if not self._get_vcsc().checkout(self.uri, self.version, verbose=verbose):
-                raise MultiProjectException("[%s] Checkout of %s version %s into %s failed."%(self.get_local_name(), self.uri, self.version, self.get_path()))
+            if not self._get_vcsc().checkout(self.uri,
+                                             self.version,
+                                             verbose=verbose):
+                raise MultiProjectException(
+                    "[%s] Checkout of %s version %s into %s failed."%(
+                        self.get_local_name(),
+                        self.uri,
+                        self.version,
+                        self.get_path()))
         else:
             print("[%s] Updating %s"%(self.get_local_name(), self.get_path()))
             if not self._get_vcsc().update(self.version, verbose=verbose):
-                raise MultiProjectException("[%s] Update Failed of %s"%(self.get_local_name(), self.get_path()))
+                raise MultiProjectException(
+                    "[%s] Update Failed of %s"%(self.get_local_name(),
+                                                self.get_path()))
         print("[%s] Done."%self.get_local_name())
 
     def get_path_spec(self):
         "yaml as from source"
         version = self.version
-        if version == '': version = None
+        if version == '':
+            version = None
         return PathSpec(local_name=self.get_local_name(),
                         path=self.get_path(),
                         scmtype=self.get_vcs_type_name(),
@@ -306,7 +365,8 @@ class VCSConfigElement(ConfigElement):
     def get_versioned_path_spec(self):
         "yaml looking up current version"
         version = self.version
-        if version == '': version = None
+        if version == '':
+            version = None
         revision = None
         if version is not None:
             # revision is the UID of the version spec, can be them same
@@ -342,8 +402,13 @@ class AVCSConfigElement(VCSConfigElement):
 
     :raises: Lookup Exception for unknown types
     """
-    def __init__(self, scmtype, path, local_name, uri, version='', vcsc=None, properties=None):
-        VCSConfigElement.__init__(self, path, local_name=local_name, uri=uri, version=version, properties=properties)
+    def __init__(self, scmtype, path, local_name, uri,
+                 version='', vcsc=None, properties=None):
+        super(AVCSConfigElement, self).__init__(path,
+                                                local_name=local_name,
+                                                uri=uri,
+                                                version=version,
+                                                properties=properties)
         self.vcsc = vcsc
         self._scmtype = scmtype
 
@@ -356,12 +421,14 @@ class AVCSConfigElement(VCSConfigElement):
             try:
                 self.vcsc = VcsClient(self._scmtype, self.get_path())
             except VcsError as e:
-                raise MultiProjectException("Unable to create vcs client of type %s for %s: %s"%(self._scmtype, self.get_path(), e))
+                raise MultiProjectException(
+                    "Unable to create vcs client of type %s for %s: %s"%(
+                        self._scmtype, self.get_path(), e))
         return self.vcsc
 
     def detect_presence(self):
-        # to make more use of lazy initializer, do not instantiate client for just this
-        # this is crucial for bash tab completion
+        # to make more use of lazy initializer, do not instantiate
+        # client for just this this is crucial for bash tab completion
         if self.get_vcs_type_name() == 'git':
             return os.path.isdir(os.path.join(self.path, '.git'))
         elif self.get_vcs_type_name() == 'svn':

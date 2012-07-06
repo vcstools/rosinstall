@@ -57,20 +57,24 @@ def get_yaml_from_uri(uri):
             try:
                 stream = open(uri, 'r')
             except IOError as e:
-                raise MultiProjectException("error opening file [%s]: %s\n" % (uri, e))
+                raise MultiProjectException(
+                    "error opening file [%s]: %s\n" % (uri, e))
         else:
             try:
                 stream = urllib2.urlopen(uri)
             except IOError as e:
-                raise MultiProjectException("Is not a local file, nor able to download as a URL [%s]: %s\n" % (uri, e))
+                raise MultiProjectException(
+                    "Is not a local file, nor able to download as a URL [%s]: %s\n" % (uri, e))
             except ValueError as e:
-                raise MultiProjectException("Is not a local file, nor a valid URL [%s] : %s\n" % (uri, e))
+                raise MultiProjectException(
+                    "Is not a local file, nor a valid URL [%s] : %s\n" % (uri, e))
         if not stream:
             raise MultiProjectException("couldn't load config uri %s\n" % uri)
         try:
             y = yaml.load(stream)
         except yaml.YAMLError as e:
-            raise MultiProjectException("Invalid multiproject yaml format in [%s]: %s\n" % (uri, e))
+            raise MultiProjectException(
+                "Invalid multiproject yaml format in [%s]: %s\n" % (uri, e))
     finally:
         if stream is not None:
             stream.close()
@@ -119,7 +123,8 @@ def rewrite_included_source(source_path_specs, source_dir):
     conflicting
     """
     for index, pathspec in enumerate(source_path_specs):
-        local_name = os.path.normpath(os.path.join(source_dir, pathspec.get_local_name()))
+        local_name = os.path.normpath(os.path.join(source_dir,
+                                                   pathspec.get_local_name()))
         pathspec.set_local_name(local_name)
         if pathspec.get_path() is not None:
             path = os.path.normpath(os.path.join(source_dir, pathspec.get_path()))
@@ -205,7 +210,12 @@ class PathSpec:
         return 'other'
 
     def get_legacy_yaml(self):
-        """return something like {hg: {local-name: common, version: common-1.0.2, uri: https://kforge.org/common/}}"""
+        """
+        return something like
+        {hg: {local-name: common,
+              version: common-1.0.2,
+              uri: https://kforge.org/common/}}
+        """
         # TODO switch to new syntax
         properties = {'local-name' : self._local_name}
         if self._uri is not None:
@@ -266,9 +276,12 @@ def get_path_spec_from_yaml(yaml_dict):
     scmtype = None
     tags = []
     if type(yaml_dict) != dict:
-        raise MultiProjectException("Yaml for each element must be in YAML dict form")
+        raise MultiProjectException(
+            "Yaml for each element must be in YAML dict form")
     # old syntax:
-# - hg: {local-name: common_rosdeps, version: common_rosdeps-1.0.2, uri: https://kforge.ros.org/common/rosdepcore}
+# - hg: {local-name: common_rosdeps,
+#        version: common_rosdeps-1.0.2,
+#        uri: https://kforge.ros.org/common/rosdepcore}
 # - setup-file: {local-name: /opt/ros/fuerte/setup.sh}
 # - other: {local-name: /opt/ros/fuerte/share/ros}
 # - other: {local-name: /opt/ros/fuerte/share}
@@ -276,9 +289,11 @@ def get_path_spec_from_yaml(yaml_dict):
     if yaml_dict is None or len(yaml_dict) == 0:
         raise MultiProjectException("no element in yaml dict.")
     if len(yaml_dict) > 1:
-        raise MultiProjectException("too many keys in element dict %s" % (yaml_dict.keys()))
+        raise MultiProjectException(
+            "too many keys in element dict %s" % (yaml_dict.keys()))
     if not yaml_dict.keys()[0] in __ALLTYPES__:
-        raise MultiProjectException("Unknown element type '%s'" % (yaml_dict.keys()[0]))
+        raise MultiProjectException(
+            "Unknown element type '%s'" % (yaml_dict.keys()[0]))
     firstkey = yaml_dict.keys()[0]
     if firstkey in __REPOTYPES__:
         scmtype = yaml_dict.keys()[0]
@@ -296,14 +311,18 @@ def get_path_spec_from_yaml(yaml_dict):
             elif key == "version":
                 version = value
             else:
-                raise MultiProjectException("Unknown key %s in %s" % (key, yaml_dict))
+                raise MultiProjectException(
+                    "Unknown key %s in %s" % (key, yaml_dict))
     # global validation
     if local_name is None:
-        raise MultiProjectException("Config element without a local-name: %s" % (yaml_dict))
+        raise MultiProjectException(
+            "Config element without a local-name: %s" % (yaml_dict))
     if scmtype != None:
         if uri is None:
-            raise MultiProjectException("scm type without declared uri in %s" % (values))
-    path = local_name # local_name is fixed, path may be normalized, made absolute, etc.
+            raise MultiProjectException(
+                "scm type without declared uri in %s" % (values))
+    # local_name is fixed, path may be normalized, made absolute, etc.
+    path = local_name
     return PathSpec(local_name=local_name,
                     path=path,
                     scmtype=scmtype,

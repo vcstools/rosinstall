@@ -38,6 +38,8 @@ from common import MultiProjectException, DistributedWork, select_elements, norm
 from config import Config, realpath_relation
 from config_yaml import aggregate_from_uris, generate_config_yaml, get_path_specs_from_uri
 
+import vcstools
+
 
 ## The _cmd python files attempt to provide a reasonably
 ## complete level of abstraction to multiproject functionality.
@@ -48,7 +50,6 @@ from config_yaml import aggregate_from_uris, generate_config_yaml, get_path_spec
 ## remain stable, but the cmd API probably will change least.
 ## A change to expect is abstraction of user interaction.
 
-import vcstools
 
 def get_config(basepath,
                additional_uris=None,
@@ -83,8 +84,10 @@ def get_config(basepath,
     if (config_filename is not None
         and basepath is not None
         and os.path.isfile(os.path.join(basepath, config_filename))):
-      
-        base_path_specs = get_path_specs_from_uri(os.path.join(basepath, config_filename), as_is=True)
+
+        base_path_specs = get_path_specs_from_uri(os.path.join(basepath,
+                                                               config_filename),
+                                                  as_is=True)
     else:
         base_path_specs = []
 
@@ -95,6 +98,7 @@ def get_config(basepath,
     add_uris(config, additional_uris, merge_strategy)
 
     return config
+
 
 def add_uris(config, additional_uris, merge_strategy="KillAppend"):
     """
@@ -119,13 +123,14 @@ def add_uris(config, additional_uris, merge_strategy="KillAppend"):
             comp_uri = None
             if (os.path.isfile(uri)
                 and os.path.basename(uri) == config.get_config_filename()):
-              
+
                 comp_uri = os.path.dirname(uri)
             if (os.path.isdir(uri)
                 and os.path.isfile(os.path.join(uri, config.get_config_filename()))):
                 comp_uri = uri
             if (comp_uri is not None and
-                realpath_relation(os.path.abspath(comp_uri), os.path.abspath(config.get_base_path())) == 'SAME_AS'):
+                realpath_relation(os.path.abspath(comp_uri),
+                                  os.path.abspath(config.get_base_path())) == 'SAME_AS'):
                 print('Warning: Discarding config basepath as additional uri: %s'%uri)
                 continue
             added_uris.append(uri)
@@ -163,6 +168,7 @@ Bzr:       %s
      prettyversion(vcstools.TarClient.get_environment_metadata()),
      prettyversion(vcstools.BzrClient.get_environment_metadata()))
 
+
 def cmd_status(config, localnames=None, untracked=False):
     """
     calls SCM status for all SCM entries in config, relative to path
@@ -172,10 +178,12 @@ def cmd_status(config, localnames=None, untracked=False):
     :raises MultiProjectException: on plenty of errors
     """
     class StatusRetriever():
+
         def __init__(self, element, path, untracked):
             self.element = element
             self.path = path
             self.untracked = untracked
+
         def do_work(self):
             path_spec = self.element.get_path_spec()
             scmtype = path_spec.get_scmtype()
@@ -191,7 +199,9 @@ def cmd_status(config, localnames=None, untracked=False):
             if columns > -1 and status is not None:
                 status_aligned = ''
                 for line in status.splitlines():
-                    status_aligned = status_aligned + line[:columns].ljust(8) + line[columns:] + '\n'
+                    status_aligned = "%s%s%s\n"%(status_aligned,
+                                                 line[:columns].ljust(8),
+                                                 line[columns:])
                 status = status_aligned
             return {'status':status}
 
@@ -215,9 +225,11 @@ def cmd_diff(config, localnames=None):
     :raises MultiProjectException: on plenty of errors
     """
     class DiffRetriever():
+
         def __init__(self, element, path):
             self.element = element
             self.path = path
+
         def do_work(self):
             return {'diff':self.element.get_diff(self.path)}
 
@@ -230,6 +242,7 @@ def cmd_diff(config, localnames=None):
             work.add_thread(DiffRetriever(element, path))
     outputs = work.run()
     return outputs
+
 
 def cmd_install_or_update(
     config,
@@ -262,7 +275,9 @@ def cmd_install_or_update(
         if backup_path is not None:
             abs_backup_path = os.path.join(config.get_base_path(), backup_path)
         try:
-            preparation_report = t.prepare_install(backup_path=abs_backup_path, arg_mode=mode, robust=robust)
+            preparation_report = t.prepare_install(backup_path=abs_backup_path,
+                                                   arg_mode=mode,
+                                                   robust=robust)
             if preparation_report is not None:
                 if preparation_report.abort:
                     raise MultiProjectException("Aborting install because of %s"%preparation_report.error)
@@ -281,9 +296,11 @@ def cmd_install_or_update(
                 raise MultiProjectException(fail_str)
 
     class Installer():
+
         def __init__(self, report):
             self.element = report.config_element
             self.report = report
+
         def do_work(self):
             self.element.install(checkout=self.report.checkout,
                                  backup=self.report.backup,
@@ -308,6 +325,7 @@ def cmd_install_or_update(
     # TODO go back and make sure that everything in options.path is described
     # in the yaml, and offer to delete otherwise? not sure, but it could go here
 
+
 def cmd_snapshot(config, localnames=None):
     elements = select_elements(config, localnames)
     source_aggregate = []
@@ -316,6 +334,7 @@ def cmd_snapshot(config, localnames=None):
         source_aggregate.append(source)
     return source_aggregate
 
+
 def cmd_info(config, localnames=None):
     """This function compares what should be (config_file) with what is
     (directories) and returns a list of dictionary giving each local
@@ -323,6 +342,7 @@ def cmd_info(config, localnames=None):
     """
 
     class InfoRetriever():
+
         def __init__(self, element, path):
             self.element = element
             self.path = path
@@ -361,7 +381,7 @@ def cmd_info(config, localnames=None):
                     if (version is not None and
                         version.strip() != '' and
                         (specversion is None or specversion.strip() == '')):
-                      
+
                         specversion = '"%s"'%version
                     actualversion = path_spec.get_current_revision()
                 scm = path_spec.get_scmtype()
@@ -387,4 +407,3 @@ def cmd_info(config, localnames=None):
             work.add_thread(InfoRetriever(element, path))
     outputs = work.run()
     return outputs
-

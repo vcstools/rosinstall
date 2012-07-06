@@ -37,6 +37,7 @@ import multiproject_cmd
 import setupfiles
 from helpers import ROSINSTALL_FILENAME, is_path_ros
 
+
 def cmd_persist_config(config, config_filename=ROSINSTALL_FILENAME):
     ## Save .rosinstall
     header = """# THIS IS A FILE WHICH IS MODIFIED BY rosinstall
@@ -48,6 +49,7 @@ def cmd_persist_config(config, config_filename=ROSINSTALL_FILENAME):
 """
     multiproject_cmd.cmd_persist_config(config, config_filename, header)
 
+
 def _ros_requires_boostrap(config):
     """Whether we might need to bootstrap ros"""
     for entry in config.get_source():
@@ -58,6 +60,7 @@ def _ros_requires_boostrap(config):
                 return True
     return False
 
+
 def cmd_maybe_refresh_ros_files(config):
     """
     Regenerates setup.* files if they exist already
@@ -65,6 +68,7 @@ def cmd_maybe_refresh_ros_files(config):
     if (os.path.isfile(os.path.join(config.get_base_path(), 'setup.sh'))):
         print("Overwriting setup.sh, setup.bash, and setup.zsh in %s"%config.get_base_path())
         setupfiles.generate_setup(config, no_ros_allowed=True)
+
 
 def cmd_generate_ros_files(config, path, nobuild=False, rosdep_yes=False, catkin=False, catkinpp=None, no_ros_allowed=False):
     """

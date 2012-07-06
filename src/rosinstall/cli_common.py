@@ -248,7 +248,8 @@ def get_info_table(basepath, entries, data_only=False, reverse=False):
         column_length[header] = len(headers[header])
         for entry in outputs:
             if entry[header] is not None:
-                column_length[header] = max(column_length[header], len(entry[header]))
+                column_length[header] = max(column_length[header],
+                                            len(entry[header]))
 
     resultlines = []
     if not data_only and len(outputs) > 0:
@@ -302,11 +303,13 @@ def get_info_list(basepath, line, data_only=False):
       'status'        : "Status:",
       'specversion'   : "Spec-Revision:",
       'actualversion' : "Current-Revision:",
-      'properties'    : "Other Properties:"
-      }
+      'properties'    : "Other Properties:"}
 
     # table design
-    selected_headers = ['localname', 'path', 'status', 'scm', 'uri', 'curr_uri', 'version', 'specversion', 'actualversion', 'properties' ]
+    selected_headers = ['localname', 'path', 'status',
+                        'scm', 'uri', 'curr_uri',
+                        'version', 'specversion', 'actualversion',
+                        'properties']
 
     line['status'] = _get_status_flags(basepath, line)
 
@@ -325,4 +328,3 @@ def get_info_list(basepath, line, data_only=False):
             output = ''
         result += "%s%s\n"%(title, output)
     return result
-

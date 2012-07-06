@@ -35,9 +35,10 @@ from __future__ import print_function
 import sys
 import vcstools
 
+
 def checkout_rosinstall(rosinstall_data, verbose=False):
     for frag in rosinstall_data:
-        for vcs_type, data in frag.items(): 
+        for vcs_type, data in frag.items():
             for reqd in ['local-name', 'uri']:
                 if not reqd in data:
                     sys.stderr.write('invalid rosinstall snippet, missing key [%s]\n'%(reqd))
@@ -47,7 +48,6 @@ def checkout_rosinstall(rosinstall_data, verbose=False):
 
                 if verbose:
                     print(vcs_type, path, uri, version)
-    
+
                 vcs_client = vcstools.VCSClient(vcs_type, path)
                 vcs_client.checkout(uri, version)
-

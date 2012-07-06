@@ -145,8 +145,9 @@ class Config:
 
     def insert_element(self, new_config_elt, merge_strategy='KillAppend'):
         """
-        Insert ConfigElement to self.trees, checking for duplicate local-name or path first.
-        In case local_name matches, follow given strategy
+        Insert ConfigElement to self.trees, checking for duplicate
+        local-name or path first.  In case local_name matches, follow
+        given strategy
 
         - KillAppend (default): remove old element, append new at the end
         - MergeReplace: remove first such old element, insert new at that position.
@@ -159,7 +160,8 @@ class Config:
         replaced = False
         for index, loop_elt in enumerate (self.trees):
             # if paths are os.path.realpath, no symlink problems.
-            relationship = realpath_relation(loop_elt.get_path(), new_config_elt.get_path())
+            relationship = realpath_relation(loop_elt.get_path(),
+                                             new_config_elt.get_path())
             if relationship == 'SAME_AS':
                 if os.path.normpath(loop_elt.get_local_name()) != os.path.normpath(new_config_elt.get_local_name()):
                     raise MultiProjectException("Elements with different local_name target the same path: %s, %s"%(loop_elt, new_config_elt))
@@ -167,7 +169,8 @@ class Config:
                     if (loop_elt == new_config_elt):
                         return None
                     if (merge_strategy == 'MergeReplace' or
-                        (merge_strategy == 'KillAppend' and index == len(self.trees) - 1)):
+                        (merge_strategy == 'KillAppend' and
+                         index == len(self.trees) - 1)):
                         self.trees[index] = new_config_elt
                         # keep looping to check for overlap when replacing non-scm with scm entry
                         replaced = True
@@ -178,14 +181,17 @@ class Config:
                     elif merge_strategy == 'MergeKeep':
                         return 'MergeKeep'
                     else:
-                        raise LookupError("No such merge strategy: %s"%str(merge_strategy))
+                        raise LookupError(
+                            "No such merge strategy: %s"%str(merge_strategy))
             elif ((relationship == 'CHILD_OF' and new_config_elt.is_vcs_element())
                   or (relationship == 'PARENT_OF' and loop_elt.is_vcs_element())):
                 # we do not allow any elements to be children of scm elements
                 # to allow for parallel updates and because rosinstall may
                 # delete scm folders on update, and thus subfolders can be
                 # deleted with their parents
-                raise MultiProjectException("Managed Element paths overlap: %s, %s"%(loop_elt, new_config_elt))
+                raise MultiProjectException(
+                    "Managed Element paths overlap: %s, %s"%(loop_elt,
+                                                             new_config_elt))
         if replaced:
             return 'MergeReplace'
         for loop_elt in removals:
@@ -215,7 +221,8 @@ class Config:
         try:
             eclass = self.registry[scmtype]
         except LookupError:
-            raise MultiProjectException("No VCS client registered for vcs type %s"%scmtype)
+            raise MultiProjectException(
+                "No VCS client registered for vcs type %s"%scmtype)
         return eclass(scmtype=scmtype,
                       path=path,
                       local_name=local_name,

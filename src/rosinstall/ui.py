@@ -30,10 +30,12 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-## wrap user interaction, such that client libraries may provide own implementation
-
 
 class Ui(object):
+    """
+    wrap user interaction, such that client libraries may provide own
+    implementation
+    """
 
     # For now, primarily define this for replacement in unittests
     GLOBAL_UI = None
@@ -45,9 +47,9 @@ class Ui(object):
         return Ui.GLOBAL_UI
 
     @staticmethod
-    def set_ui(ui):
-        Ui.GLOBAL_UI = ui
-             
+    def set_ui(uiarg):
+        Ui.GLOBAL_UI = uiarg
+
     def __init__(self):
         pass
 
@@ -58,16 +60,23 @@ class Ui(object):
         return backup_path
 
     def prompt_del_abort_retry(self, prompt, allow_skip=False):
-        """Interactive function asking the user to choose a conflict resolution"""
+        """
+        Interactive function asking the user to choose a conflict resolution
+        """
         if allow_skip:
-            valid_modes = ['(d)elete and replace', '(a)bort', '(b)ackup and replace', '(s)kip']
+            valid_modes = ['(d)elete and replace',
+                           '(a)bort',
+                           '(b)ackup and replace',
+                           '(s)kip']
         else:
-            valid_modes = ['(d)elete and replace', '(a)bort', '(b)ackup and replace']
-    
+            valid_modes = ['(d)elete and replace',
+                           '(a)bort',
+                           '(b)ackup and replace']
+
         mode = ""
-    
+
         full_prompt = "%s %s: "%(prompt, ", ".join(valid_modes))
-    
+
         while mode == "":
             mode_input = raw_input(full_prompt)
             if mode_input == 'b' or mode_input == 'backup':

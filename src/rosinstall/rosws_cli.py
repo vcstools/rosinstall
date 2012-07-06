@@ -62,8 +62,7 @@ from config_yaml import get_path_spec_from_yaml
 
 # extend the commands of multiproject
 __ROSWS_CMD_DICT__ = {
-      "regenerate"     : "create ROS workspace specific setup files"
-      }
+      "regenerate": "create ROS workspace specific setup files"}
 __ROSWS_CMD_DICT__.update(__MULTIPRO_CMD_DICT__)
 
 
@@ -137,9 +136,10 @@ $ rosws init ~/fuerte /opt/ros/fuerte
         rosinstall_cmd.cmd_persist_config(config)
 
         ## install or update each element
-        install_success = multiproject_cmd.cmd_install_or_update(config,
-                                                                 robust=False,
-                                                                 num_threads=int(options.jobs))
+        install_success = multiproject_cmd.cmd_install_or_update(
+            config,
+            robust=False,
+            num_threads=int(options.jobs))
 
         rosinstall_cmd.cmd_generate_ros_files(config,
                                               target_path,
@@ -179,16 +179,20 @@ $ roslocate info robot_mode | rosws merge -
 """,
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         # same options as for multiproject
-        parser.add_option("-a", "--merge-kill-append", dest="merge_kill_append", default=False,
+        parser.add_option("-a", "--merge-kill-append", dest="merge_kill_append",
+                          default=False,
                           help="merge by deleting given entry and appending new one",
                           action="store_true")
-        parser.add_option("-k", "--merge-keep", dest="merge_keep", default=False,
+        parser.add_option("-k", "--merge-keep", dest="merge_keep",
+                          default=False,
                           help="merge by keeping existing entry and discarding new one",
                           action="store_true")
-        parser.add_option("-r", "--merge-replace", dest="merge_replace", default=True,
+        parser.add_option("-r", "--merge-replace", dest="merge_replace",
+                          default=True,
                           help="(default) merge by replacing given entry with new one maintaining ordering",
                           action="store_true")
-        parser.add_option("-y", "--confirm-all", dest="confirm_all", default='',
+        parser.add_option("-y", "--confirm-all", dest="confirm_all",
+                          default='',
                           help="do not ask for confirmation unless strictly necessary",
                           action="store_true")
         # required here but used one layer above
@@ -214,7 +218,8 @@ $ roslocate info robot_mode | rosws merge -
             try:
                 yamldicts = yaml.load(pipedata)
             except yaml.YAMLError as e:
-                raise MultiProjectException("Invalid yaml format: \n%s \n%s"%(pipedata, e))
+                raise MultiProjectException(
+                    "Invalid yaml format: \n%s \n%s"%(pipedata, e))
             if yamldicts is None:
                 parser.error("No Input read from stdin")
             options.confirm_all = True # cant have user interaction and piped input
@@ -238,13 +243,14 @@ $ roslocate info robot_mode | rosws merge -
         if count_mergeoptions == 0:
             merge_strategy = 'MergeReplace'
 
-        (newconfig, path_changed) = self.prompt_merge(target_path,
-                                                      additional_uris=config_uris,
-                                                      additional_specs=specs,
-                                                      path_change_message="ROS_PACKAGE_PATH order changed",
-                                                      merge_strategy=merge_strategy,
-                                                      confirmed=options.confirm_all,
-                                                      config=config)
+        (newconfig, path_changed) = self.prompt_merge(
+            target_path,
+            additional_uris=config_uris,
+            additional_specs=specs,
+            path_change_message="ROS_PACKAGE_PATH order changed",
+            merge_strategy=merge_strategy,
+            confirmed=options.confirm_all,
+            config=config)
         if newconfig is not None:
             print("Config changed, maybe you need run rosws update to update SCM entries.")
             print("Overwriting %s"%os.path.join(newconfig.get_base_path(), self.config_filename))
@@ -286,9 +292,14 @@ accidentally.
             return -1
 
         if config is None:
-            config = multiproject_cmd.get_config(target_path, [], config_filename=self.config_filename)
+            config = multiproject_cmd.get_config(
+                target_path,
+                additional_uris=[],
+                config_filename=self.config_filename)
         elif config.get_base_path() != target_path:
-            raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
+            raise MultiProjectException(
+                "Config path does not match %s %s "%(config.get_base_path(),
+                                                     target_path))
         rosinstall_cmd.cmd_generate_ros_files(config,
                                               target_path,
                                               nobuild=True,
@@ -356,7 +367,10 @@ $ rosws info --only=path,cur_uri,cur_revision robot_model geometry
         (options, args) = parser.parse_args(argv)
 
         if config is None:
-            config = multiproject_cmd.get_config(target_path, [], config_filename=self.config_filename)
+            config = multiproject_cmd.get_config(
+                target_path,
+                additional_uris=[],
+                config_filename=self.config_filename)
         elif config.get_base_path() != target_path:
             raise MultiProjectException("Config path does not match %s %s "%(config.get_base_path(), target_path))
         if args == []:
@@ -437,12 +451,12 @@ def usage():
     dvars = {'prog': 'rosws'}
     dvars.update(vars())
     print(__doc__%dvars)
-    # keys=[]
-    # for k in __ROSWS_CMD_DICT__.iterkeys():
-    #   if k in gkeys:
-    #     keys.append(k)
-    # keys.sort()
-    keys = ['help', 'init', None, 'set', 'merge', 'remove', None, 'update', None, 'info', 'status', 'diff', None, 'regenerate']
+    # using None to generate empty lines
+    keys = ['help', 'init',
+            None, 'set', 'merge', 'remove',
+            None, 'update',
+            None, 'info', 'status', 'diff',
+            None, 'regenerate']
     for k in keys:
         if k in __ROSWS_CMD_DICT__:
             print("  " + k.ljust(10) + '   \t' + __ROSWS_CMD_DICT__[k])
@@ -501,15 +515,14 @@ def rosws_main(argv=None):
         commands = {'init': cli.cmd_init}
         # commands which work on a workspace
         ws_commands = {
-          'info'         : cli.cmd_info,
-          'remove'       : cli.cmd_remove,
-          'regenerate'   : cli.cmd_regenerate,
-          'set'          : cli.cmd_set,
-          'merge'        : cli.cmd_merge,
-          'diff'         : cli.cmd_diff,
-          'status'       : cli.cmd_status,
-          'update'       : cli.cmd_update,
-          }
+            'info':       cli.cmd_info,
+            'remove':     cli.cmd_remove,
+            'regenerate': cli.cmd_regenerate,
+            'set':        cli.cmd_set,
+            'merge':      cli.cmd_merge,
+            'diff':       cli.cmd_diff,
+            'status':     cli.cmd_status,
+            'update':     cli.cmd_update}
 
         if command not in commands and command not in ws_commands:
             if os.path.exists(command):

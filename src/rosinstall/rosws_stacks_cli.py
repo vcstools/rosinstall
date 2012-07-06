@@ -49,7 +49,6 @@ from rosinstall.multiproject_cmd import get_config, cmd_persist_config, cmd_inst
 import rosinstall.config_yaml
 
 
-
 def get_stack_element_in_config(config, stack):
     """
     The path_spec of a config element if it is named like stack and has a
@@ -62,6 +61,7 @@ def get_stack_element_in_config(config, stack):
             else:
                 return None
     return None
+
 
 def roslocate_info(stack, distro, dev):
     """
@@ -117,6 +117,7 @@ def get_ros_stack_version():
         raise ROSInstallException('invalid ros version: %s'%(stdout))
     return ver
 
+
 def rosversion_to_distro_name(ver):
     """
     Reads/Infers the distro name from ROS / or the ros stack
@@ -137,6 +138,7 @@ def rosversion_to_distro_name(ver):
         return 'diamondback'
     else:
         raise ROSInstallException('unknown ros version: %s'%(ver))
+
 
 def get_dependent_stacks(stack):
     """
@@ -159,7 +161,6 @@ def get_dependent_stacks(stack):
         if len(line) > 0:
             deps.append(line)
     return deps
-
 
 
 def cmd_add_stack(config, stackname, released=False, recurse=False):
@@ -200,6 +201,7 @@ def cmd_add_stack(config, stackname, released=False, recurse=False):
             _add_stack(config, s, distro=distro, released=released)
     return True
 
+
 def cmd_delete_stack(config, stackname, delete=False, recurse=False):
     """
     Attempts to get ROS stack from source if it is not already in config.
@@ -218,7 +220,8 @@ def cmd_delete_stack(config, stackname, delete=False, recurse=False):
         config.remove_element(stack_element.get_local_name())
         if delete:
             # TODO confirm each delete
-            shutil.rmtree(os.path.join(config.base_path, stackname), ignore_errors=True)
+            shutil.rmtree(os.path.join(config.base_path, stackname),
+                          ignore_errors=True)
         return True
 
     if _del_stack(config, stackname, delete) is False:
@@ -232,7 +235,6 @@ def cmd_delete_stack(config, stackname, delete=False, recurse=False):
     return True
 
 
-
 class RosWsStacksCLI():
 
     def __init__(self):
@@ -241,22 +243,28 @@ class RosWsStacksCLI():
     def cmd_add_stack(self, target_path, argv):
         parser = OptionParser(usage="usage: rosws add-stack [PATH] localname",
                         epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
-        parser.add_option("-N", "--non-recursive", dest="norecurse", default=False,
+        parser.add_option("-N", "--non-recursive", dest="norecurse",
+                          default=False,
                           help="don't change configuration for dependent stacks",
                           action="store_true")
-        parser.add_option("--released", dest="released", default=False,
+        parser.add_option("--released", dest="released",
+                          default=False,
                           help="Pull stack from release tag instead of development branch",
                           action="store_true")
-        parser.add_option("--continue-on-error", dest="robust", default=False,
+        parser.add_option("--continue-on-error", dest="robust",
+                          default=False,
                           help="Continue despite checkout errors",
                           action="store_true")
-        parser.add_option("--delete-changed-uris", dest="delete_changed", default=False,
+        parser.add_option("--delete-changed-uris", dest="delete_changed",
+                          default=False,
                           help="Delete the local copy of a directory before changing uri.",
                           action="store_true")
-        parser.add_option("--abort-changed-uris", dest="abort_changed", default=False,
+        parser.add_option("--abort-changed-uris", dest="abort_changed",
+                          default=False,
                           help="Abort if changed uri detected",
                           action="store_true")
-        parser.add_option("--backup-changed-uris", dest="backup_changed", default='',
+        parser.add_option("--backup-changed-uris", dest="backup_changed",
+                          default='',
                           help="backup the local copy of a directory before changing uri to this directory.",
                           action="store")
         (options, args) = parser.parse_args(argv)
@@ -289,22 +297,24 @@ class RosWsStacksCLI():
                          recurse=(not options.norecurse)) is True:
             cmd_persist_config(config, self.config_filename)
             # install or update each element
-            install_success = cmd_install_or_update(config,
-                                                    backup_path=options.backup_changed,
-                                                    mode=mode,
-                                                    robust=options.robust)
+            install_success = cmd_install_or_update(
+                config,
+                backup_path=options.backup_changed,
+                mode=mode,
+                robust=options.robust)
             if install_success:
                 return 0
         return 1
 
-
     def cmd_delete_stack(self, target_path, argv):
         parser = OptionParser(usage="usage: rosws delete-stack [PATH] localname",
                         epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
-        parser.add_option("-N", "--non-recursive", dest="norecurse", default=False,
+        parser.add_option("-N", "--non-recursive", dest="norecurse",
+                          default=False,
                           help="don't change configuration for dependent stacks",
                           action="store_true")
-        parser.add_option("-d", "--delete-working-copies", dest="delete", default=False,
+        parser.add_option("-d", "--delete-working-copies", dest="delete",
+                          default=False,
                           help="when deleting a stack from the configuration, also delete the working copy (DANGEROUS!)",
                           action="store_true")
         (options, args) = parser.parse_args(argv)
@@ -319,12 +329,13 @@ class RosWsStacksCLI():
             return -1
         uri = args[0]
         config = get_config(target_path, [], config_filename=self.config_filename)
-        if cmd_delete_stack(config, uri, delete=options.delete, recurse=(not options.norecurse)):
+        if cmd_delete_stack(config,
+                            uri,
+                            delete=options.delete,
+                            recurse=(not options.norecurse)):
             cmd_persist_config(config, self.config_filename)
             return 0
         return 1
-
-
 
 
 def usage():
@@ -337,6 +348,7 @@ Usage:
 Type '%(prog)s --help' for usage.
 """%{'prog': 'rosws-stacks'})
 
+    
 def rosws_stacks_main(argv=None):
     """
     Calls the function corresponding to the first argument.
@@ -356,8 +368,7 @@ def rosws_stacks_main(argv=None):
         except MultiProjectException as e:
             print(str(e))
             usage()
-            return 0
-  
+            return 0  
   
     try:
         command = argv[1]
@@ -375,8 +386,8 @@ def rosws_stacks_main(argv=None):
 
         cli = RosWsStacksCLI()
         commands = {
-            'add'    : cli.cmd_add_stack,
-            'delete' : cli.cmd_delete_stack,
+            'add':    cli.cmd_add_stack,
+            'delete': cli.cmd_delete_stack,
             }
         if command not in commands:
             if os.path.exists(command):
@@ -397,4 +408,3 @@ def rosws_stacks_main(argv=None):
 
     except KeyboardInterrupt:
         pass
-
