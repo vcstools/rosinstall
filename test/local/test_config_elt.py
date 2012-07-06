@@ -41,52 +41,7 @@ import unittest
 
 import rosinstall.config
 from rosinstall.common import MultiProjectException
-
-class MockVcsClient():
-
-    def __init__(self,
-                 path_exists = False,
-                 checkout_success = True,
-                 update_success = True,
-                 vcs_presence = True,
-                 url = "mockurl"):
-        self.path_exists_flag = path_exists
-        self.checkout_success = checkout_success
-        self.update_success = update_success
-        self.vcs_presence = vcs_presence
-        self.mockurl = url
-        self.checkedout = vcs_presence
-        self.updated = False
-        
-    def get_vcs_type_name(self):
-        return "mocktype"
-
-    def get_diff(self, basepath=None):
-        return "mockdiff%s"%basepath
-
-    def get_version(self, revision=None):
-        return "mockversion%s"%revision
-  
-    def get_status(self, basepath=None, untracked=False):
-        return "mockstatus%s,%s"%(basepath, untracked)
-
-    def path_exists(self):
-        return self.path_exists_flag
-
-    def checkout(self, uri=None, version=None, verbose=False):
-        self.checkedout = True
-        return self.checkout_success
-
-    def update(self, version, verbose=False):
-        self.updated = True
-        return self.update_success
-
-    def detect_presence(self):
-        return self.vcs_presence
-
-    def get_url(self):
-        return self.mockurl
-    
+from mock_client import MockVcsClient
  
 class ConfigElements_Test(unittest.TestCase):
 
@@ -150,8 +105,8 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertEqual(localname, vcsc.get_local_name())
         self.assertEqual(uri, vcsc.uri)
         self.assertTrue(vcsc.is_vcs_element())
-        self.assertEqual("mockdiffNone", vcsc.get_diff())
-        self.assertEqual("mockstatusNone,False", vcsc.get_status())
+        self.assertEqual("mocktypemockdiffNone", vcsc.get_diff())
+        self.assertEqual("mocktype mockstatusNone,False", vcsc.get_status())
         self.assertEqual({'mock': {'local-name': 'some/local/name', 'uri': 'some/uri'}}, vcsc.get_path_spec().get_legacy_yaml())
         self.assertEqual({'mock': {'local-name': 'some/local/name', 'uri': 'some/uri', }}, vcsc.get_versioned_path_spec().get_legacy_yaml())
         
@@ -160,8 +115,8 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertEqual(localname, vcsc.get_local_name())
         self.assertEqual(uri, vcsc.uri)
         self.assertTrue(vcsc.is_vcs_element())
-        self.assertEqual("mockdiffNone", vcsc.get_diff())
-        self.assertEqual("mockstatusNone,False", vcsc.get_status())
+        self.assertEqual("mocktypemockdiffNone", vcsc.get_diff())
+        self.assertEqual("mocktype mockstatusNone,False", vcsc.get_status())
         self.assertEqual({'mock': {'local-name': 'some/local/name', 'uri': 'some/uri'}}, vcsc.get_path_spec().get_legacy_yaml())
         self.assertEqual({'mock': {'local-name': 'some/local/name', 'uri': 'some/uri', }}, vcsc.get_versioned_path_spec().get_legacy_yaml())
 
@@ -170,8 +125,8 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertEqual(localname, vcsc.get_local_name())
         self.assertEqual(uri, vcsc.uri)
         self.assertTrue(vcsc.is_vcs_element())
-        self.assertEqual("mockdiffNone", vcsc.get_diff())
-        self.assertEqual("mockstatusNone,False", vcsc.get_status())
+        self.assertEqual("mocktypemockdiffNone", vcsc.get_diff())
+        self.assertEqual("mocktype mockstatusNone,False", vcsc.get_status())
         self.assertEqual({'mock': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri'}}, vcsc.get_path_spec().get_legacy_yaml())
         self.assertEqual({'mock': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri'}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
 
@@ -180,8 +135,8 @@ class ConfigElements_Test(unittest.TestCase):
         self.assertEqual(localname, vcsc.get_local_name())
         self.assertEqual(uri, vcsc.uri)
         self.assertTrue(vcsc.is_vcs_element())
-        self.assertEqual("mockdiffNone", vcsc.get_diff())
-        self.assertEqual("mockstatusNone,False", vcsc.get_status())
+        self.assertEqual("mocktypemockdiffNone", vcsc.get_diff())
+        self.assertEqual("mocktype mockstatusNone,False", vcsc.get_status())
         self.assertEqual({'mock': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri', 'meta': {'repo-name': 'skynetish-ros-pkg'}}}, vcsc.get_path_spec().get_legacy_yaml())
         self.assertEqual({'mock': {'local-name': 'some/local/name', 'version': 'some.version', 'uri': 'some/uri', 'meta': {'repo-name': 'skynetish-ros-pkg'}}}, vcsc.get_versioned_path_spec().get_legacy_yaml())
         

@@ -45,50 +45,7 @@ import rosinstall.config
 from rosinstall.config import MultiProjectException, Config
 from rosinstall.config_yaml import PathSpec
 
-class MockVcsClient():
-
-    def __init__(self,
-                 path_exists = False,
-                 checkout_success = True,
-                 update_success = True,
-                 vcs_presence = True,
-                 url = "mockurl"):
-        self.path_exists_flag = path_exists
-        self.checkout_success = checkout_success
-        self.update_success = update_success
-        self.vcs_presence = vcs_presence
-        self.mockurl = url
-        self.checkedout = vcs_presence
-        self.updated = False
-        
-    def get_vcs_type_name(self):
-        return "mocktype"
-
-    def get_diff(self, basepath=None):
-        return "mockdiff%s"%basepath
-
-    def get_version(self, revision=None):
-        return "mockversion%s"%revision
-  
-    def get_status(self, basepath=None, untracked=False):
-        return "mockstatus%s,%s"%(basepath, untracked)
-
-    def path_exists(self):
-        return self.path_exists_flag
-
-    def checkout(self, uri=None, version=None):
-        self.checkedout = True
-        return self.checkout_success
-
-    def update(self, version):
-        self.updated = True
-        return self.update_success
-
-    def detect_presence(self):
-        return self.vcs_presence
-
-    def get_url(self):
-        return self.mockurl
+from mock_client import MockVcsClient
 
 
 class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):
