@@ -229,7 +229,6 @@ class VCSConfigElement(ConfigElement):
           if not (os.path.isdir(self.uri) and
                   os.path.isdir(cur_url) and
                   os.path.samefile(cur_url, self.uri)):
-            print(cur_url, self.uri)
             if not self._get_vcsc().url_matches(cur_url, self.uri):
               error_message = "Url %s does not match %s requested."%(cur_url, self.uri)
       if error_message is None:
