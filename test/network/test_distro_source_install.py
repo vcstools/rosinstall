@@ -108,13 +108,20 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
 
 
     def test_get_yaml_from_uri_from_invalid_url(self):
-        url = "http://www.ros.org/invalid"
+        url = "http://invalidurl"
         try:
             get_yaml_from_uri(url)
             self.fail("Expected exception")
         except MultiProjectException:
             pass
 
+        # valid but non-yaml
+        url = "http://www.google.com"
+        try:
+            get_yaml_from_uri(url)
+            self.fail("Expected exception")
+        except MultiProjectException:
+            pass
                 
     def test_source_boxturtle(self):
         """install boxturtle into temp dir"""

@@ -37,7 +37,7 @@ try:
 except ImportError:
     from urllib2 import urlopen
     
-from .common import MultiProjectException
+from rosinstall.common import MultiProjectException
 
 __REPOTYPES__ = ['svn', 'bzr', 'hg', 'git', 'tar']
 __ALLTYPES__ = __REPOTYPES__ + ['other', 'setup-file']
@@ -78,6 +78,10 @@ def get_yaml_from_uri(uri):
         except yaml.YAMLError as e:
             raise MultiProjectException(
                 "Invalid multiproject yaml format in [%s]: %s\n" % (uri, e))
+        # we want a list or a dict, but pyyaml parses xml as string
+        if type(y) == 'str':
+            raise MultiProjectException(
+                "Invalid multiproject yaml format in [%s]: %s\n" % (uri, y))
     finally:
         if stream is not None:
             stream.close()
