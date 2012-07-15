@@ -33,7 +33,7 @@
 
 import os
 import subprocess
-import rosinstall.multiproject_cmd
+from rosinstall.multiproject_cmd import cmd_persist_config as multipersist
 from rosinstall import setupfiles
 from rosinstall.helpers import ROSINSTALL_FILENAME, is_path_ros
 
@@ -47,9 +47,7 @@ def cmd_persist_config(config, config_filename=ROSINSTALL_FILENAME):
 # USE THE rosinstall TOOL INSTEAD.
 # IF YOU CHANGE IT, USE rosinstall FOR THE CHANGES TO TAKE EFFECT
 """
-    rosinstall.multiproject_cmd.cmd_persist_config(config,
-                                                   config_filename,
-                                                   header)
+    multipersist(config, config_filename, header)
 
 
 def _ros_requires_boostrap(config):

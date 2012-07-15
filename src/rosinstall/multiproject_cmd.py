@@ -39,7 +39,6 @@ from rosinstall.config_yaml import aggregate_from_uris, generate_config_yaml,\
     get_path_specs_from_uri
 
 import vcstools
-from vcstools import __version__, SvnClient, GitClient, HgClient, BzrClient, TarClient
 
 
 ## The _cmd python files attempt to provide a reasonably
