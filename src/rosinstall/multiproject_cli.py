@@ -36,7 +36,8 @@ import textwrap
 import shutil
 from optparse import OptionParser, IndentedHelpFormatter
 
-from rosinstall.common import select_element, select_elements, MultiProjectException
+from rosinstall.common import select_element, select_elements,\
+    MultiProjectException, normalize_uri
 from rosinstall.config_yaml import PathSpec
 import rosinstall.multiproject_cmd as multiproject_cmd
 from rosinstall.ui import Ui
@@ -298,7 +299,7 @@ $ rosws set robot_model --detached
                         localname = rel_path
 
             spec = PathSpec(local_name=localname,
-                            uri=uri,
+                            uri=normalize_uri(uri, config.get_base_path()),
                             version=version,
                             scmtype=scmtype)
             print("     Add element: \n %s"%spec)
@@ -312,7 +313,8 @@ $ rosws set robot_model --detached
                 if version is None:
                     version = old_spec.get_version()
                 spec = PathSpec(local_name=element.get_local_name(),
-                                uri=uri or old_spec.get_uri(),
+                                uri=normalize_uri(uri or old_spec.get_uri(),
+                                                  config.get_base_path()),
                                 version=version,
                                 scmtype=scmtype or old_spec.get_scmtype(),
                                 path=old_spec.get_path())
