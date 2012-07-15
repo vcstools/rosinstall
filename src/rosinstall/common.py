@@ -118,8 +118,8 @@ def string_diff(str1, str2, maxlen=11, backtrack=7):
         charcompare = [x[0] == x[1] for x in zip(str(str2), str(str1))]
         if False in charcompare:
             commonprefix = str2[:charcompare.index(False)]
-            if len(commonprefix) > 11:
-                result = "...%s"%str2[len(commonprefix) - 7:]
+            if len(commonprefix) > maxlen:
+                result = "...%s"%str2[len(commonprefix) - backtrack:]
     return result
 
 def normabspath(localname, path):
