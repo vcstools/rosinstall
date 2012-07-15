@@ -322,9 +322,9 @@ $ rosws set robot_model --detached
                                 scmtype=scmtype or old_spec.get_scmtype(),
                                 path=old_spec.get_path())
             if spec.get_legacy_yaml() == old_spec.get_legacy_yaml():
-                if not options.detach:
-                    parser.error("No change provided, did you mean --detached ?")
-                parser.error("No change provided.")
+                if not options.detach and spec.get_scmtype() is not None:
+                    parser.error("Element %s already exists, did you mean --detached ?"%spec)
+                parser.error("Element %s already exists"%spec)
 
         (newconfig, path_changed) = self.prompt_merge(
             target_path,
