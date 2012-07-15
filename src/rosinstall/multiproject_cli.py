@@ -320,7 +320,7 @@ $ rosws set robot_model --detached
                                 path=old_spec.get_path())
             if spec.get_legacy_yaml() == old_spec.get_legacy_yaml():
                 if not options.detach:
-                    parser.error("No change provided, did you mean --detach ?")
+                    parser.error("No change provided, did you mean --detached ?")
                 parser.error("No change provided.")
             print("     Change element from: \n %s\n     to\n %s"%(old_spec, spec))
 
