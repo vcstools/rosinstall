@@ -278,6 +278,7 @@ $ rosws set robot_model --detached
         if options.version is not None:
             version = options.version.strip("'\"")
 
+        # create spec object
         if element is None:
             # asssume is insert, choose localname
             localname = os.path.normpath(args[0])
@@ -302,7 +303,6 @@ $ rosws set robot_model --detached
                             uri=normalize_uri(uri, config.get_base_path()),
                             version=version,
                             scmtype=scmtype)
-            print("     Add element: \n %s"%spec)
         else:
             # modify
             old_spec = element.get_path_spec()
@@ -322,30 +322,30 @@ $ rosws set robot_model --detached
                 if not options.detach:
                     parser.error("No change provided, did you mean --detached ?")
                 parser.error("No change provided.")
-            print("     Change element from: \n %s\n     to\n %s"%(old_spec, spec))
 
-        config.add_path_spec(spec, merge_strategy='MergeReplace')
-        if not options.confirm:
-            abort = None
-            prompt = "Continue(y/n): "
-            while abort is None:
-                mode_input = Ui.get_ui().get_input(prompt)
-                if mode_input == 'y':
-                    abort = False
-                elif mode_input == 'n':
-                    abort = True
-            if abort:
-                print("No changes made.")
-                return 0
-        print("Overwriting %s"%os.path.join(config.get_base_path(),
-                                            self.config_filename))
-        shutil.move(os.path.join(config.get_base_path(), self.config_filename),
-                    "%s.bak"%os.path.join(config.get_base_path(),
-                                          self.config_filename))
-        multiproject_cmd.cmd_persist_config(config, self.config_filename)
+        (newconfig, path_changed) = self.prompt_merge(
+            target_path,
+            additional_uris=[],
+            additional_specs=[spec],
+            merge_strategy='MergeReplace',
+            confirmed=options.confirm,
+            confirm=not options.confirm,
+            show_verbosity=False,
+            show_advanced=False,
+            config=config)
 
-        if (spec.get_scmtype() is not None):
-            print("Config changed, remember to run 'rosws update %s' to update the folder from %s"%(spec.get_local_name(), spec.get_scmtype()))
+        if newconfig is not None:
+            print("Overwriting %s"%os.path.join(newconfig.get_base_path(), self.config_filename))
+            shutil.move(os.path.join(newconfig.get_base_path(), self.config_filename), "%s.bak"%os.path.join(newconfig.get_base_path(), self.config_filename))
+            multiproject_cmd.cmd_persist_config(newconfig, self.config_filename)
+            if path_changed:
+                print("\nDo not forget to do ...\n$ source %s/setup.sh\n... in every open terminal."%target_path)
+            if (spec.get_scmtype() is not None):
+                print("Config changed, remember to run 'rosws update %s' to update the folder from %s"%(spec.get_local_name(), spec.get_scmtype()))
+        else:
+            print("New element %s could not be added, "%spec)
+            return 1
+        # auto-install not a good feature, maybe make an option
         # for element in config.get_config_elements():
         #   if element.get_local_name() == spec.get_local_name():
         #     if element.is_vcs_element():
@@ -529,12 +529,25 @@ The command removes entries from your configuration file, it does not affect you
                      path_change_message=None,
                      merge_strategy='KillAppend',
                      confirmed=False,
+                     confirm=False,
+                     show_advanced=True,
+                     show_verbosity=True,
                      config=None):
         """
-        Prompts the user for the resolution of a merge
+        Prompts the user for the resolution of a merge. Without
+        further options, will prompt only if elements change. New
+        elements are just added without prompt.
 
         :param target_path: Location of the config workspace
-        :param additional_uris: what needs merging in
+        :param additional_uris: uris from which to load more elements
+        :param additional_specs: path specs for additional elements
+        :param path_change_message: Something to tell the user about elements order
+        :param merge_strategy: See Config.insert_element
+        :param confirmed: Never ask
+        :param confirm: Always ask, supercedes confirmed
+        :param config: None or a Config object for target path if available
+        :param show_advanced: if true allow to change merge strategy
+        :param show_verbosity: if true allows to change verbosity
         :returns: tupel (Config or None if no change, bool path_changed)
         """
         if config is None:
@@ -548,7 +561,7 @@ The command removes entries from your configuration file, it does not affect you
             raise MultiProjectException(msg)
         local_names_old = [x.get_local_name() for x in config.get_config_elements()]
 
-        extra_verbose = confirmed
+        extra_verbose = confirmed or confirm
         abort = None
         last_merge_strategy = None
         while abort is None:
@@ -620,12 +633,12 @@ The command removes entries from your configuration file, it does not affect you
             if local_names_old != local_names_new[:len(local_names_old)]:
                 old_order = ' '.join(reversed(local_names_old))
                 new_order = ' '.join(reversed(local_names_new))
-                output += "\n     %s (Use --merge-keep or --merge-replace to prevent) from\n %s\n     to\n %s\n\n"%(path_change_message or "Element Order change", old_order, new_order)
+                output += "\n     %s (Use --merge-keep or --merge-replace to prevent) from\n %s\n     to\n %s\n\n"%(path_change_message or "Element order change", old_order, new_order)
                 ask_user = True
 
             if output == "":
                 return (None, False)
-            if confirmed or not ask_user:
+            if not confirm and (confirmed or not ask_user):
                 print("     Performing actions: ")
                 print(output)
                 return (newconfig, path_changed)
@@ -634,13 +647,18 @@ The command removes entries from your configuration file, it does not affect you
                 showhelp = True
                 while(showhelp):
                     showhelp = False
-                    prompt = "Continue: (y)es, (n)o, (v)erbosity, (a)dvance options: "
+                    prompt = "Continue: (y)es, (n)o"
+                    if show_verbosity:
+                        prompt +=", (v)erbosity"
+                    if show_advanced:
+                        prompt += ", (a)dvanced options"
+                    prompt += ": "
                     mode_input = Ui.get_ui().get_input(prompt)
                     if mode_input == 'y':
                         return (newconfig, path_changed)
                     elif mode_input == 'n':
                         abort = True
-                    elif mode_input == 'a':
+                    elif show_advanced and mode_input == 'a':
                         strategies = {'MergeKeep': "(k)eep",
                                       'MergeReplace': "(s)witch in",
                                       'KillAppend': "(a)ppending"}
@@ -671,7 +689,7 @@ Switch append is the default.
                         elif mode_input == 'a':
                             merge_strategy = 'KillAppend'
 
-                    elif mode_input == 'v':
+                    elif show_verbosity and mode_input == 'v':
                         extra_verbose = not extra_verbose
             if abort:
                 print("No changes made.")
