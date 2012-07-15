@@ -38,8 +38,10 @@ import struct
 import sys
 import unittest
 
-import rosinstall.common
-from rosinstall.common import MultiProjectException
+
+from rosinstall.common import DistributedWork, WorkerThread, normabspath,\
+    is_web_uri, select_element, normalize_uri, realpath_relation,\
+    conditional_abspath, string_diff, MultiProjectException
 
 class FooThing:
     def __init__(self, el, result = None):
@@ -58,50 +60,64 @@ class FunctionsTest(unittest.TestCase):
 
     def test_normabspath(self):
         base = "/foo/bar"
-        self.assertEqual("/foo/bar", rosinstall.common.normabspath('.', base))
-        self.assertEqual("/foo/bar", rosinstall.common.normabspath('foo/..', base))
-        self.assertEqual("/foo/bar", rosinstall.common.normabspath(base, base))
-        self.assertEqual("/foo", rosinstall.common.normabspath("/foo", base))
-        self.assertEqual("/foo/bar/bim", rosinstall.common.normabspath('bim', base))
-        self.assertEqual("/foo", rosinstall.common.normabspath('..', base))
+        self.assertEqual("/foo/bar", normabspath('.', base))
+        self.assertEqual("/foo/bar", normabspath('foo/..', base))
+        self.assertEqual("/foo/bar", normabspath(base, base))
+        self.assertEqual("/foo", normabspath("/foo", base))
+        self.assertEqual("/foo/bar/bim", normabspath('bim', base))
+        self.assertEqual("/foo", normabspath('..', base))
 
     def test_is_web_uri(self):
-        self.assertTrue(rosinstall.common.is_web_uri('http://foo.com'))
-        self.assertTrue(rosinstall.common.is_web_uri('http://foo.com/bar'))
-        self.assertTrue(rosinstall.common.is_web_uri('http://foo.com:42'))
-        self.assertTrue(rosinstall.common.is_web_uri('http://foo.com:42/bar'))
-        self.assertTrue(rosinstall.common.is_web_uri('ssh://foo.com'))
-        self.assertTrue(rosinstall.common.is_web_uri('lp:foo.com'))
-        self.assertTrue(rosinstall.common.is_web_uri('git://foo.com'))
-        self.assertTrue(rosinstall.common.is_web_uri('git+ssh://foo.com:foo'))
-        self.assertTrue(rosinstall.common.is_web_uri('user@foo:foo/bar'))
-        self.assertFalse(rosinstall.common.is_web_uri('foo/bar'))
-        self.assertFalse(rosinstall.common.is_web_uri('bar'))
-        self.assertFalse(rosinstall.common.is_web_uri(''))
-        self.assertFalse(rosinstall.common.is_web_uri(None))
-        
-    
+        self.assertTrue(is_web_uri('http://foo.com'))
+        self.assertTrue(is_web_uri('http://foo.com/bar'))
+        self.assertTrue(is_web_uri('http://foo.com:42'))
+        self.assertTrue(is_web_uri('http://foo.com:42/bar'))
+        self.assertTrue(is_web_uri('ssh://foo.com'))
+        self.assertTrue(is_web_uri('lp:foo.com'))
+        self.assertTrue(is_web_uri('git://foo.com'))
+        self.assertTrue(is_web_uri('git+ssh://foo.com:foo'))
+        self.assertTrue(is_web_uri('user@foo:foo/bar'))
+        self.assertFalse(is_web_uri('foo/bar'))
+        self.assertFalse(is_web_uri('bar'))
+        self.assertFalse(is_web_uri(''))
+        self.assertFalse(is_web_uri(None))
+
+    def test_normalize_uri(self):
+        self.assertEqual('/foo', normalize_uri('/foo', None))
+        self.assertEqual(None, normalize_uri(None, None))
+        self.assertEqual('/bar/foo', normalize_uri('foo', '/bar'))
+        self.assertEqual('http://foo.com', normalize_uri('http://foo.com', None))
+
+    def test_string_diff(self):
+        self.assertEqual('', string_diff(None, None))
+        self.assertEqual('foo', string_diff('foo', 'foo'))
+        self.assertEqual('foo3', string_diff('foo', 'foo3'))
+        self.assertEqual('...7890foo3', string_diff('12345678901234567890foo', '12345678901234567890foo3'))
+        self.assertEqual('...7890foo3', string_diff('12345678901234567890foo4', '12345678901234567890foo3'))
+        self.assertEqual('...7890foo3', string_diff('12345678901234567890foo45', '12345678901234567890foo3'))
+        self.assertEqual('...4567890foo123456789123456789', string_diff('12345678901234567890', '12345678901234567890foo123456789123456789'))
+
     def test_conditional_abspath(self):
         path = "foo"
-        self.assertEqual(os.path.normpath(os.path.join(os.getcwd(), path)), rosinstall.common.conditional_abspath(path))
+        self.assertEqual(os.path.normpath(os.path.join(os.getcwd(), path)), conditional_abspath(path))
         path = "http://someuri.com"
-        self.assertEqual("http://someuri.com", rosinstall.common.conditional_abspath(path))
+        self.assertEqual("http://someuri.com", conditional_abspath(path))
 
 
     def test_abspath_overlap(self):
         base = "/foo/bar"
         # simple
-        self.assertEqual('SAME_AS', rosinstall.common.realpath_relation("/foo", "/foo"))
-        self.assertEqual('SAME_AS', rosinstall.common.realpath_relation("/", "/"))
+        self.assertEqual('SAME_AS', realpath_relation("/foo", "/foo"))
+        self.assertEqual('SAME_AS', realpath_relation("/", "/"))
         # denormalized
-        self.assertEqual('SAME_AS', rosinstall.common.realpath_relation("/foo/.", "/foo/bar/../"))
+        self.assertEqual('SAME_AS', realpath_relation("/foo/.", "/foo/bar/../"))
         # subdir
-        self.assertEqual('PARENT_OF', rosinstall.common.realpath_relation("/foo", "/foo/bar/baz/bam"))
-        self.assertEqual('CHILD_OF', rosinstall.common.realpath_relation("/foo/bar/baz/bam", "/foo"))
+        self.assertEqual('PARENT_OF', realpath_relation("/foo", "/foo/bar/baz/bam"))
+        self.assertEqual('CHILD_OF', realpath_relation("/foo/bar/baz/bam", "/foo"))
         ## Negatives
-        self.assertEqual(None, rosinstall.common.realpath_relation("/foo", "/bar"))
-        self.assertEqual(None, rosinstall.common.realpath_relation("/foo", "/foo2"))
-        self.assertEqual(None, rosinstall.common.realpath_relation("/foo/bar", "/foo/ba"))
+        self.assertEqual(None, realpath_relation("/foo", "/bar"))
+        self.assertEqual(None, realpath_relation("/foo", "/foo2"))
+        self.assertEqual(None, realpath_relation("/foo/bar", "/foo/ba"))
 
     def test_select_element(self):
         class MockElement:
@@ -112,31 +128,31 @@ class FunctionsTest(unittest.TestCase):
                 return self.localname
             def get_path(self):
                 return self.path
-        self.assertEqual(None, rosinstall.common.select_element(None, None))
-        self.assertEqual(None, rosinstall.common.select_element([], None))
+        self.assertEqual(None, select_element(None, None))
+        self.assertEqual(None, select_element([], None))
         mock1 = MockElement('foo', '/test/path1')
         mock2 = MockElement('bar', '/test/path2')
         mock3 = MockElement('baz', '/test/path3')
-        self.assertEqual(None, rosinstall.common.select_element([], 'pin'))
-        self.assertEqual(None, rosinstall.common.select_element([mock1], 'pin'))
-        self.assertEqual(None, rosinstall.common.select_element([mock1, mock3], 'pin'))
+        self.assertEqual(None, select_element([], 'pin'))
+        self.assertEqual(None, select_element([mock1], 'pin'))
+        self.assertEqual(None, select_element([mock1, mock3], 'pin'))
 
-        self.assertEqual('bar', rosinstall.common.select_element([mock1, mock2, mock3], 'bar').get_local_name())
-        self.assertEqual('bar', rosinstall.common.select_element([mock1, mock2, mock3], '/test/path2').get_local_name())
-        self.assertEqual('bar', rosinstall.common.select_element([mock1, mock2, mock3], '/test/../foo/../test/path2/').get_local_name())
+        self.assertEqual('bar', select_element([mock1, mock2, mock3], 'bar').get_local_name())
+        self.assertEqual('bar', select_element([mock1, mock2, mock3], '/test/path2').get_local_name())
+        self.assertEqual('bar', select_element([mock1, mock2, mock3], '/test/../foo/../test/path2/').get_local_name())
 
     def test_worker_thread(self):
         try:
-            w = rosinstall.common.WorkerThread(None, None, None)
+            w = WorkerThread(None, None, None)
             self.fail("expected Exception")
         except MultiProjectException: pass
         try:
-            w = rosinstall.common.WorkerThread(FooThing(el = None), 2, 3)
+            w = WorkerThread(FooThing(el = None), 2, 3)
             self.fail("expected Exception")
         except MultiProjectException: pass
         thing = FooThing(FooThing(None))
         result = [None]
-        w = rosinstall.common.WorkerThread(thing, result, 0)
+        w = WorkerThread(thing, result, 0)
         self.assertEqual(thing.done, False)
         w.run()
         self.assertEqual(thing.done, True, result)
@@ -144,14 +160,14 @@ class FunctionsTest(unittest.TestCase):
         
         thing = FooThing(FooThing(None), result= {'done': True})
         result = [None]
-        w = rosinstall.common.WorkerThread(thing, result, 0)
+        w = WorkerThread(thing, result, 0)
         self.assertEqual(thing.done, False)
         w.run()
         self.assertEqual(thing.done, True, result)
         self.assertEqual(False, 'error' in result[0], result)
         
     def test_distributed_work(self):
-        work = rosinstall.common.DistributedWork(3)
+        work = DistributedWork(3)
         
         thing1 = FooThing(FooThing(FooThing(None)), result= {'done': True})
         thing2 = FooThing(FooThing(FooThing(None)), result= {'done': True})

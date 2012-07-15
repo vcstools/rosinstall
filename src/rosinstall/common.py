@@ -63,6 +63,11 @@ def conditional_abspath(uri):
 
 
 def is_web_uri(source_uri):
+    """
+    Uses heuristics to check whether uri is a web uri (as opposed to a file path)
+    :param source_uri: string representing web uri or file path
+    :returns: bool
+    """
     if source_uri is None or source_uri == '':
         return False
     parsed_uri = urlparse(source_uri)
@@ -75,16 +80,47 @@ def is_web_uri(source_uri):
 
 
 def normalize_uri(source_uri, base_path):
-    if (source_uri is not None
-        and not is_web_uri(source_uri)
-        and not os.path.isabs(source_uri)):
-        
-        source_uri2 = os.path.normpath(os.path.join(base_path, source_uri))
-        if source_uri2 != source_uri:
+    """
+    If source_uri is none or a web uir, return it.
+    If source_uri is a relative path, make it an absolute path.
+    Else return it normalized
+    :param source_uri: some uri to a file, folder, or web resource
+    :param base_path: path to use to make relative paths absolute
+    :returns: normalized string
+    """
+    if source_uri is not None and not is_web_uri(source_uri):
+        if os.path.isabs(source_uri):
+            source_uri = os.path.normpath(source_uri)
+        else:
+            source_uri2 = os.path.normpath(os.path.join(base_path, source_uri))
             print("Warning: Converted relative uri path %s to abspath %s"%(source_uri, source_uri2))
-            return source_uri2
+            source_uri = source_uri2
     return source_uri
 
+
+def string_diff(str1, str2, maxlen=11, backtrack=7):
+    """
+    Compares strings, returns a part of str2 depending on how many
+    chars into the string the first difference can be found. If the
+    difference is after maxlen, a prefix of str is removed so that
+    only the 'backtrack'-last letters of the common prefix remain in str2.
+
+    This only makes sense if str1 != str2, really.
+
+    The purpose is to print str1 -> str2 without repeating a same long prefix
+    
+    :returns: a representation of where str2 differs from str1.
+    """
+    result = str2 or ''
+    if str1 is not None and str2 is not None:
+        if len(str2) > len(str1):
+            str1 = str1.ljust(len(str2))
+        charcompare = [x[0] == x[1] for x in zip(str(str2), str(str1))]
+        if False in charcompare:
+            commonprefix = str2[:charcompare.index(False)]
+            if len(commonprefix) > 11:
+                result = "...%s"%str2[len(commonprefix) - 7:]
+    return result
 
 def normabspath(localname, path):
     """

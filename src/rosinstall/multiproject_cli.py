@@ -37,7 +37,7 @@ import shutil
 from optparse import OptionParser, IndentedHelpFormatter
 
 from rosinstall.common import select_element, select_elements,\
-    MultiProjectException, normalize_uri
+    MultiProjectException, normalize_uri, string_diff
 from rosinstall.config_yaml import PathSpec
 import rosinstall.multiproject_cmd as multiproject_cmd
 from rosinstall.ui import Ui
@@ -499,26 +499,23 @@ The command removes entries from your configuration file, it does not affect you
             else:
                 old_path_spec = old_element.get_path_spec()
                 for attr in new_path_spec.__dict__:
-                    if (attr in old_path_spec.__dict__
-                        and old_path_spec.__dict__[attr] != new_path_spec.__dict__[attr]
-                        and attr[1:] not in ['local_name', 'path']):
+                    if (attr in old_path_spec.__dict__ and
+                        old_path_spec.__dict__[attr] != new_path_spec.__dict__[attr] and
+                        attr[1:] not in ['local_name', 'path']):
 
                         old_val = old_path_spec.__dict__[attr]
                         new_val = new_path_spec.__dict__[attr]
 
-                        commonprefix = new_val[:[x[0] == x[1] for x in zip(str(new_val), str(old_val))].index(0)]
-                        if len(commonprefix) > 11:
-                            new_val = "...%s"%new_val[len(commonprefix) - 7:]
-                        output += "  \t%s: %s -> %s;"%(attr[1:], old_val, new_val)
-                    else:
-                        if (attr not in old_path_spec.__dict__ and
-                            new_path_spec.__dict__[attr] is not None and
-                            new_path_spec.__dict__[attr] != "" and
-                            new_path_spec.__dict__[attr] != [] and
-                            attr[1:] not in ['local_name', 'path']):
+                        diff = string_diff(old_val, new_val)
+                        output += "  \t%s: %s -> %s;"%(attr[1:], old_val, diff)
+                    elif (attr not in old_path_spec.__dict__ and
+                          new_path_spec.__dict__[attr] is not None and
+                          new_path_spec.__dict__[attr] != "" and
+                          new_path_spec.__dict__[attr] != [] and
+                          attr[1:] not in ['local_name', 'path']):
 
-                            output += "  %s = %s"%(attr[1:],
-                                                   new_path_spec.__dict__[attr])
+                        output += "  %s = %s"%(attr[1:],
+                                               new_path_spec.__dict__[attr])
         return output
 
 
