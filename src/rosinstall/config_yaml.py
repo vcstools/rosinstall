@@ -104,7 +104,7 @@ def get_path_specs_from_uri(uri, config_filename=None, as_is=False):
             uri = os.path.join(uri, config_filename)
         else:
             # plain folders returned as themselves
-            return [PathSpec(uri)]
+            return [PathSpec(local_name=uri)]
     yaml_spec = get_yaml_from_uri(uri)
     if yaml_spec is None:
         return []
