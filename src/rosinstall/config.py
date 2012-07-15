@@ -32,8 +32,8 @@
 
 
 import os
-from .config_elements import AVCSConfigElement, OtherConfigElement, SetupConfigElement
-from .common import MultiProjectException, normabspath, realpath_relation, is_web_uri
+from rosinstall.config_elements import AVCSConfigElement, OtherConfigElement, SetupConfigElement
+from rosinstall.common import MultiProjectException, normabspath, realpath_relation, normalize_uri
 
 
 class Config:
@@ -86,8 +86,7 @@ class Config:
 
     def add_path_spec(self, path_spec, merge_strategy='KillAppend'):
         """
-        goes through path_specs and builds up self.trees.
-        May recursively pull elements from remote sources.
+        add new element to this config with information provided in path spec
 
         :param merge_strategy: see insert_element
         :param path_specs: PathSpec objects
@@ -95,41 +94,42 @@ class Config:
         """
         #compute the local_path for the config element
         local_path = normabspath(path_spec.get_local_name(), self.get_base_path())
-        if path_spec.get_scmtype() != None:
-            return self._insert_vcs_path_spec(path_spec, local_path, merge_strategy)
-        else:
+        if os.path.isfile(local_path) :
             if path_spec.get_tags() is not None and 'setup-file' in path_spec.get_tags():
                 elem = SetupConfigElement(local_path,
                                           os.path.normpath(path_spec.get_local_name()),
                                           properties=path_spec.get_tags())
                 return self.insert_element(elem, merge_strategy)
             else:
-                # we dont want files or other Config folders in this Config
-                if not (os.path.isfile(local_path)
-                        or
-                        (self.config_filename is not None and
-                         os.path.isdir(local_path) and
-                         os.path.exists(os.path.join(local_path, self.config_filename)))):
-                    local_name = os.path.normpath(path_spec.get_local_name())
-                    elem = OtherConfigElement(local_path,
-                                              local_name,
-                                              path_spec.get_uri(),
-                                              path_spec.get_version(),
-                                              properties=path_spec.get_tags())
-                    return self.insert_element(elem, merge_strategy)
-                else:
-                    print("!!!!!Warning: Not recursing into other config folder %s"%local_path)
+                print("!!!!! Warning: Not adding file %s"%local_path)
+                return None
+        else:
+            # scmtype == None kept for historic reasons here
+            if (path_spec.get_scmtype() == None and
+                self.config_filename is not None and
+                os.path.exists(os.path.join(local_path, self.config_filename))):
+                
+                print("!!!!! Warning: Not recursing into other config folder %s containing file %s"%(local_path, self.config_filename))
+                return None
+                
+            if path_spec.get_scmtype() != None:
+                return self._insert_vcs_path_spec(path_spec, local_path, merge_strategy)
+            else:
+                # keep the given local name (e.g. relative path) for other elements, but normalize
+                local_name = os.path.normpath(path_spec.get_local_name())
+                elem = OtherConfigElement(local_path,
+                                          local_name,
+                                          path_spec.get_uri(),
+                                          path_spec.get_version(),
+                                          properties=path_spec.get_tags())
+                return self.insert_element(elem, merge_strategy)
+                
 
 
     def _insert_vcs_path_spec(self, path_spec, local_path, merge_strategy='KillAppend'):
         # Get the version and source_uri elements
-        source_uri = path_spec.get_uri()
+        source_uri = normalize_uri(path_spec.get_uri(), self.get_base_path())
 
-        if (source_uri is not None
-            and not is_web_uri(source_uri)
-            and not os.path.isabs(source_uri)):
-            source_uri = os.path.normpath(os.path.join(self.get_base_path(), source_uri))
-            print("Warning: Converted relative uri path %s to abspath %s"%(path_spec.get_uri(), source_uri))
         version = path_spec.get_version()
         try:
             local_name = os.path.normpath(path_spec.get_local_name())

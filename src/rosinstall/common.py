@@ -74,6 +74,18 @@ def is_web_uri(source_uri):
     return True
 
 
+def normalize_uri(source_uri, base_path):
+    if (source_uri is not None
+        and not is_web_uri(source_uri)
+        and not os.path.isabs(source_uri)):
+        
+        source_uri2 = os.path.normpath(os.path.join(base_path, source_uri))
+        if source_uri2 != source_uri:
+            print("Warning: Converted relative uri path %s to abspath %s"%(source_uri, source_uri2))
+            return source_uri2
+    return source_uri
+
+
 def normabspath(localname, path):
     """
     if localname is absolute, return it normalized. If relative,
