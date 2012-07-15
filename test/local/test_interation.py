@@ -43,21 +43,26 @@ import rosinstall.ui
         
 from test.scm_test_base import AbstractFakeRosBasedTest, _create_yaml_file, _create_config_elt_dict
 
-class FakeUi:
-    def __init__(self, path = '', mode='skip'):
+class FakeUi(rosinstall.ui.Ui):
+    def __init__(self, path = '', mode='skip', prompt_result='y'):
         self.path = path
         self.mode = mode
     def get_backup_path(self):
         return path
     def prompt_del_abort_retry(self, prompt, allow_skip = False):
         return mode
-
+    def get_input(self, prompt):
+        return prompt_result
 
 class RosinstallInteractive(AbstractFakeRosBasedTest):
     """tests with possible User Interaction, using mock to simulate user input"""
 
     def setUp(self):
+        self.old_ui = rosinstall.ui.Ui.get_ui()
         rosinstall.ui.Ui.set_ui(FakeUi())
+
+    def tearDown(self):
+        rosinstall.ui.Ui.set_ui(self.old_ui)
     
     def test_twice_with_relpath(self):
         """runs rosinstall with generated self.simple_rosinstall to create local rosinstall env
