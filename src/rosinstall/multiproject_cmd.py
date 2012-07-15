@@ -32,9 +32,11 @@
 
 
 import os
-from .common import MultiProjectException, DistributedWork, select_elements, normabspath
-from .config import Config, realpath_relation
-from .config_yaml import aggregate_from_uris, generate_config_yaml, get_path_specs_from_uri
+from rosinstall.common import MultiProjectException, DistributedWork,\
+    select_elements, normabspath
+from rosinstall.config import Config, realpath_relation
+from rosinstall.config_yaml import aggregate_from_uris, generate_config_yaml,\
+    get_path_specs_from_uri
 
 import vcstools
 from vcstools import __version__, SvnClient, GitClient, HgClient, BzrClient, TarClient

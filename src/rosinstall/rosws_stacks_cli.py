@@ -44,8 +44,8 @@ from rosinstall.helpers import ROSInstallException, ROSINSTALL_FILENAME
 from rosinstall.common import MultiProjectException
 from rosinstall.cli_common import get_workspace
 import rosinstall.rosws_cli
-import rosinstall.rosinstall_cmd
-from rosinstall.multiproject_cmd import get_config, cmd_persist_config, cmd_install_or_update
+from rosinstall.rosinstall_cmd import cmd_persist_config,
+from rosinstall.multiproject_cmd import get_config, cmd_install_or_update
 import rosinstall.config_yaml
 
 

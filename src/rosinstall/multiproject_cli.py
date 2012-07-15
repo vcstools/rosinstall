@@ -94,8 +94,11 @@ def _get_mode_from_options(parser, options):
 
 class MultiprojectCLI:
 
-    def __init__(self, config_filename=None):
+    def __init__(self,
+                 config_filename=None,
+                 config_generator=multiproject_cmd.cmd_persist_config):
         self.config_filename = config_filename
+        self.config_generator = config_generator
 
     # def cmd_init(self, argv):
     #     raise Exception("Not implemented yet")
@@ -337,7 +340,7 @@ $ rosws set robot_model --detached
         if newconfig is not None:
             print("Overwriting %s"%os.path.join(newconfig.get_base_path(), self.config_filename))
             shutil.move(os.path.join(newconfig.get_base_path(), self.config_filename), "%s.bak"%os.path.join(newconfig.get_base_path(), self.config_filename))
-            multiproject_cmd.cmd_persist_config(newconfig, self.config_filename)
+            self.config_generator(newconfig, self.config_filename)
             if path_changed:
                 print("\nDo not forget to do ...\n$ source %s/setup.sh\n... in every open terminal."%target_path)
             if (spec.get_scmtype() is not None):
@@ -463,7 +466,7 @@ The command removes entries from your configuration file, it does not affect you
                                      self.config_filename),
                         "%s.bak"%os.path.join(config.get_base_path(),
                                               self.config_filename))
-            multiproject_cmd.cmd_persist_config(config, self.config_filename)
+            self.config_generator(config, self.config_filename)
             print("Removed entries %s"%args)
 
         return 0

@@ -50,12 +50,15 @@ from optparse import OptionParser
 
 from rosinstall.cli_common import get_info_list, get_info_table, get_workspace
 import rosinstall.rosinstall_cmd as rosinstall_cmd
-from rosinstall.multiproject_cmd import get_config, cmd_install_or_update, cmd_persist_config, cmd_snapshot, cmd_version, cmd_info
+from rosinstall.multiproject_cmd import get_config, cmd_install_or_update,\
+    cmd_snapshot, cmd_version, cmd_info
 import rosinstall.__version__
 
 from rosinstall.common import MultiProjectException, select_elements
-from rosinstall.helpers import ROSInstallException, ROSINSTALL_FILENAME, get_ros_package_path, get_ros_stack_path
-from rosinstall.multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__, IndentedHelpFormatterWithNL
+from rosinstall.helpers import ROSInstallException, ROSINSTALL_FILENAME,\
+    get_ros_package_path, get_ros_stack_path
+from rosinstall.multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__,\
+    IndentedHelpFormatterWithNL
 from rosinstall.config_yaml import get_path_spec_from_yaml
 
 ## This file adds or extends commands from multiproject_cli where ROS
@@ -70,7 +73,9 @@ __ROSWS_CMD_DICT__.update(__MULTIPRO_CMD_DICT__)
 class RoswsCLI(MultiprojectCLI):
 
     def __init__(self, config_filename=ROSINSTALL_FILENAME):
-        MultiprojectCLI.__init__(self, config_filename)
+        MultiprojectCLI.__init__(self,
+                                 config_filename,
+                                 config_generator=rosinstall_cmd.cmd_persist_config)
 
     def cmd_init(self, argv):
         if self.config_filename is None:
