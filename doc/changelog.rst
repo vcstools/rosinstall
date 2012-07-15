@@ -6,7 +6,8 @@ Changelog
 
 0.6.18
 ------
-- python3 compatibility
+- fixed some minor bugs around subfolders containing files named .rosinstall
+- python3 compatibility improved (might still be buggy)
 - code base cleaned with pychecker and friends
 - minor improvements to text output
 - fix #47 support for launchpad urls, no more conflict on update
