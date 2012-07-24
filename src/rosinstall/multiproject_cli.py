@@ -693,5 +693,5 @@ Switch append is the default.
                         extra_verbose = not extra_verbose
             if abort:
                 print("No changes made.")
-                return (None, False)
             print('==========================================')
+        return (None, False)
