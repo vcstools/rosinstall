@@ -36,7 +36,7 @@ import textwrap
 import shutil
 from optparse import OptionParser, IndentedHelpFormatter
 
-from rosinstall.common import select_element, select_elements,\
+from rosinstall.common import samefile, select_element, select_elements,\
     MultiProjectException, normalize_uri, string_diff
 from rosinstall.config_yaml import PathSpec
 import rosinstall.multiproject_cmd as multiproject_cmd
@@ -293,7 +293,7 @@ $ rosws set robot_model --detached
                     localname = rel_path
             else:
                 # got a relative path as localname, could point to a dir or be meant relative to workspace
-                if not os.path.samefile(os.getcwd(), config.get_base_path()):
+                if not samefile(os.getcwd(), config.get_base_path()):
                     if os.path.isdir(localname):
                         parser.error(
                             "Cannot decide which one you want to add:\n%s\n%s"%(

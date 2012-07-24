@@ -37,16 +37,38 @@ import os
 import copy
 # choosing multiprocessing over threading for clean Control-C interrupts (provides terminate())
 try:
-    from urlparse import urlparse    
+    from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
-        
+
 from multiprocessing import Process, Manager
 from vcstools.vcs_base import VcsError
 
 
 class MultiProjectException(Exception):
     pass
+
+
+def samefile(f1, f2):
+    """
+    Test whether two pathnames reference the same actual file
+    This is a workaround for the fact that some platforms
+    do not have os.path.samefile (particularly windows). This
+    is the patch that was integrated in python 3.0 (at which
+    time we can probably remove this workaround).
+    """
+    try:
+        return os.path.samefile(f1,f2)
+    except AttributeError:
+        try:
+            from nt import _getfinalpathname
+            return _getfinalpathname(f1) == _getfinalpathname(f2)
+        except (NotImplementedError, ImportError):
+            # On Windows XP and earlier, two files are the same if their
+            #  absolute pathnames are the same.
+            # Also, on other operating systems, fake this method with a
+            #  Windows-XP approximation.
+            return os.path.abspath(f1) == os.path.abspath(f2)
 
 
 def conditional_abspath(uri):
@@ -108,7 +130,7 @@ def string_diff(str1, str2, maxlen=11, backtrack=7):
     This only makes sense if str1 != str2, really.
 
     The purpose is to print str1 -> str2 without repeating a same long prefix
-    
+
     :returns: a representation of where str2 differs from str1.
     """
     result = str2 or ''

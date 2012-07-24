@@ -34,7 +34,7 @@
 import os
 import re
 from optparse import OptionParser
-from rosinstall.common import MultiProjectException
+from rosinstall.common import samefile, MultiProjectException
 
 # Support for any command line interface (CLI) for rosinstall
 
@@ -82,7 +82,7 @@ def get_workspace(argv, shell_path, config_filename=None, varname=None):
                 break
             shell_path = os.path.dirname(shell_path)
 
-    if current_path is not None and varname_path is not None and not os.path.samefile(current_path, varname_path):
+    if current_path is not None and varname_path is not None and not samefile(current_path, varname_path):
         raise MultiProjectException("Ambiguous workspace: %s=%s, %s"%(varname, varname_path, os.path.abspath(config_filename)))
 
     if current_path is None and varname_path is None:

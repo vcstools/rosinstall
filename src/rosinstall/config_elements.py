@@ -38,7 +38,7 @@ import datetime
 from vcstools import VcsClient
 from vcstools.vcs_base import VcsError
 
-from rosinstall.common import MultiProjectException
+from rosinstall.common import samefile, MultiProjectException
 from rosinstall.config_yaml import PathSpec
 from rosinstall.ui import Ui
 
@@ -274,7 +274,7 @@ class VCSConfigElement(ConfigElement):
                     # local repositories get absolute pathnames
                     if not (os.path.isdir(self.uri) and
                             os.path.isdir(cur_url) and
-                            os.path.samefile(cur_url, self.uri)):
+                            samefile(cur_url, self.uri)):
                         if not self._get_vcsc().url_matches(cur_url, self.uri):
                             error_message = "Url %s does not match %s requested."%(
                                 cur_url, self.uri)
