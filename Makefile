@@ -1,4 +1,4 @@
-.PHONY: all setup clean_dist distro clean install dsc source_deb upload
+.PHONY: all setup clean_dist distro clean install deb_dist upload-packages upload-building upload testsetup test
 
 VERSION=$(shell grep version= ./src/rosinstall/__version__.py | sed 's,version=,,')
 
@@ -27,20 +27,19 @@ clean: clean_dist
 install: distro
 	sudo checkinstall python setup.py install
 
-
-dsc: distro
-	python setup.py --command-packages=stdeb.command sdist_dsc
-
-source_deb: dsc
+deb_dist:
 	# need to convert unstable to each distro and repeat
-	cd deb_dist/rosinstall-${VERSION} && dpkg-buildpackage -sa -k84C5CECD
+	python setup.py --command-packages=stdeb.command bdist_deb 
 
-binary_deb: dsc
-	# need to convert unstable to each distro and repeat
-	cd deb_dist/rosinstall-${VERSION} && dpkg-buildpackage -sa -k84C5CECD
+upload-packages: deb_dist
+	dput -u -c dput.cf all-shadow ${OUTPUT_DIR}/${NAME}_${VERSION}-1_amd64.changes 
+	dput -u -c dput.cf all-shadow-fixed ${OUTPUT_DIR}/${NAME}_${VERSION}-1_amd64.changes 
+	#dput -u -c dput.cf all-ros ${OUTPUT_DIR}/${NAME}_${VERSION}-1_amd64.changes 
 
-upload: source_deb
-	cd deb_dist && dput ppa:tully.foote/tully-test-ppa ../rosinstall_${VERSION}-1_source.changes 
+upload-building: deb_dist
+	dput -u -c dput.cf all-building ${OUTPUT_DIR}/${NAME}_${VERSION}-1_amd64.changes 
+
+upload: upload-building upload-packages
 
 testsetup:
 	echo "running tests"
