@@ -1,6 +1,6 @@
 .PHONY: all setup clean_dist distro clean install deb_dist upload-packages upload-building upload testsetup test
 
-VERSION=$(shell grep version= ./src/rosinstall/__version__.py | sed 's,version=,,')
+VERSION=$(shell grep version ./src/rosinstall/__version__.py | sed 's,version = ,,')
 
 
 all:
