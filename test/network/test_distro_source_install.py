@@ -51,9 +51,9 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
     def setUpClass(self):
         AbstractRosinstallBaseDirTest.setUpClass()
 
-    def _ros_found(self, yaml):
+    def _ros_found(self, yaml_elements):
         ros_found = False
-        for e in yaml:
+        for e in yaml_elements:
             if "svn" in e:
                 element = e["svn"]
                 if "local-name" in element:
@@ -64,14 +64,20 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
                 if "local-name" in element:
                     if element["local-name"] == "ros":
                         ros_found = True
+            elif "other" in e:
+                element = e["other"]
+                if "local-name" in element:
+                    if element["local-name"].endswith('ros'):
+                        ros_found = True
         return ros_found
 
     def _ros_found_path_spec(self, specs):
         ros_found = False
         for s in specs:
-            if "svn" == s.get_scmtype() or "tar" == s.get_scmtype():
-                if "ros" == s.get_path():
+            if "svn" == s.get_scmtype() or "tar" == s.get_scmtype() or s.get_scmtype() is None:
+                if s.get_path().endswith('ros'):
                     ros_found = True
+                    break
         return ros_found
         
     def test_get_path_specs_from_uri_from_url_pre_electric(self):
@@ -98,34 +104,34 @@ class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):
         path_specs = get_path_specs_from_uri(uri)
         self.assertTrue(path_specs is not None)
         self.assertTrue(len(path_specs) > 0, "No elements in %s"%uri)
-        self.assertTrue(self._ros_found_path_spec(path_specs), "No ros element in %s"%uri)
+        self.assertTrue(self._ros_found_path_spec(path_specs), "No ros element in %s from %s"%([s.get_path() for s in path_specs], uri))
 
 
     def test_get_yaml_from_uri_from_url_pre_electric(self):
         # boxturtle
         url = "http://www.ros.org/rosinstalls/boxturtle_base.rosinstall"
-        yaml = get_yaml_from_uri(url)
-        self.assertTrue(self._ros_found(yaml), "No ros element in %s"%url)
+        yaml_elements = get_yaml_from_uri(url)
+        self.assertTrue(self._ros_found(yaml_elements), "No ros element in %s"%url)
         # diamondback
         url = "http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=diamondback&variant=desktop-full&overlay=no"
-        yaml = get_yaml_from_uri(url)
-        self.assertTrue(yaml is not None)
-        self.assertTrue(len(yaml) > 0, "No elements in %s"%url)
-        self.assertTrue(self._ros_found(yaml), "No ros element in %s"%url)
+        yaml_elements = get_yaml_from_uri(url)
+        self.assertTrue(yaml_elements is not None)
+        self.assertTrue(len(yaml_elements) > 0, "No elements in %s"%url)
+        self.assertTrue(self._ros_found(yaml_elements), "No ros element in %s"%url)
 
     def test_get_yaml_from_uri_from_url_electric(self):
         url = "http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=electric&variant=desktop-full&overlay=no"
-        yaml = get_yaml_from_uri(url)
-        self.assertTrue(yaml is not None)
-        self.assertTrue(len(yaml) > 0, "No elements in %s"%url)
-        self.assertTrue(self._ros_found(yaml), "No ros element in %s"%url)
+        yaml_elements = get_yaml_from_uri(url)
+        self.assertTrue(yaml_elements is not None)
+        self.assertTrue(len(yaml_elements) > 0, "No elements in %s"%url)
+        self.assertTrue(self._ros_found(yaml_elements), "No ros element in %s"%url)
         
     def test_get_yaml_from_uri_from_url_fuerte(self):
         url = "http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=fuerte&variant=desktop-full&overlay=no"
-        yaml = get_yaml_from_uri(url)
-        self.assertTrue(yaml is not None)
-        self.assertTrue(len(yaml) > 0, "No elements in %s"%url)
-        self.assertTrue(self._ros_found(yaml), "No ros element in %s"%url)
+        yaml_elements = get_yaml_from_uri(url)
+        self.assertTrue(yaml_elements is not None)
+        self.assertTrue(len(yaml_elements) > 0, "No elements in %s"%url)
+        self.assertTrue(self._ros_found(yaml_elements), "No ros element in %s from %s"%(yaml_elements, url))
 
 
     def test_get_yaml_from_uri_from_invalid_url(self):
