@@ -1,5 +1,6 @@
 .PHONY: all setup clean_dist distro clean install deb_dist upload-packages upload-building upload testsetup test
 
+NAME='rosinstall'
 VERSION=$(shell grep version ./src/rosinstall/__version__.py | sed 's,version = ,,')
 
 OUTPUT_DIR=deb_dist
