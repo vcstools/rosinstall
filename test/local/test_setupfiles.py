@@ -49,6 +49,8 @@ from rosinstall.helpers import ROSInstallException
 
 from test.scm_test_base import AbstractFakeRosBasedTest, AbstractRosinstallBaseDirTest, _add_to_file
 
+from nose.plugins.skip import SkipTest
+
 def _add_to_file(path, content):
      """Util function to append to file to get a modification"""
      f = io.open(path, 'a')
@@ -134,7 +136,16 @@ class Genfiletest(AbstractRosinstallBaseDirTest):
           self.assertTrue('ROSINSTALL_PATH_SETUPFILE_SEPARATOR' in output, output)
           self.assertTrue(output.endswith('/bar.sh\n'), output)
 
+
+     ## uncomment when unitest 3.1 is on all supported platforms. @unittest.skipIf(True, "No Python3 on this machine")
      def test_gen_python_code_python3(self):
+          cmd = "python3 -v"
+          p = subprocess.Popen(cmd, shell=True, cwd=self.directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+          output, err = p.communicate()
+          if not p.returncode == 0:
+               raise SkipTest('python3 not detected, skipping python3 tests')
+
+
           # requires python3 to be installed, obviously
           config = Config([PathSpec(os.path.join("test", "example_dirs", "ros_comm")),
                            PathSpec("bar.sh", tags = ['setup-file']),
