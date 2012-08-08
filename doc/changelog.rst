@@ -4,6 +4,11 @@ Changelog
 0.6
 ---
 
+0.6.19
+------
+
+- bugfix #63 broken import of vcstools version cuase by missing import
+
 0.6.18
 ------
 - fixed some minor bugs around subfolders containing files named .rosinstall
