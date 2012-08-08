@@ -51,6 +51,9 @@ from rosinstall.config_yaml import PathSpec
 from test.scm_test_base import AbstractSCMTest, _add_to_file, _nth_line_split
 from mock_client import MockVcsClient
 
+class GetVersionTest(unittest.TestCase):
+    def test_version(self):
+        self.assertIsNotNone(rosinstall.multiproject_cmd.cmd_version())
 
 class GetWorkspaceTest(unittest.TestCase):
 
