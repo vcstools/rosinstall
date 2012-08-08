@@ -31,6 +31,18 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
+"""
+The _cmd python files attempt to provide a reasonably
+complete level of abstraction to multiproject functionality.
+
+Client code will need to pass the Config element through,
+and may use the ConfigElement API in places.
+There are no guarantees at this time for the API to
+remain stable, but the cmd API probably will change least.
+A change to expect is abstraction of user interaction.
+"""
+
+
 import os
 from rosinstall.common import MultiProjectException, DistributedWork,\
     select_elements, normabspath
@@ -40,15 +52,6 @@ from rosinstall.config_yaml import aggregate_from_uris, generate_config_yaml,\
 
 import vcstools
 import vcstools.__version__
-
-## The _cmd python files attempt to provide a reasonably
-## complete level of abstraction to multiproject functionality.
-##
-## Client code will need to pass the Config element through,
-## and may use the ConfigElement API in places.
-## There are no guarantees at this time for the API to
-## remain stable, but the cmd API probably will change least.
-## A change to expect is abstraction of user interaction.
 
 
 def get_config(basepath,
@@ -78,7 +81,6 @@ def get_config(basepath,
         raise MultiProjectException("Need to provide a basepath for Config.")
 
     #print("source...........................", path_specs)
-
 
     ## Generate the config class with the uri and path
     if (config_filename is not None
@@ -203,7 +205,7 @@ def cmd_status(config, localnames=None, untracked=False):
                                                  line[:columns].ljust(8),
                                                  line[columns:])
                 status = status_aligned
-            return {'status':status}
+            return {'status': status}
 
     path = config.get_base_path()
     # call SCM info in separate threads
@@ -231,7 +233,7 @@ def cmd_diff(config, localnames=None):
             self.path = path
 
         def do_work(self):
-            return {'diff':self.element.get_diff(self.path)}
+            return {'diff': self.element.get_diff(self.path)}
 
     path = config.get_base_path()
     elements = config.get_config_elements()
@@ -386,7 +388,7 @@ def cmd_info(config, localnames=None):
                     actualversion = path_spec.get_current_revision()
                 scm = path_spec.get_scmtype()
                 uri = path_spec.get_uri()
-            return {'scm':scm,
+            return {'scm': scm,
                     'exists': exists,
                     'localname': localname,
                     'path': path,
