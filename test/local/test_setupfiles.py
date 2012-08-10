@@ -139,7 +139,7 @@ class Genfiletest(AbstractRosinstallBaseDirTest):
 
      ## uncomment when unitest 3.1 is on all supported platforms. @unittest.skipIf(True, "No Python3 on this machine")
      def test_gen_python_code_python3(self):
-          cmd = "python3 -v"
+          cmd = "python3 --version"
           p = subprocess.Popen(cmd, shell=True, cwd=self.directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
           output, err = p.communicate()
           if not p.returncode == 0:
