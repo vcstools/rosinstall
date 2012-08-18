@@ -56,36 +56,34 @@ def get_yaml_from_uri(uri):
     """reads and parses yaml from a local file or remote uri"""
     stream = None
     try:
-        if os.path.isfile(uri):
-            try:
+        try:
+            if os.path.isfile(uri):
                 stream = open(uri, 'r')
-            except IOError as e:
-                raise MultiProjectException(
-                    "error opening file [%s]: %s\n" % (uri, e))
-        else:
-            try:
+            else:
                 stream = urlopen(uri)
-            except IOError as e:
-                raise MultiProjectException(
-                    "Is not a local file, nor able to download as a URL [%s]: %s\n" % (uri, e))
-            except ValueError as e:
-                raise MultiProjectException(
-                    "Is not a local file, nor a valid URL [%s] : %s\n" % (uri, e))
+        except IOError as ioe:
+            raise MultiProjectException(
+                "Is not a local file, nor able to download as a URL [%s]: %s\n" % (uri, ioe))
+        except ValueError as vae:
+            raise MultiProjectException(
+                "Is not a local file, nor a valid URL [%s] : %s\n" % (uri, vae))
+
         if not stream:
             raise MultiProjectException("couldn't load config uri %s\n" % uri)
         try:
-            y = yaml.load(stream)
-        except yaml.YAMLError as e:
+            yamldata = yaml.load(stream)
+        except yaml.YAMLError as yame:
             raise MultiProjectException(
-                "Invalid multiproject yaml format in [%s]: %s\n" % (uri, e))
+                "Invalid multiproject yaml format in [%s]: %s\n" % (uri, yame))
+
         # we want a list or a dict, but pyyaml parses xml as string
-        if type(y) == 'str':
+        if type(yamldata) == 'str':
             raise MultiProjectException(
-                "Invalid multiproject yaml format in [%s]: %s\n" % (uri, y))
+                "Invalid multiproject yaml format in [%s]: %s\n" % (uri, yamldata))
     finally:
         if stream is not None:
             stream.close()
-    return y
+    return yamldata
 
 
 def get_path_specs_from_uri(uri, config_filename=None, as_is=False):
@@ -345,6 +343,7 @@ def generate_config_yaml(config, filename, header):
         os.makedirs(config.get_base_path())
     with open(os.path.join(config.get_base_path(), filename), 'w+b') as f:
         if header is not None:
-            f.write(header)
-        f.write(yaml.safe_dump([x.get_legacy_yaml() for x in config.get_source()]))
+            f.write(header.encode('UTF-8'))
+        content = yaml.safe_dump([x.get_legacy_yaml() for x in config.get_source()])
+        f.write(content.encode('UTF-8'))
 
