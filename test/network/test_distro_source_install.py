@@ -42,7 +42,6 @@ import rosinstall.config
 from rosinstall.rosinstall_cli import rosinstall_main
 from rosinstall.common import MultiProjectException
 from rosinstall.config_yaml import get_yaml_from_uri, get_path_specs_from_uri
-from nose.plugins.skip import SkipTest
 from test.scm_test_base import AbstractRosinstallBaseDirTest, _create_yaml_file, _create_config_elt_dict
 
 class RosinstallCommandlineTest(AbstractRosinstallBaseDirTest):

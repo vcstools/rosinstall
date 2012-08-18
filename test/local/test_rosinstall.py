@@ -36,11 +36,11 @@ import copy
 import yaml
 import subprocess
 import tempfile
+import unittest
 
 import rosinstall
 import rosinstall.helpers
 from rosinstall.rosinstall_cli import rosinstall_main
-from nose.plugins.skip import SkipTest
 
 from test.scm_test_base import AbstractRosinstallBaseDirTest, AbstractFakeRosBasedTest, _create_yaml_file, _create_config_elt_dict
 
@@ -69,8 +69,8 @@ class RosinstallCommandlineOverlays(AbstractFakeRosBasedTest):
         yamlsrc = yaml.load(stream)
         stream.close()
         self.assertEqual(2, len(yamlsrc))
-        self.assertEqual('other', yamlsrc[0].keys()[0])
-        self.assertEqual('other', yamlsrc[1].keys()[0])
+        self.assertEqual('other', list(yamlsrc[0].keys())[0])
+        self.assertEqual('other', list(yamlsrc[1].keys())[0])
         
     def test_Rosinstall_rosinstall_file_input_ros_only(self):
         """uses base ros folder"""
@@ -85,7 +85,7 @@ class RosinstallCommandlineOverlays(AbstractFakeRosBasedTest):
         yamlsrc = yaml.load(stream)
         stream.close()
         self.assertEqual(1, len(yamlsrc))
-        self.assertEqual('other', yamlsrc[0].keys()[0])
+        self.assertEqual('other', list(yamlsrc[0].keys())[0])
 
     def test_Rosinstall_rosinstall_file_input_add(self):
         """uses base ros folders and adds a stack"""
@@ -102,8 +102,8 @@ class RosinstallCommandlineOverlays(AbstractFakeRosBasedTest):
         yamlsrc = yaml.load(stream)
         stream.close()
         self.assertEqual(2, len(yamlsrc))
-        self.assertEqual('other', yamlsrc[0].keys()[0])
-        self.assertEqual('hg', yamlsrc[1].keys()[0])
+        self.assertEqual('other', list(yamlsrc[0].keys())[0])
+        self.assertEqual('hg', list(yamlsrc[1].keys())[0])
 
     def test_Rosinstall_ros_with_folder(self):
         """Use a folder as a remote rosinstall location"""
@@ -147,8 +147,8 @@ class RosinstallCommandlineOverlaysWithSetup(AbstractFakeRosBasedTest):
         yamlsrc = yaml.load(stream)
         stream.close()
         self.assertEqual(2, len(yamlsrc), yamlsrc)
-        self.assertEqual('other', yamlsrc[0].keys()[0]) #ros
-        self.assertEqual('hg', yamlsrc[1].keys()[0]) #hg_repo
+        self.assertEqual('other', list(yamlsrc[0].keys())[0]) #ros
+        self.assertEqual('hg', list(yamlsrc[1].keys())[0]) #hg_repo
 
 
     def test_Rosinstall_ros_with_folder_and_setupfile(self):
@@ -159,9 +159,9 @@ class RosinstallCommandlineOverlaysWithSetup(AbstractFakeRosBasedTest):
         yamlsrc = yaml.load(stream)
         stream.close()
         self.assertEqual(3, len(yamlsrc))
-        self.assertEqual('other', yamlsrc[0].keys()[0])
-        self.assertEqual('setup-file', yamlsrc[1].keys()[0])
-        self.assertEqual('other', yamlsrc[2].keys()[0])
+        self.assertEqual('other', list(yamlsrc[0].keys())[0])
+        self.assertEqual('setup-file', list(yamlsrc[1].keys())[0])
+        self.assertEqual('other', list(yamlsrc[2].keys())[0])
 
 
 
@@ -170,21 +170,21 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
     def test_prereq(self):
         self.assertTrue(os.path.exists('/bin/bash'))
         self.assertTrue(os.path.exists('/bin/zsh'))
-    
+        
+    @unittest.skipUnless(os.path.isdir('/opt/ros/cturtle'),
+                     "only runs with cturtle")
     def test_local_cturtle(self):
         distrodir = '/opt/ros/cturtle'
-        if not os.path.isdir(distrodir):
-            raise SkipTest("Cturtle Test is skipped")
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, distrodir])
         self.assertTrue(rosinstall_main(cmd))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh'), shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash'), shell=True, env=self.new_environ, executable='/bin/bash'))
 
+    @unittest.skipUnless(os.path.isdir('/opt/ros/diamondback'),
+                     "only runs with diamondback")
     def test_local_diamondback(self):
         distrodir = '/opt/ros/diamondback'
-        if not os.path.isdir(distrodir):
-            raise SkipTest("Diamondback Test is skipped")
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, distrodir])
         self.assertTrue(rosinstall_main(cmd))
@@ -201,18 +201,18 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
                              stdout=subprocess.PIPE,
                              env=self.new_environ)
         output = p.communicate()
-        self.assertEqual('/opt/ros/diamondback/ros', output[0].rstrip('\n'))
+        self.assertEqual('/opt/ros/diamondback/ros', output[0].decode('UTF-8').rstrip('\n'))
         p = subprocess.Popen("sh -c '. %s; echo $ROS_ROOT'"%os.path.join(self.directory, 'setup.sh'),
                              shell=True,
                              stdout=subprocess.PIPE,
                              env=self.new_environ)
         output = p.communicate()
-        self.assertEqual('/opt/ros/diamondback/ros', output[0].rstrip('\n'))
-        
+        self.assertEqual('/opt/ros/diamondback/ros', output[0].decode('UTF-8').rstrip('\n'))
+
+    @unittest.skipUnless(os.path.isdir('/opt/ros/electric'),
+                     "only runs with electric")
     def test_local_electric(self):
         distrodir = '/opt/ros/electric'
-        if not os.path.isdir(distrodir):
-            raise SkipTest("Electric Test is skipped")
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, distrodir])
         self.assertTrue(rosinstall_main(cmd))
@@ -229,18 +229,19 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
                              stdout=subprocess.PIPE,
                              env=self.new_environ)
         output = p.communicate()
-        self.assertEqual('/opt/ros/electric/ros', output[0].rstrip('\n'))
+        self.assertEqual('/opt/ros/electric/ros', output[0].decode('UTF-8').rstrip('\n'))
         p = subprocess.Popen("sh -c '. %s; echo $ROS_ROOT'"%os.path.join(self.directory, 'setup.sh'),
                              shell=True,
                              stdout=subprocess.PIPE,
                              env=self.new_environ)
         output = p.communicate()
-        self.assertEqual('/opt/ros/electric/ros', output[0].rstrip('\n'))
-        
+        self.assertEqual('/opt/ros/electric/ros', output[0].decode('UTF-8').rstrip('\n'))
+
+
+    @unittest.skipUnless(os.path.isdir('/opt/ros/fuerte'),
+                     "only runs with fuerte")
     def test_local_fuerte(self):
         distrodir = '/opt/ros/fuerte'
-        if not os.path.isdir(distrodir):
-            raise SkipTest("Fuerte Test is skipped")
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, distrodir])
         self.assertTrue(rosinstall_main(cmd))
@@ -257,18 +258,18 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
                              stdout=subprocess.PIPE,
                              env=self.new_environ)
         output = p.communicate()
-        self.assertEqual('/opt/ros/fuerte/share/ros', output[0].rstrip('\n'))
+        self.assertEqual('/opt/ros/fuerte/share/ros', output[0].decode('UTF-8').rstrip('\n'))
         p = subprocess.Popen("sh -c '. %s; echo $ROS_ROOT'"%os.path.join(self.directory, 'setup.sh'),
                              shell=True,
                              stdout=subprocess.PIPE,
                              env=self.new_environ)
         output = p.communicate()
-        self.assertEqual('/opt/ros/fuerte/share/ros', output[0].rstrip('\n'))
+        self.assertEqual('/opt/ros/fuerte/share/ros', output[0].decode('UTF-8').rstrip('\n'))
 
+    @unittest.skipUnless(os.path.isdir('/opt/ros/fuerte'),
+                     "only runs with fuerte")
     def test_local_fuerte_catkin(self):
         distrodir = '/opt/ros/fuerte'
-        if not os.path.isdir(distrodir):
-            raise SkipTest("Fuerte Test is skipped")
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, distrodir, '--catkin'])
         self.assertTrue(rosinstall_main(cmd))

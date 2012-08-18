@@ -40,5 +40,5 @@ class RosinstallTarTest(AbstractFakeRosBasedTest):
         yamlsrc = yaml.load(stream)
         stream.close()
         self.assertEqual(2, len(yamlsrc))
-        self.assertEqual('other', yamlsrc[0].keys()[0])
-        self.assertEqual('tar', yamlsrc[1].keys()[0])
+        self.assertEqual('other', list(yamlsrc[0].keys())[0])
+        self.assertEqual('tar', list(yamlsrc[1].keys())[0])

@@ -44,7 +44,7 @@ import rosinstall.config
 from rosinstall.config import MultiProjectException, Config
 from rosinstall.config_yaml import PathSpec
 
-from mock_client import MockVcsClient
+from local.mock_client import MockVcsClient
 
 
 class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):

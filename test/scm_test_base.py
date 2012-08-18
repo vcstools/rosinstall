@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2009, Willow Garage, Inc.
@@ -48,8 +47,8 @@ import rosinstall.helpers
 
 def _add_to_file(path, content):
      """Util function to append to file to get a modification"""
-     with open(path, 'a') as fhand:
-          fhand.write(content)
+     with open(path, 'ab') as fhand:
+          fhand.write(content.encode('UTF-8'))
      
 def _create_fake_ros_dir(root_path):
      """setup fake ros root within root_path/ros"""
@@ -77,7 +76,7 @@ def _create_yaml_file(config_elements, path):
           content += "    local-name: '%s'\n"%elt["local-name"]
           if elt["version"] is not None:
                content += "    version: '%s'\n"%elt["version"]
-     _add_to_file(path, unicode(content))
+     _add_to_file(path, content)
 
 def _create_config_elt_dict(scmtype, localname, uri=None, version=None):
      element = {}

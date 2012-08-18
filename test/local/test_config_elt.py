@@ -41,7 +41,7 @@ import unittest
 
 import rosinstall.config
 from rosinstall.common import MultiProjectException
-from mock_client import MockVcsClient
+from local.mock_client import MockVcsClient
 
 class ConfigElements_Test(unittest.TestCase):
 

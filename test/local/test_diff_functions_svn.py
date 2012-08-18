@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2009, Willow Garage, Inc.
@@ -35,7 +34,7 @@ from __future__ import unicode_literals
 
 import os
 import sys
-from StringIO import StringIO
+from test.io_wrapper import StringIO
 import unittest
 import subprocess
 import tempfile

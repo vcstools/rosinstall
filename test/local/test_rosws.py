@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2009, Willow Garage, Inc.
@@ -40,7 +39,7 @@ import tempfile
 import shutil
 import rosinstall
 import rosinstall.helpers
-from StringIO import StringIO
+from test.io_wrapper import StringIO
 import rosinstall.multiproject_cmd
 
 from test.scm_test_base import AbstractFakeRosBasedTest

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2009, Willow Garage, Inc.
@@ -35,7 +34,7 @@ from __future__ import unicode_literals
 
 import os
 import sys
-from StringIO import StringIO
+from test.io_wrapper import StringIO
 import unittest
 import subprocess
 import tempfile
@@ -233,13 +232,13 @@ class RosinstallInfoHgTest(AbstractSCMTest):
         subprocess.check_call(["hg", "add", "test.txt"], cwd=remote_path)
         subprocess.check_call(["hg", "commit", "-m", "modified"], cwd=remote_path)
         po = subprocess.Popen(["hg", "log", "--template", "'{node|short}'", "-l1"], cwd=remote_path, stdout=subprocess.PIPE)
-        self.version_init = po.stdout.read().rstrip("'").lstrip("'")
+        self.version_init = po.stdout.read().decode('UTF-8').rstrip("'").lstrip("'")
         subprocess.check_call(["hg", "tag", "footag"], cwd=remote_path)
         subprocess.check_call(["touch", "test2.txt"], cwd=remote_path)
         subprocess.check_call(["hg", "add", "test2.txt"], cwd=remote_path)
         subprocess.check_call(["hg", "commit", "-m", "modified"], cwd=remote_path)
         po = subprocess.Popen(["hg", "log", "--template", "'{node|short}'", "-l1"], cwd=remote_path, stdout=subprocess.PIPE)
-        self.version_end = po.stdout.read().rstrip("'").lstrip("'")
+        self.version_end = po.stdout.read().decode('UTF-8').rstrip("'").lstrip("'")
 
         # rosinstall the remote repo and fake ros
         _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- hg: {local-name: clone, uri: ../remote}")

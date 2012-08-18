@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2009, Willow Garage, Inc.
@@ -31,15 +30,13 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import unicode_literals
-
 import os
 import sys
-from StringIO import StringIO
 import subprocess
 import tempfile
 import copy
 
+from test.io_wrapper import StringIO
 
 import rosinstall
 import rosinstall.helpers
@@ -50,6 +47,7 @@ from rosinstall.rosws_cli import rosws_main
 
 import test.scm_test_base
 from test.scm_test_base import AbstractSCMTest, _add_to_file, _nth_line_split
+
 
 def create_git_repo(remote_path):
     # create a "remote" repo
@@ -238,13 +236,13 @@ class RosinstallInfoGitTest(AbstractSCMTest):
         subprocess.check_call(["git", "add", "*"], cwd=remote_path)
         subprocess.check_call(["git", "commit", "-m", "modified"], cwd=remote_path)
         po = subprocess.Popen(["git", "log", "-n", "1", "--pretty=format:\"%H\""], cwd=remote_path, stdout=subprocess.PIPE)
-        self.version_init = po.stdout.read().rstrip('"').lstrip('"')[0:12]
+        self.version_init = po.stdout.read().decode('UTF-8').rstrip('"').lstrip('"')[0:12]
         subprocess.check_call(["git", "tag", "footag"], cwd=remote_path)
         subprocess.check_call(["touch", "test2.txt"], cwd=remote_path)
         subprocess.check_call(["git", "add", "*"], cwd=remote_path)
         subprocess.check_call(["git", "commit", "-m", "modified"], cwd=remote_path)
         po = subprocess.Popen(["git", "log", "-n", "1", "--pretty=format:\"%H\""], cwd=remote_path, stdout=subprocess.PIPE)
-        self.version_end = po.stdout.read().rstrip('"').lstrip('"')[0:12]
+        self.version_end = po.stdout.read().decode('UTF-8').rstrip('"').lstrip('"')[0:12]
 
         # rosinstall the remote repo and fake ros
         _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- git: {local-name: clone, uri: ../remote}")

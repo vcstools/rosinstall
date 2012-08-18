@@ -1,6 +1,40 @@
+# Software License Agreement (BSD License)
+#
+# Copyright (c) 2009, Willow Garage, Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of Willow Garage, Inc. nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
+from __future__ import unicode_literals
+
 import os
 import sys
-from StringIO import StringIO
+from test.io_wrapper import StringIO
 import unittest
 import subprocess
 import tempfile
@@ -42,12 +76,12 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         create_bzr_repo(remote_path_bzr)
 
         # rosinstall the remote repo and fake ros (using git twice to check all overlaps)
-        rosinstall_spec = u"""- other: {local-name: ../ros}
+        rosinstall_spec = """- other: {local-name: ../ros}
 - git: {local-name: clone_git, uri: ../remote_git}
-- svn: {local-name: clone_svn, uri: '"""+svn_uri+"""'}
+- svn: {local-name: clone_svn, uri: '%s'}
 - hg: {local-name: clone_hg, uri: ../remote_hg}
 - bzr: {local-name: clone_bzr, uri: ../remote_bzr}
-- git: {local-name: clone_git2, uri: ../remote_git}"""
+- git: {local-name: clone_git2, uri: ../remote_git}"""%svn_uri
         
         _add_to_file(os.path.join(self.local_path, ".rosinstall"), rosinstall_spec)
 

@@ -93,7 +93,8 @@ class FunctionsTest(unittest.TestCase):
                          PathSpec("bar")],
                         ".",
                         None)
-        self.assertEqual(map(os.path.abspath, ['bar',
+        self.assertEqual(list(map(os.path.abspath, ['bar',
                           'test/example_dirs/roscpp',
                           'test/example_dirs/ros_comm',
-                          'foo']), rosinstall.helpers.get_ros_package_path(config))
+                          'foo'])),
+                         rosinstall.helpers.get_ros_package_path(config))
