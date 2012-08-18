@@ -31,6 +31,8 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import unicode_literals
+
 import os
 import sys
 from StringIO import StringIO
@@ -67,10 +69,10 @@ def modify_bzr_repo(clone_path):
     # make local modifications
     subprocess.check_call(["rm", "deleted-fs.txt"], cwd=clone_path)
     subprocess.check_call(["bzr", "rm", "deleted.txt"], cwd=clone_path)
-    _add_to_file(os.path.join(clone_path, "modified-fs.txt"), u"foo\n")
-    _add_to_file(os.path.join(clone_path, "modified.txt"), u"foo\n")
-    _add_to_file(os.path.join(clone_path, "added-fs.txt"), u"tada\n")
-    _add_to_file(os.path.join(clone_path, "added.txt"), u"flam\n")
+    _add_to_file(os.path.join(clone_path, "modified-fs.txt"), "foo\n")
+    _add_to_file(os.path.join(clone_path, "modified.txt"), "foo\n")
+    _add_to_file(os.path.join(clone_path, "added-fs.txt"), "tada\n")
+    _add_to_file(os.path.join(clone_path, "added.txt"), "flam\n")
     subprocess.check_call(["bzr", "add", "added.txt"], cwd=clone_path)
         
 class RosinstallDiffBzrTest(AbstractSCMTest):
@@ -84,7 +86,7 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
         create_bzr_repo(remote_path)
 
         # rosinstall the remote repo and fake ros
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- bzr: {local-name: clone, uri: %s}"%remote_path)
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- bzr: {local-name: clone, uri: %s}"%remote_path)
 
         cmd = ["rosinstall", "ws", "-n"]
         os.chdir(self.test_root_path)
@@ -247,17 +249,17 @@ class RosinstallInfoBzrTest(AbstractSCMTest):
         self.version_end = "2"
 
         # rosinstall the remote repo and fake ros
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- bzr: {local-name: clone, uri: ../remote}")
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- bzr: {local-name: clone, uri: ../remote}")
 
-	cmd = ["rosws", "update"]
+        cmd = ["rosws", "update"]
         os.chdir(self.local_path)
         sys.stdout = output = StringIO();
         rosws_main(cmd)
         output = output.getvalue()
-	sys.stdout = sys.__stdout__
+        sys.stdout = sys.__stdout__
       
     def test_rosinstall_detailed_locapath_info(self):
-	cmd = ["rosws", "info", "-t", "ws"]
+        cmd = ["rosws", "info", "-t", "ws"]
         os.chdir(self.test_root_path)
         sys.stdout = output = StringIO();
         rosws_main(cmd)
@@ -276,7 +278,7 @@ class RosinstallInfoBzrTest(AbstractSCMTest):
         self.assertEqual(['clone', 'M', 'bzr', self.version_end, os.path.join(self.test_root_path, 'remote')], tokens)
 
         subprocess.check_call(["rm", ".rosinstall"], cwd=self.local_path)
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- bzr: {local-name: clone, uri: ../remote, version: \"footag\"}")
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- bzr: {local-name: clone, uri: ../remote, version: \"footag\"}")
         os.chdir(self.test_root_path)
         sys.stdout = output = StringIO();
         rosws_main(cmd)

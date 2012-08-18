@@ -31,6 +31,8 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import unicode_literals
+
 import os
 import sys
 from StringIO import StringIO
@@ -69,10 +71,10 @@ def modify_svn_repo(clone_path):
     subprocess.check_call(["rm", "deleted-fs.txt"], cwd=clone_path)
     subprocess.check_call(["svn", "rm", "deleted.txt"], cwd=clone_path)
 
-    #_add_to_file(os.path.join(clone_path, "modified-fs.txt"), u"foo\n")
-    _add_to_file(os.path.join(clone_path, "modified.txt"), u"foo\n")
-    _add_to_file(os.path.join(clone_path, "added-fs.txt"), u"tada\n")
-    _add_to_file(os.path.join(clone_path, "added.txt"), u"flam\n")
+    #_add_to_file(os.path.join(clone_path, "modified-fs.txt"), "foo\n")
+    _add_to_file(os.path.join(clone_path, "modified.txt"), "foo\n")
+    _add_to_file(os.path.join(clone_path, "added-fs.txt"), "tada\n")
+    _add_to_file(os.path.join(clone_path, "added.txt"), "flam\n")
     subprocess.check_call(["svn", "add", "--no-auto-props", "added.txt"], cwd=clone_path)
 
 class RosinstallDiffSvnTest(AbstractSCMTest):
@@ -88,7 +90,7 @@ class RosinstallDiffSvnTest(AbstractSCMTest):
         create_svn_repo(self.test_root_path, remote_path, filler_path, svn_uri)
 
         # rosinstall the remote repo and fake ros
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- svn: {local-name: clone, uri: '"+svn_uri+"'}")
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- svn: {local-name: clone, uri: '"+svn_uri+"'}")
 
         cmd = ["rosinstall", "ws", "-n"]
         os.chdir(self.test_root_path)
@@ -229,67 +231,67 @@ class RosinstallInfoSvnTest(AbstractSCMTest):
 
     def setUp(self):
         AbstractSCMTest.setUp(self)
-	remote_path = os.path.join(self.test_root_path, "remote")
-	filler_path = os.path.join(self.test_root_path, "filler")
-	self.svn_uri = "file://localhost"+remote_path
+        remote_path = os.path.join(self.test_root_path, "remote")
+        filler_path = os.path.join(self.test_root_path, "filler")
+        self.svn_uri = "file://localhost"+remote_path
 
-	# create a "remote" repo
-	subprocess.check_call(["svnadmin", "create", remote_path], cwd=self.test_root_path)
-	subprocess.check_call(["svn", "checkout", self.svn_uri, filler_path], cwd=self.test_root_path)
-	subprocess.check_call(["touch", "test.txt"], cwd=filler_path)
-	subprocess.check_call(["svn", "add", "test.txt"], cwd=filler_path)
-	subprocess.check_call(["svn", "commit", "-m", "modified"], cwd=filler_path)
-	subprocess.check_call(["touch", "test2.txt"], cwd=filler_path)
-	subprocess.check_call(["svn", "add", "test2.txt"], cwd=filler_path)
-	subprocess.check_call(["svn", "commit", "-m", "modified"], cwd=filler_path)
+        # create a "remote" repo
+        subprocess.check_call(["svnadmin", "create", remote_path], cwd=self.test_root_path)
+        subprocess.check_call(["svn", "checkout", self.svn_uri, filler_path], cwd=self.test_root_path)
+        subprocess.check_call(["touch", "test.txt"], cwd=filler_path)
+        subprocess.check_call(["svn", "add", "test.txt"], cwd=filler_path)
+        subprocess.check_call(["svn", "commit", "-m", "modified"], cwd=filler_path)
+        subprocess.check_call(["touch", "test2.txt"], cwd=filler_path)
+        subprocess.check_call(["svn", "add", "test2.txt"], cwd=filler_path)
+        subprocess.check_call(["svn", "commit", "-m", "modified"], cwd=filler_path)
 
-	self.version_init = "-r1"
-	self.version_end = "-r2"
+        self.version_init = "-r1"
+        self.version_end = "-r2"
 
-	# rosinstall the remote repo and fake ros
-	_add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- svn: {local-name: clone, uri: '"+self.svn_uri+"'}")
+        # rosinstall the remote repo and fake ros
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- svn: {local-name: clone, uri: '"+self.svn_uri+"'}")
 
-	cmd = ["rosws", "update"]
+        cmd = ["rosws", "update"]
         os.chdir(self.local_path)
         sys.stdout = output = StringIO();
         rosws_main(cmd)
         output = output.getvalue()
-	sys.stdout = sys.__stdout__
+        sys.stdout = sys.__stdout__
 
 
     def test_rosinstall_detailed_locapath_info(self):
-	cmd = ["rosws", "info", "-t", "ws"]
+        cmd = ["rosws", "info", "-t", "ws"]
         os.chdir(self.test_root_path)
         sys.stdout = output = StringIO();
         rosws_main(cmd)
         output = output.getvalue()
         tokens = _nth_line_split(-2, output)
-	self.assertEqual(['clone', 'svn', self.version_end, self.svn_uri], tokens)
+        self.assertEqual(['clone', 'svn', self.version_end, self.svn_uri], tokens)
 
-	clone_path = os.path.join(self.local_path, "clone")
-	# make local modifications check
-	subprocess.check_call(["touch", "test3.txt"], cwd=clone_path)
-	subprocess.check_call(["svn", "add", "test3.txt"], cwd=clone_path)
+        clone_path = os.path.join(self.local_path, "clone")
+        # make local modifications check
+        subprocess.check_call(["touch", "test3.txt"], cwd=clone_path)
+        subprocess.check_call(["svn", "add", "test3.txt"], cwd=clone_path)
         os.chdir(self.test_root_path)
         sys.stdout = output = StringIO();
         rosws_main(cmd)
         output = output.getvalue()
         tokens = _nth_line_split(-2, output)
-	self.assertEqual(['clone', 'M', 'svn', self.version_end, self.svn_uri], tokens)
+        self.assertEqual(['clone', 'M', 'svn', self.version_end, self.svn_uri], tokens)
 
-	subprocess.check_call(["rm", ".rosinstall"], cwd=self.local_path)
-	_add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- svn: {local-name: clone, uri: '"+self.svn_uri+"', version: \"1\"}")
+        subprocess.check_call(["rm", ".rosinstall"], cwd=self.local_path)
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- svn: {local-name: clone, uri: '"+self.svn_uri+"', version: \"1\"}")
         os.chdir(self.test_root_path)
         sys.stdout = output = StringIO();
         rosws_main(cmd)
         output = output.getvalue()
         tokens = _nth_line_split(-2, output)
-	self.assertEqual(['clone', 'MV', 'svn', '1', self.version_end, "(%s)"%self.version_init, self.svn_uri], tokens)
+        self.assertEqual(['clone', 'MV', 'svn', '1', self.version_end, "(%s)"%self.version_init, self.svn_uri], tokens)
 
-	subprocess.check_call(["rm", "-rf", "clone"], cwd=self.local_path)
+        subprocess.check_call(["rm", "-rf", "clone"], cwd=self.local_path)
         os.chdir(self.test_root_path)
-	sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO();
         rosws_main(cmd)
         output = output.getvalue()
         tokens = _nth_line_split(-2, output)
-	self.assertEqual(['clone', 'x', 'svn', '1', self.svn_uri], tokens)
+        self.assertEqual(['clone', 'x', 'svn', '1', self.svn_uri], tokens)

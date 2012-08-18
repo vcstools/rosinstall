@@ -31,8 +31,9 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import unicode_literals
+
 import os
-import io
 import copy
 import stat
 import struct
@@ -47,10 +48,9 @@ import rosinstall.helpers
 
 def _add_to_file(path, content):
      """Util function to append to file to get a modification"""
-     f = io.open(path, 'a')
-     f.write(unicode(content))
-     f.close()
-
+     with open(path, 'a') as fhand:
+          fhand.write(content)
+     
 def _create_fake_ros_dir(root_path):
      """setup fake ros root within root_path/ros"""
      ros_path = os.path.join(root_path, "ros")
@@ -58,10 +58,10 @@ def _create_fake_ros_dir(root_path):
      bin_path = os.path.join(ros_path, "bin")
      os.makedirs(bin_path)
      subprocess.check_call(["git", "init"], cwd=ros_path)
-     _add_to_file(os.path.join(ros_path, "stack.xml"), u'<stack></stack>')
-     _add_to_file(os.path.join(ros_path, "setup.sh"), u'export FOO_BAR=`pwd`')
-     _add_to_file(os.path.join(bin_path, "rosmake"), u'#!/usr/bin/env sh')
-     _add_to_file(os.path.join(bin_path, "rospack"), u'#!/usr/bin/env sh')
+     _add_to_file(os.path.join(ros_path, "stack.xml"), '<stack></stack>')
+     _add_to_file(os.path.join(ros_path, "setup.sh"), 'export FOO_BAR=`pwd`')
+     _add_to_file(os.path.join(bin_path, "rosmake"), '#!/usr/bin/env sh')
+     _add_to_file(os.path.join(bin_path, "rospack"), '#!/usr/bin/env sh')
      # even faking rosmake
      subprocess.check_call(["chmod", "u+x", os.path.join(bin_path, "rosmake")])
      subprocess.check_call(["chmod", "u+x", os.path.join(bin_path, "rospack")])
@@ -113,9 +113,9 @@ def _nth_line_split(n, output):
      """returns the last line as list of non-blank tokens""" 
      lines = output.splitlines() 
      if len(lines) > 0: 
-	  return lines[n].split() 
+          return lines[n].split() 
      else: 
-	  return []
+          return []
     
 # ROSINSTALL_CMD = os.path.join(os.getcwd(), 'scripts/rosinstall')
 # ROSWS_CMD = os.path.join(os.getcwd(), 'scripts/rosws')

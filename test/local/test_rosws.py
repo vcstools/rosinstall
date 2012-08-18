@@ -278,7 +278,7 @@ class RosWsTest(AbstractFakeRosBasedTest):
         self.assertEqual(0, cli.cmd_info(workspace, ['--only=cur_revision']))
         output = output.getvalue()
         self.assertEqual(82, len(output))
-	sys.stdout = sys.__stdout__
+        sys.stdout = sys.__stdout__
 
         # pairs
         sys.stdout = output = StringIO();

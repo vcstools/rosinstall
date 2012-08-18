@@ -31,6 +31,8 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import unicode_literals
+
 import os
 import sys
 from StringIO import StringIO
@@ -64,11 +66,11 @@ def modify_git_repo(clone_path):
     # make local modifications
     subprocess.check_call(["rm", "deleted-fs.txt"], cwd=clone_path)
     subprocess.check_call(["git", "rm", "deleted.txt"], cwd=clone_path)
-    _add_to_file(os.path.join(clone_path, "modified-fs.txt"), u"foo\n")
-    _add_to_file(os.path.join(clone_path, "modified.txt"), u"foo\n")
+    _add_to_file(os.path.join(clone_path, "modified-fs.txt"), "foo\n")
+    _add_to_file(os.path.join(clone_path, "modified.txt"), "foo\n")
     subprocess.check_call(["git", "add", "modified.txt"], cwd=clone_path)
-    _add_to_file(os.path.join(clone_path, "added-fs.txt"), u"tada\n")
-    _add_to_file(os.path.join(clone_path, "added.txt"), u"flam\n")
+    _add_to_file(os.path.join(clone_path, "added-fs.txt"), "tada\n")
+    _add_to_file(os.path.join(clone_path, "added.txt"), "flam\n")
     subprocess.check_call(["git", "add", "added.txt"], cwd=clone_path)
     
 class RosinstallDiffGitTest(AbstractSCMTest):
@@ -82,7 +84,7 @@ class RosinstallDiffGitTest(AbstractSCMTest):
         create_git_repo(remote_path)
 
         # rosinstall the remote repo and fake ros
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- git: {local-name: clone, uri: ../remote}")
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- git: {local-name: clone, uri: ../remote}")
 
         cmd = ["rosinstall", "ws", "-n"]
         os.chdir(self.test_root_path)
@@ -245,7 +247,7 @@ class RosinstallInfoGitTest(AbstractSCMTest):
         self.version_end = po.stdout.read().rstrip('"').lstrip('"')[0:12]
 
         # rosinstall the remote repo and fake ros
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- git: {local-name: clone, uri: ../remote}")
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- git: {local-name: clone, uri: ../remote}")
 
         cmd = ["rosws", "update"]
         os.chdir(self.local_path)
@@ -275,7 +277,7 @@ class RosinstallInfoGitTest(AbstractSCMTest):
         self.assertEqual(['clone', 'M', 'git', self.version_end, os.path.join(self.test_root_path, 'remote')], tokens)
 
         subprocess.check_call(["rm", ".rosinstall"], cwd=self.local_path)
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- git: {local-name: clone, uri: ../remote, version: \"footag\"}")
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- git: {local-name: clone, uri: ../remote, version: \"footag\"}")
         sys.stdout = output = StringIO();
         rosws_main(cmd)
         output = output.getvalue()
@@ -284,7 +286,7 @@ class RosinstallInfoGitTest(AbstractSCMTest):
 
         # using a denormalized local-name here
         subprocess.check_call(["rm", ".rosinstall"], cwd=self.local_path)
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- git: {local-name: clone/../clone, uri: ../remote, version: \"footag\"}")
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- git: {local-name: clone/../clone, uri: ../remote, version: \"footag\"}")
         sys.stdout = output = StringIO();
         rosws_main(cmd)
         output = output.getvalue()
@@ -293,7 +295,7 @@ class RosinstallInfoGitTest(AbstractSCMTest):
 
         # using an absolute path to clone dir here
         subprocess.check_call(["rm", ".rosinstall"], cwd=self.local_path)
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- git: {local-name: '"+clone_path+"', uri: ../remote, version: \"footag\"}")
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- git: {local-name: '"+clone_path+"', uri: ../remote, version: \"footag\"}")
         sys.stdout = output = StringIO();
         rosws_main(cmd)
         output = output.getvalue()
@@ -302,7 +304,7 @@ class RosinstallInfoGitTest(AbstractSCMTest):
 
         # using an absolute path here where relative path is shorter to display (also checks x for missing)
         subprocess.check_call(["rm", ".rosinstall"], cwd=self.local_path)
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), u"- other: {local-name: ../ros}\n- git: {local-name: '"+os.path.join(self.local_path, "../foo")+"', uri: ../remote, version: \"footag\"}")
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- git: {local-name: '"+os.path.join(self.local_path, "../foo")+"', uri: ../remote, version: \"footag\"}")
         sys.stdout = output = StringIO();
         rosws_main(cmd)
         output = output.getvalue()
