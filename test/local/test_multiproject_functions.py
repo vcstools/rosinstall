@@ -96,6 +96,9 @@ class FunctionsTest(unittest.TestCase):
         self.assertEqual('...7890foo3', string_diff('12345678901234567890foo4', '12345678901234567890foo3'))
         self.assertEqual('...7890foo3', string_diff('12345678901234567890foo45', '12345678901234567890foo3'))
         self.assertEqual('...4567890foo123456789123456789', string_diff('12345678901234567890', '12345678901234567890foo123456789123456789'))
+        
+        self.assertEqual("['foo']", string_diff(['foo'], ['foo']))
+        self.assertEqual("['bar']", string_diff(['foo'], ['bar']))
 
     def test_conditional_abspath(self):
         path = "foo"

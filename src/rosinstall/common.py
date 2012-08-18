@@ -120,7 +120,7 @@ def normalize_uri(source_uri, base_path):
     return source_uri
 
 
-def string_diff(str1, str2, maxlen=11, backtrack=7):
+def string_diff(str1_orig, str2_orig, maxlen=11, backtrack=7):
     """
     Compares strings, returns a part of str2 depending on how many
     chars into the string the first difference can be found. If the
@@ -133,8 +133,14 @@ def string_diff(str1, str2, maxlen=11, backtrack=7):
 
     :returns: a representation of where str2 differs from str1.
     """
-    result = str2 or ''
-    if str1 is not None and str2 is not None:
+    result = str2_orig or ''
+    if str1_orig is not None and str2_orig is not None:
+        # we cannot be sure we have strings, might be lists,
+        # gracefully fail convert to string
+        str1 = str(str1_orig)
+        str2 = str(str2_orig)
+        result = str2
+
         if len(str2) > len(str1):
             str1 = str1.ljust(len(str2))
         charcompare = [x[0] == x[1] for x in zip(str(str2), str(str1))]

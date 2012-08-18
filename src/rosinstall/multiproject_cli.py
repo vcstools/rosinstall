@@ -487,7 +487,7 @@ The command removes entries from your configuration file, it does not affect you
         """
         if new_path_spec is None or config_old is None:
             return ''
-        output = ' %s'%new_path_spec.get_local_name()
+        output = [' %s'%new_path_spec.get_local_name()]
         if extra_verbose:
             old_element = None
             if config_old is not None:
@@ -496,30 +496,31 @@ The command removes entries from your configuration file, it does not affect you
 
             if old_element is None:
                 if new_path_spec.get_scmtype() is not None:
-                    output += "   \t%s  %s   %s"%(new_path_spec.get_scmtype(),
-                                                new_path_spec.get_uri(),
-                                                new_path_spec.get_version() or '')
+                    output.append("   \t%s  %s   %s"%(new_path_spec.get_scmtype(),
+                                                      new_path_spec.get_uri(),
+                                                      new_path_spec.get_version() or ''))
             else:
                 old_path_spec = old_element.get_path_spec()
-                for attr in new_path_spec.__dict__:
-                    if (attr in old_path_spec.__dict__ and
-                        old_path_spec.__dict__[attr] != new_path_spec.__dict__[attr] and
-                        attr[1:] not in ['local_name', 'path']):
-
-                        old_val = old_path_spec.__dict__[attr]
-                        new_val = new_path_spec.__dict__[attr]
-
+                accessor_map = {PathSpec.get_scmtype: 'scmtype',
+                                PathSpec.get_version: 'version',
+                                PathSpec.get_revision: 'revision',
+                                PathSpec.get_current_revision: 'current revision',
+                                PathSpec.get_curr_uri: 'current_uri',
+                                PathSpec.get_uri: 'specified uri'}
+                for accessor, label in list(accessor_map.items()):
+                    old_val = accessor(old_path_spec)
+                    new_val = accessor(new_path_spec)
+                    if old_val is not None and\
+                            old_val != new_val:
                         diff = string_diff(old_val, new_val)
-                        output += "  \t%s: %s -> %s;"%(attr[1:], old_val, diff)
-                    elif (attr not in old_path_spec.__dict__ and
-                          new_path_spec.__dict__[attr] is not None and
-                          new_path_spec.__dict__[attr] != "" and
-                          new_path_spec.__dict__[attr] != [] and
-                          attr[1:] not in ['local_name', 'path']):
-
-                        output += "  %s = %s"%(attr[1:],
-                                               new_path_spec.__dict__[attr])
-        return output
+                        output.append("  \t%s: %s -> %s;"%(label, old_val, diff))
+                    elif old_val is None and\
+                            new_val is not None and\
+                            new_val != "" and\
+                            new_val != []:
+                        output.append("  %s = %s"%(label,
+                                                   new_val))
+        return ''.join(output)
 
 
     def prompt_merge(self,

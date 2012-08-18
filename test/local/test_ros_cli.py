@@ -45,6 +45,7 @@ import rosinstall.multiproject_cmd
 from rosinstall.rosws_cli import RoswsCLI
 from rosinstall.helpers import ROSInstallException
 
+
 class FakeConfig():
     def __init__(self, elts = [], celts=[], basepath = ''):
         self.elts = elts
@@ -58,12 +59,18 @@ class FakeConfig():
         return self.basepath
 
 class MockConfigElement():
-    def __init__(self, scmtype=None, path=None, uri = None):
+    def __init__(self, local_name='', scmtype=None, path=None, uri = None, spec=None):
         self.scmtype = scmtype
         self.path = path
         self.uri = uri
+        self.local_name = local_name
+        self.spec = spec
     def get_path(self):
         return self.path
+    def get_local_name(self):
+        return self.local_name
+    def get_path_spec(self):
+        return self.spec
 
 class RosinstallUsagetest(unittest.TestCase):
     def test_usage(self):
@@ -382,3 +389,31 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.assertEqual('git', config.get_config_elements()[0].get_path_spec().get_scmtype())
 
         
+    def test_get_element_diff(self):
+        cli = RoswsCLI()
+        self.assertEqual('', cli._get_element_diff(None, None))
+        self.assertEqual('', cli._get_element_diff(None, 42))
+        self.assertEqual('', cli._get_element_diff(42, None))
+
+        spec = PathSpec('foolocalname',
+                        scmtype='fooscm',
+                        uri='foouri',
+                        version='fooversion',
+                        path='foopath')
+
+        spec2 = PathSpec('foolocalname')
+        element2 = MockConfigElement(local_name='foolocalname', spec=spec2)
+
+        elements = [element2]
+        config = FakeConfig(celts=elements)
+        
+        output = cli._get_element_diff(spec, config)
+        self.assertEqual(' foolocalname', output)
+        
+        output = cli._get_element_diff(spec, config, extra_verbose=True)
+        snippets = [' foolocalname',
+                    'version = fooversion',
+                    'specified uri = foouri',
+                    'scmtype = fooscm']
+        for s in snippets:
+            self.assertTrue(s in output, "missing snippet: '%s' in '%s'"%(s, output))
