@@ -7,7 +7,8 @@ Changelog
 0.6.19
 ------
 
-- bugfix #63 broken import of vcstools version cuase by missing import
+- unit tests run under python3
+- bugfix #63 broken import of vcstools version caused by missing import
 
 0.6.18
 ------
