@@ -38,9 +38,9 @@ import struct
 import sys
 import unittest
 
-
+from rosinstall.config import Config
 from rosinstall.common import DistributedWork, WorkerThread, normabspath,\
-    is_web_uri, select_element, normalize_uri, realpath_relation,\
+    is_web_uri, select_elements, select_element, normalize_uri, realpath_relation,\
     conditional_abspath, string_diff, MultiProjectException
 
 class FooThing:
@@ -56,6 +56,17 @@ class FooThing:
     def get_local_name(self):
         return 'bar'
 
+
+class MockElement:
+    def __init__(self, localname, path):
+        self.localname = localname
+        self.path = path
+    def get_local_name(self):
+        return self.localname
+    def get_path(self):
+        return self.path
+
+    
 class FunctionsTest(unittest.TestCase):
 
     def test_normabspath(self):
@@ -123,14 +134,6 @@ class FunctionsTest(unittest.TestCase):
         self.assertEqual(None, realpath_relation("/foo/bar", "/foo/ba"))
 
     def test_select_element(self):
-        class MockElement:
-            def __init__(self, localname, path):
-                self.localname = localname
-                self.path = path
-            def get_local_name(self):
-                return self.localname
-            def get_path(self):
-                return self.path
         self.assertEqual(None, select_element(None, None))
         self.assertEqual(None, select_element([], None))
         mock1 = MockElement('foo', '/test/path1')
@@ -189,3 +192,23 @@ class FunctionsTest(unittest.TestCase):
         self.assertEqual(False, 'error' in output[0], output)
         self.assertEqual(False, 'error' in output[1], output)
         self.assertEqual(False, 'error' in output[2], output)
+
+    def test_select_elements(self):
+        self.assertEqual([], select_elements(None, None))
+        mock1 = MockElement('foo', '/test/path1')
+        mock2 = MockElement('bar', '/test/path2')
+        mock3 = MockElement('baz', '/test/path3')
+        class FakeConfig():
+            def get_config_elements(self):
+                return [mock1, mock2, mock3]
+            def get_base_path(self):
+                return '/foo/bar'
+        self.assertEqual([mock1, mock2, mock3],
+                         select_elements(FakeConfig(), None))
+        self.assertEqual([mock2],
+                         select_elements(FakeConfig(), ['bar']))
+        self.assertEqual([mock1, mock2, mock3],
+                         select_elements(FakeConfig(), ['/foo/bar']))
+        self.assertRaises(MultiProjectException, select_elements, FakeConfig(), ['bum'])
+        self.assertRaises(MultiProjectException, select_elements, FakeConfig(), ['foo', 'bum', 'bar'])
+        self.assertRaises(MultiProjectException, select_elements, FakeConfig(), ['bu*'])

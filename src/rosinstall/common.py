@@ -220,17 +220,17 @@ def select_elements(config, localnames):
         else:
             notfound.append(localname)
     if notfound != []:
+        # if we just passed workspace path, return all workspace entries
+        if (len(localnames) == 1 and
+            os.path.realpath(localnames[0]) == os.path.realpath(config.get_base_path())):
+
+            return config.get_config_elements()
         raise MultiProjectException("Unknown elements '%s'"%notfound)
     result = []
     # select in order and remove duplicates
     for element in config.get_config_elements():
         if element in selected:
             result.append(element)
-    if result == []:
-        if (len(localnames) == 1 and
-            os.path.realpath(localnames[0]) == os.path.realpath(config.get_base_path())):
-
-            return config.get_elements()
     return result
 
 
