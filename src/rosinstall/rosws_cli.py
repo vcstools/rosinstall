@@ -67,6 +67,10 @@ from rosinstall.config_yaml import get_path_spec_from_yaml
 # extend the commands of multiproject
 __ROSWS_CMD_DICT__ = {
       "regenerate": "create ROS workspace specific setup files"}
+__ROSWS_CMD_ALIASES__ = {'update': 'up',
+                         'remove': 'rm',
+                         'status': 'st',
+                         'diff':   'di'}
 __ROSWS_CMD_DICT__.update(__MULTIPRO_CMD_DICT__)
 
 
@@ -462,9 +466,13 @@ def usage():
             None, 'update',
             None, 'info', 'status', 'diff',
             None, 'regenerate']
-    for k in keys:
-        if k in __ROSWS_CMD_DICT__:
-            print("  " + k.ljust(10) + '   \t' + __ROSWS_CMD_DICT__[k])
+    for key in keys:
+        if key in __ROSWS_CMD_ALIASES__:
+            alias = ' (%s)'%__ROSWS_CMD_ALIASES__[key]
+        else:
+            alias = ''
+        if key is not None:
+            print(("%s%s"%(key, alias)).ljust(10) + '   \t' + __ROSWS_CMD_DICT__[key])
         else:
             print('')
 
@@ -527,6 +535,9 @@ def rosws_main(argv=None):
             'diff':       cli.cmd_diff,
             'status':     cli.cmd_status,
             'update':     cli.cmd_update}
+        for label in list(ws_commands.keys()):
+            if label in __ROSWS_CMD_ALIASES__:
+                ws_commands[__ROSWS_CMD_ALIASES__[label]] = ws_commands[label]
 
         if command not in commands and command not in ws_commands:
             if os.path.exists(command):

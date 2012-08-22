@@ -7,6 +7,7 @@ Changelog
 0.6.19
 ------
 
+- #68 common vcs command shortcuts up, st, rm and di
 - unit tests run under python3
 - bugfix #65 string_diff bug
 - bugfix #63 broken import of vcstools version caused by missing import
