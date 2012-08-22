@@ -44,7 +44,7 @@ import rosinstall.config
 from rosinstall.config import MultiProjectException, Config
 from rosinstall.config_yaml import PathSpec
 
-from local.mock_client import MockVcsClient
+from . import mock_client
 
 
 class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):
@@ -55,7 +55,7 @@ class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):
         self.local_name = local_name
         self.uri = uri
         self.version = version
-        self.vcsc = MockVcsClient()
+        self.vcsc = mock_client.MockVcsClient()
         self.installed = installed
         self.install_success = install_success
 

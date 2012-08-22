@@ -49,7 +49,7 @@ from rosinstall.config import MultiProjectException, Config
 from rosinstall.config_yaml import PathSpec
 
 from test.scm_test_base import AbstractSCMTest, _add_to_file, _nth_line_split
-from local.mock_client import MockVcsClient
+from . import mock_client
 
 class GetVersionTest(unittest.TestCase):
     def test_version(self):
@@ -194,7 +194,7 @@ class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):
         self.scmtype = scmtype
         self.path = path
         self.local_name = local_name
-        self.vcsc = MockVcsClient(scmtype, actualversion = actualversion, specversion = specversion)
+        self.vcsc = mock_client.MockVcsClient(scmtype, actualversion = actualversion, specversion = specversion)
         self.uri = uri
         self.version = version
         self.install_success = True
