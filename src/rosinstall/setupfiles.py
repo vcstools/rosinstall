@@ -219,6 +219,15 @@ unset _ROS_ROOT_ROSINSTALL
 
 
 def generate_setup_bash_text(shell, no_ros=False):
+    '''
+    Generates the contents that go into a setup.bash or setup.zsh
+    file.  The intent of such a file is to enable shell extensions,
+    such as special ros commands and tab completion.  The generation
+    is complex because the setup of the system changed between ROS
+    electric and fuerte. In fuerte, the distro setup.sh also loads
+    distro rosbash based on CATKIN_SHELL. Before fuerte, it is up to
+    setup.bash to do so.
+    '''
     if shell == 'bash':
         script_path = """
 SCRIPT_PATH="${BASH_SOURCE[0]}";
