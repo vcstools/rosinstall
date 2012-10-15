@@ -26,13 +26,26 @@ the answers page: http://answers.ros.org/questions/tags:rosinstall
 Prerequisites
 -------------
 
-Start by updating / installing ``rosws``, which comes with rosinstall. 
-You will need the program ``pip``, which in Ubuntu 
-you can get using:
+Start by updating / installing ``rosws``, which comes with rosinstall.
 
-::
+Ubuntu
+.......
 
-  $ sudo apt-get install python-pip
+On Ubuntu you first need to setup ROS sources: http://www.ros.org/wiki/fuerte/Installation/Sources
+
+:: 
+
+    $ sudo apt-get install python-rosinstall
+
+If you do not want to add the ROS sources as outlined above you can use ``pip`` 
+as outlined below, but know that ``pip`` won't automatically update and overrides 
+any verison installed from debian packages. 
+
+Other Platforms
+...............
+
+On platforms where debian packages are  
+You will need the program ``pip``
 
 You can then get the latest rosinstall like this:
 
