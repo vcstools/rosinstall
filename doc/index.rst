@@ -36,7 +36,22 @@ Command Line Tools:
 Installation
 ============
 
-rosinstall is available on pypi and can be installed via ``pip``
+Ubuntu
+------
+
+On Ubuntu the recommended way to install rosinstall is to use apt. If
+the ros sources are added to your apt sources .
+
+To set ROS sources see http://www.ros.org/wiki/fuerte/Installation/Sources
+
+::
+
+    sudo apt-get install python-rosinstall
+
+Other Platforms
+---------------
+
+On other platforms rosinstall is available on pypi and can be installed via ``pip``
 ::
 
     pip install -U rosinstall
