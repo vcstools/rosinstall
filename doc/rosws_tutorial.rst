@@ -441,6 +441,13 @@ Another interesting feature for scripters is the ``--only`` option::
 This yields a CSV representation of the columns you gave, in this case
 retrieving from SCM providers the current revision id.
 
+Adding ROS to workspace
+-----------------------
+
+If you want to make your workspace a ROS workspace, you will need to do two things:
+
+* Manually add core ros stacks to your .rosinstall (copy and paste from /opt/ros/<distro>/.rosinstall to the TOP of your local .rosinstall file)
+* regenerate your setup.* files by calling ``rosws regenerate``
 
 Cleanup workspace
 -----------------
