@@ -7,6 +7,8 @@ Changelog
 0.6.20
 ------
 
+- #6 instructions after init give misleading source command with relative path
+- moved to github, new issue counter
 - #68 common vcs command shortcuts up, st, rm and di
 - unit tests run under python3
 - bugfix #65 string_diff bug
@@ -32,6 +34,7 @@ Changelog
 
 0.6.17
 ------
+
 - improved generated file code
 - workaround for #55 (rosinstall only), missing newlines after diff and status (hg and svn) 
 
