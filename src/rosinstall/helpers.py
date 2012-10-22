@@ -32,6 +32,7 @@
 
 import os
 import subprocess
+from rosinstall.config_elements import SetupConfigElement
 
 ROSINSTALL_FILENAME = ".rosinstall"
 
@@ -98,7 +99,7 @@ def get_ros_stack_path(config):
             found_paths.add(t.get_path())
             sources[t.get_path()] = t.get_path()
             continue
-        if not t.is_vcs_element():
+        if isinstance(t, SetupConfigElement):
             ros_root = is_ros_in_setupfile(t.get_local_name())
             if ros_root:
                 found_paths.add(ros_root)
