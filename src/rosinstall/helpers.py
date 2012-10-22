@@ -78,6 +78,8 @@ def is_ros_in_setupfile(path):
         return False
 
     setupfilename = os.path.join(dirpath, 'env.sh')
+    if not os.path.isfile(setupfilename):
+        return False
 
     cmd = '%s /usr/bin/python -c "import sys, os; print os.environ[\'ROS_ROOT\'] "' % setupfilename
     local_env = os.environ
