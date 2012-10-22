@@ -31,6 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import subprocess
 
 ROSINSTALL_FILENAME = ".rosinstall"
 
@@ -66,17 +67,37 @@ def is_path_ros(path):
     return False
 
 
+def is_ros_in_setupfile(path):
+    path_elements = os.path.split(path)
+    if path_elements[1] != 'setup.sh':
+        return False
+
+    setupfilename = os.path.join(path_elements[0], 'env.sh')
+    
+
+    cmd = '%s /usr/bin/python -c "import sys, os; sys.exit(0) if \'ROS_ROOT\' in os.environ else sys.exit(1)"' % setupfilename
+    local_env = os.environ
+    if 'ROS_ROOT' in local_env:
+        local_env.pop('ROS_ROOT')
+    result = subprocess.call(cmd, env=local_env, shell=True)
+    return not result
+
 def get_ros_stack_path(config):
-    rp = None
+    found_paths = []
     for t in config.get_config_elements():
         if is_path_ros(t.get_path()):
-            if rp is not None:
-                raise ROSInstallException(
-                    "Two ros roots defined in config, delete one: %s %s"%(
-                        rp,
-                        t.get_path()))
-            rp = t.get_path()
-    return rp
+            found_paths.append(t.get_path())
+            continue
+        if not t.is_vcs_element() and is_ros_in_setupfile(t.get_local_name()):
+            found_paths.append(t.get_local_name())
+
+
+    if len(found_paths) > 1:
+        raise ROSInstallException(
+            "Multipe ros stacks found in config, delete one: %s"%(found_paths))
+    elif len(found_paths) == 1:
+        return found_paths[0]
+    return None
 
 
 def get_ros_package_path(config):
