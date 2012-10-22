@@ -61,9 +61,9 @@ def is_path_ros(path):
     """
     if path is None:
         return False
-    stack_path = os.path.join(path, 'stack.xml')
-    if os.path.isfile(stack_path):
-        return 'ros' == os.path.basename(path)
+    if os.path.basename(path) == 'ros':
+        stack_path = os.path.join(path, 'stack.xml')
+        return os.path.isfile(stack_path)
     return False
 
 
