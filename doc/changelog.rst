@@ -4,16 +4,23 @@ Changelog
 0.6
 ---
 
-0.6.19
+0.6.20
 ------
 
 - #68 common vcs command shortcuts up, st, rm and di
 - unit tests run under python3
 - bugfix #65 string_diff bug
 - bugfix #63 broken import of vcstools version caused by missing import
+- #10 Patch for detecting ROS_ROOT 
+
+0.6.19
+------
+
+- Fixing dependencies for release
 
 0.6.18
 ------
+
 - fixed some minor bugs around subfolders containing files named .rosinstall
 - python3 compatibility improved (might still be buggy)
 - code base cleaned with pychecker and friends
