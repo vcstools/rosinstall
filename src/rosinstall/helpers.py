@@ -84,7 +84,7 @@ def get_ros_root_from_setupfile(path):
     if not os.path.isfile(setupfilename):
         return None
 
-    cmd = '%s /usr/bin/python -c "import os; print os.environ[\'ROS_ROOT\'] "' % setupfilename
+    cmd = "%s sh -c 'echo $ROS_ROOT'" % setupfilename
     local_env = os.environ
     if 'ROS_ROOT' in local_env:
         local_env.pop('ROS_ROOT')
