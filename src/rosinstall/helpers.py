@@ -68,17 +68,21 @@ def is_path_ros(path):
     return False
 
 
-def is_ros_in_setupfile(path):
+def get_ros_root_from_setupfile(path):
     """ Return the ROS_ROOT if the path is a setup.sh file with an
-    env.sh next to it which sets the ROS_ROOT"""
-    # For groovy, we rely on setup.sh setting ROS_ROOT, as no more rosbuild stacks exist
+    env.sh next to it which sets the ROS_ROOT
+
+    :returns: path to ROS_ROOT or None
+    """
+    # For groovy, we rely on setup.sh setting ROS_ROOT, as no more rosbuild stack 'ros' exists
     dirpath, basename = os.path.split(path)
     if basename != 'setup.sh':
-        return False
+        return None
 
+    # env.sh exists since fuerte
     setupfilename = os.path.join(dirpath, 'env.sh')
     if not os.path.isfile(setupfilename):
-        return False
+        return None
 
     cmd = '%s /usr/bin/python -c "import os; print os.environ[\'ROS_ROOT\'] "' % setupfilename
     local_env = os.environ
@@ -101,7 +105,7 @@ def get_ros_stack_path(config):
             sources[t.get_path()] = t.get_path()
             continue
         if isinstance(t, SetupConfigElement):
-            ros_root = is_ros_in_setupfile(t.get_local_name())
+            ros_root = get_ros_root_from_setupfile(t.get_local_name())
             if ros_root:
                 found_paths.add(ros_root)
                 sources[t.get_local_name()] = ros_root
