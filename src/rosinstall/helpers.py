@@ -72,12 +72,12 @@ def is_ros_in_setupfile(path):
     """ Return the ROS_ROOT if the path is a setup.sh file with an
     env.sh next to it which sets the ROS_ROOT"""
 
-    path_elements = os.path.split(path)
-    if path_elements[1] != 'setup.sh':
+    # For groovy, we rely on setup.sh setting ROS_ROOT, as no more rosbuild stacks exist
+    dirpath, basename = os.path.split(path)
+    if basename != 'setup.sh':
         return False
 
-    setupfilename = os.path.join(path_elements[0], 'env.sh')
-    
+    setupfilename = os.path.join(dirpath, 'env.sh')
 
     cmd = '%s /usr/bin/python -c "import sys, os; print os.environ[\'ROS_ROOT\'] "' % setupfilename
     local_env = os.environ
