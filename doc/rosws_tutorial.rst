@@ -69,6 +69,8 @@ Initialize a workspace
 We will create a folder that serves as workspace, which you can 
 delete after the tutorial.
 
+.. note:: The following creates a workspace without ROS. This means variables that are important for ROS like ROS_PACKAGE_PATH will not be set. If you want to create a workspace for ROS, follow the tutorial :ref:`rosws_ros_tutorial`.
+
 ::
 
   $ cd /tmp
@@ -439,6 +441,13 @@ Another interesting feature for scripters is the ``--only`` option::
 This yields a CSV representation of the columns you gave, in this case
 retrieving from SCM providers the current revision id.
 
+Adding ROS to workspace
+-----------------------
+
+If you want to make your workspace a ROS workspace, you will need to do two things:
+
+* Manually add core ros stacks to your .rosinstall (copy and paste from /opt/ros/<distro>/.rosinstall to the TOP of your local .rosinstall file)
+* regenerate your setup.* files by calling ``rosws regenerate``
 
 Cleanup workspace
 -----------------
