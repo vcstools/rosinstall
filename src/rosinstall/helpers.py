@@ -106,9 +106,6 @@ def get_ros_stack_path(config):
                 sources[t.get_local_name()] = ros_root
                 continue
 
-
-
-    print found_paths
     if len(found_paths) > 1:
         raise ROSInstallException(
             "Multiple ros stacks found in config %s, Please elimate all but one.\nThey come from the following sources: %s\n"%(found_paths, sources))
