@@ -71,7 +71,6 @@ def is_path_ros(path):
 def is_ros_in_setupfile(path):
     """ Return the ROS_ROOT if the path is a setup.sh file with an
     env.sh next to it which sets the ROS_ROOT"""
-
     # For groovy, we rely on setup.sh setting ROS_ROOT, as no more rosbuild stacks exist
     dirpath, basename = os.path.split(path)
     if basename != 'setup.sh':
@@ -81,7 +80,7 @@ def is_ros_in_setupfile(path):
     if not os.path.isfile(setupfilename):
         return False
 
-    cmd = '%s /usr/bin/python -c "import sys, os; print os.environ[\'ROS_ROOT\'] "' % setupfilename
+    cmd = '%s /usr/bin/python -c "import os; print os.environ[\'ROS_ROOT\'] "' % setupfilename
     local_env = os.environ
     if 'ROS_ROOT' in local_env:
         local_env.pop('ROS_ROOT')
@@ -110,7 +109,7 @@ def get_ros_stack_path(config):
 
     if len(found_paths) > 1:
         raise ROSInstallException(
-            "Multiple ros stacks found in config %s, Please elimate all but one.\nThey come from the following sources: %s\n"%(found_paths, sources))
+            "Multiple ros stacks found in config %s, Please elimate all but one.\nThey come from the following sources: %s\n" % (found_paths, sources))
     elif len(found_paths) == 1:
         return found_paths.pop()
     return None
@@ -124,4 +123,3 @@ def get_ros_package_path(config):
             if not os.path.isfile(t.get_path()):
                 code_trees.append(t.get_path())
     return code_trees
-
