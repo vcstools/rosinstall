@@ -1,6 +1,7 @@
-====================
- rosws ROS Tutorial
-====================
+.. _rosws_ros_tutorial:
+
+rosws ROS Tutorial
+==================
 
 In this tutorial we will focus on how to use ``rosws`` for doing
 development work for ROS.  We will use the ROS fuerte distribution,
