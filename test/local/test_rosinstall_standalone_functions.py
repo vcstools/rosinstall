@@ -68,7 +68,7 @@ class FunctionsTest(unittest.TestCase):
             rosinstall.helpers.subprocess = mock_subprocess
             rosinstall.helpers.os = mock_os
             result = rosinstall.helpers.get_ros_root_from_setupfile("fooroot/foodir/setup.sh")
-            self.assertEqual('/somewhere/mock_ros_root', result)
+            self.assertEqual('/somewhere/mock_ros_root', os.path.normpath(result))
         finally:
             rosinstall.helpers.subprocess = subprocess
             rosinstall.helpers.os = os
