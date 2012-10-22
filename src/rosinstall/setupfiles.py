@@ -195,8 +195,10 @@ unset _SETUPFILES_ROSINSTALL
 export ROS_PACKAGE_PATH=$_ROS_PACKAGE_PATH_ROSINSTALL
 unset _ROS_PACKAGE_PATH_ROSINSTALL
 
-# using ROS_ROOT now being in ROS_PACKAGE_PATH
-export _ROS_ROOT_ROSINSTALL=`/usr/bin/env python << EOPYTHON
+# if setup.sh did not set ROS_ROOT (pre-fuerte)
+if [ -z "${ROS_ROOT}" ]; then
+  # using ROS_ROOT now being in ROS_PACKAGE_PATH
+  export _ROS_ROOT_ROSINSTALL=`/usr/bin/env python << EOPYTHON
 import sys, os;
 if 'ROS_PACKAGE_PATH' in os.environ:
   pkg_path = os.environ['ROS_PACKAGE_PATH']
@@ -207,12 +209,13 @@ if 'ROS_PACKAGE_PATH' in os.environ:
       break
 EOPYTHON`
 
-if [ ! -z "${_ROS_ROOT_ROSINSTALL}" ]; then
-  export ROS_ROOT=$_ROS_ROOT_ROSINSTALL
-  export PATH=$ROS_ROOT/bin:$PATH
-  export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH
-fi
+  if [ ! -z "${_ROS_ROOT_ROSINSTALL}" ]; then
+    export ROS_ROOT=$_ROS_ROOT_ROSINSTALL
+    export PATH=$ROS_ROOT/bin:$PATH
+    export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH
+  fi
 unset _ROS_ROOT_ROSINSTALL
+fi
 """%pycode
 
     return text
@@ -277,6 +280,7 @@ unset -f _ros_decode_path 1> /dev/null 2>&1"""%locals()
 # Cannot rely on $? due to set -o errexit in build scripts
 RETURNCODE=`type _ros_decode_path 2> /dev/null | grep function 1>/dev/null 2>&1 || echo error`
 
+# for ROS electric and before, source rosbash
 if [ ! "$RETURNCODE" = "" ]; then
   RETURNCODE=`rospack help 1> /dev/null 2>&1 || echo error`
   if  [ "$RETURNCODE" = "" ]; then
