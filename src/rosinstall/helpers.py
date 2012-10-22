@@ -68,6 +68,9 @@ def is_path_ros(path):
 
 
 def is_ros_in_setupfile(path):
+    """ Return the ROS_ROOT if the path is a setup.sh file with an
+    env.sh next to it which sets the ROS_ROOT"""
+
     path_elements = os.path.split(path)
     if path_elements[1] != 'setup.sh':
         return False
@@ -75,28 +78,41 @@ def is_ros_in_setupfile(path):
     setupfilename = os.path.join(path_elements[0], 'env.sh')
     
 
-    cmd = '%s /usr/bin/python -c "import sys, os; sys.exit(0) if \'ROS_ROOT\' in os.environ else sys.exit(1)"' % setupfilename
+    cmd = '%s /usr/bin/python -c "import sys, os; print os.environ[\'ROS_ROOT\'] "' % setupfilename
     local_env = os.environ
     if 'ROS_ROOT' in local_env:
         local_env.pop('ROS_ROOT')
-    result = subprocess.call(cmd, env=local_env, shell=True)
-    return not result
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=local_env, shell=True)
+    out = process.communicate()[0]
+
+    return out.strip()
+
 
 def get_ros_stack_path(config):
-    found_paths = []
+    """ Detect valid ROS_ROOT directories from the config elements"""
+
+    found_paths = set()
+    sources = {}
     for t in config.get_config_elements():
         if is_path_ros(t.get_path()):
-            found_paths.append(t.get_path())
+            found_paths.add(t.get_path())
+            sources[t.get_path()] = t.get_path()
             continue
-        if not t.is_vcs_element() and is_ros_in_setupfile(t.get_local_name()):
-            found_paths.append(t.get_local_name())
+        if not t.is_vcs_element():
+            ros_root = is_ros_in_setupfile(t.get_local_name())
+            if ros_root:
+                found_paths.add(ros_root)
+                sources[t.get_local_name()] = ros_root
+                continue
 
 
+
+    print found_paths
     if len(found_paths) > 1:
         raise ROSInstallException(
-            "Multipe ros stacks found in config, delete one: %s"%(found_paths))
+            "Multiple ros stacks found in config %s, Please elimate all but one.\nThey come from the following sources: %s\n"%(found_paths, sources))
     elif len(found_paths) == 1:
-        return found_paths[0]
+        return found_paths.pop()
     return None
 
 

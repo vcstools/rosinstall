@@ -71,6 +71,8 @@ class MockConfigElement():
         return self.local_name
     def get_path_spec(self):
         return self.spec
+    def is_vcs_element(self):
+        return True if self.scmtype else False
 
 class RosinstallUsagetest(unittest.TestCase):
     def test_usage(self):
