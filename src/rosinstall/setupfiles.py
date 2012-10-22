@@ -269,7 +269,7 @@ fi"""%locals()
 # unset _ros_decode_path to check later whether setup.sh has sourced ros%(shell)s
 unset -f _ros_decode_path 1> /dev/null 2>&1"""%locals()
 
-        text += """
+    text += """
 . $SCRIPT_PATH/setup.sh"""
 
     if not no_ros:
