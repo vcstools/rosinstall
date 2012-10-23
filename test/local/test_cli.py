@@ -53,7 +53,7 @@ from . import mock_client
 
 class GetVersionTest(unittest.TestCase):
     def test_version(self):
-        self.assertIsNotNone(rosinstall.multiproject_cmd.cmd_version())
+        self.assertFalse(None == rosinstall.multiproject_cmd.cmd_version())
 
 class GetWorkspaceTest(unittest.TestCase):
 
