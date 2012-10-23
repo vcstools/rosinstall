@@ -154,7 +154,7 @@ class RosinstallDiffSvnTest(AbstractSCMTest):
         sys.stdout = output = StringIO();
         rosinstall_main(cmd)
         output = output.getvalue()
-        self.assertEqual('A       clone/added.txt\nD       clone/deleted.txt\n!       clone/deleted-fs.txt\nM       clone/modified.txt\n', output)
+        self.assertStatusListEqual('A       clone/added.txt\nD       clone/deleted.txt\n!       clone/deleted-fs.txt\nM       clone/modified.txt\n', output)
 
         cmd = ["rosws", "status"]
         os.chdir(directory)
@@ -163,7 +163,7 @@ class RosinstallDiffSvnTest(AbstractSCMTest):
         output = output.getvalue()
         sys.stdout = sys.__stdout__
 
-        self.assertEqual('A       clone/added.txt\nD       clone/deleted.txt\n!       clone/deleted-fs.txt\nM       clone/modified.txt\n', output)
+        self.assertStatusListEqual('A       clone/added.txt\nD       clone/deleted.txt\n!       clone/deleted-fs.txt\nM       clone/modified.txt\n', output)
 
         cli = RoswsCLI()
         self.assertEqual(0,cli.cmd_diff(directory, []))
@@ -179,7 +179,7 @@ class RosinstallDiffSvnTest(AbstractSCMTest):
         rosinstall_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
-        self.assertEqual('A       clone/added.txt\nD       clone/deleted.txt\n!       clone/deleted-fs.txt\nM       clone/modified.txt\n', output)
+        self.assertStatusListEqual('A       clone/added.txt\nD       clone/deleted.txt\n!       clone/deleted-fs.txt\nM       clone/modified.txt\n', output)
 
         cmd = ["rosws", "status", "-t", "ws"]
         os.chdir(self.test_root_path)
@@ -187,7 +187,7 @@ class RosinstallDiffSvnTest(AbstractSCMTest):
         rosws_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
-        self.assertEqual('A       clone/added.txt\nD       clone/deleted.txt\n!       clone/deleted-fs.txt\nM       clone/modified.txt\n', output)
+        self.assertStatusListEqual('A       clone/added.txt\nD       clone/deleted.txt\n!       clone/deleted-fs.txt\nM       clone/modified.txt\n', output)
 
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_status(os.path.join(self.test_root_path, 'ws'), []))
@@ -200,7 +200,7 @@ class RosinstallDiffSvnTest(AbstractSCMTest):
         rosinstall_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
-        self.assertEqual('?       clone/added-fs.txt\nA       clone/added.txt\nD       clone/deleted.txt\n!       clone/deleted-fs.txt\nM       clone/modified.txt\n', output)
+        self.assertStatusListEqual('?       clone/added-fs.txt\nA       clone/added.txt\nD       clone/deleted.txt\n!       clone/deleted-fs.txt\nM       clone/modified.txt\n', output)
 
         cmd = ["rosws", "status", "-t", "ws", "--untracked"]
         os.chdir(self.test_root_path)
@@ -208,7 +208,7 @@ class RosinstallDiffSvnTest(AbstractSCMTest):
         rosws_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
-        self.assertEqual('?       clone/added-fs.txt\nA       clone/added.txt\nD       clone/deleted.txt\n!       clone/deleted-fs.txt\nM       clone/modified.txt\n', output)
+        self.assertStatusListEqual('?       clone/added-fs.txt\nA       clone/added.txt\nD       clone/deleted.txt\n!       clone/deleted-fs.txt\nM       clone/modified.txt\n', output)
 
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_status(os.path.join(self.test_root_path, 'ws'), ["--untracked"]))
