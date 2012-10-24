@@ -120,9 +120,12 @@ def add_uris(config, additional_uris, merge_strategy="KillAppend"):
     if additional_uris is None or len(additional_uris) == 0:
         return {}
 
-    added_uris = []
-    if config.get_config_filename() is not None:
+    if config.get_config_filename() is None:
+        added_uris = additional_uris
+    else:
+        added_uris = []
         for uri in additional_uris:
+            # reject if the additional uri points to the same file as our config is based on
             comp_uri = None
             if (os.path.isfile(uri)
                 and os.path.basename(uri) == config.get_config_filename()):
