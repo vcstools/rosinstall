@@ -203,7 +203,15 @@ class AbstractSCMTest(AbstractRosinstallCLITest):
           os.chdir(self.curdir)
           for d in self.directories:
                shutil.rmtree(self.directories[d])
-        
+
+     def assertStatusListEqual(self, listexpect, listactual):
+          """helper fun to check scm status output while discarding file ordering differences"""
+          lines_expect = listexpect.splitlines()
+          lines_actual = listactual.splitlines()
+          for line in lines_expect:
+               self.assertTrue(line in lines_actual, 'Missing entry %s in output %s' % (line, listactual))
+          for line in lines_actual:
+               self.assertTrue(line in lines_expect, 'Superflous entry %s in output %s' % (line, listactual))
 
 
 class UtilTest(unittest.TestCase):
