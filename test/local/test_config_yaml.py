@@ -78,12 +78,21 @@ class YamlIO_Test(unittest.TestCase):
         except MultiProjectException:
             pass
 
-#TODO Fix this
-#    def test_get_yaml_from_uri_from_non_yaml_file(self):
-#        file = os.path.join(roslib.packages.get_pkg_dir("test_rosinstall"), "Makefile")
-#        y = rosinstall.config.get_yaml_from_uri(file)
-#        self.assertEqual(y, None)
+    def test_get_yaml_from_uri_from_invalid_url(self):
+        url = "http://invalidurl"
+        try:
+            get_yaml_from_uri(url)
+            self.fail("Expected exception")
+        except MultiProjectException:
+            pass
 
+        # valid but non-yaml
+        url = "http://www.google.com"
+        try:
+            get_yaml_from_uri(url)
+            self.fail("Expected exception")
+        except MultiProjectException:
+            pass
 
 class ConfigElementYamlFunctions_Test(unittest.TestCase):
 
