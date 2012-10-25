@@ -100,8 +100,22 @@ class RosinstallDiffSvnTest(AbstractSCMTest):
 
 
     def check_diff_output(self, output):
-        #self.assertEqual('Index: clone/added.txt\n===================================================================\n--- clone/added.txt\t(revision 0)\n+++ clone/added.txt\t(revision 0)\n@@ -0,0 +1 @@\n+flam\n\nProperty changes on: clone/added.txt\n===================================================================\nAdded: svn:eol-style\n   + native\n\nIndex: clone/modified.txt\n===================================================================\n--- clone/modified.txt\t(revision 1)\n+++ clone/modified.txt\t(working copy)\n@@ -0,0 +1 @@\n+foo', output.rstrip())
-         self.assertEqual('Index: clone/added.txt\n===================================================================\n--- clone/added.txt\t(revision 0)\n+++ clone/added.txt\t(revision 0)\n@@ -0,0 +1 @@\n+flam\nIndex: clone/modified.txt\n===================================================================\n--- clone/modified.txt\t(revision 1)\n+++ clone/modified.txt\t(working copy)\n@@ -0,0 +1 @@\n+foo\n', output)
+        # svn output order varies between versions
+        expected = ["""\
+Index: clone/added.txt
+===================================================================
+--- clone/added.txt\t(revision 0)\n+++ clone/added.txt\t(revision 0)
+@@ -0,0 +1 @@
++flam""",
+         """\
+Index: clone/modified.txt
+===================================================================
+--- clone/modified.txt\t(revision 1)
++++ clone/modified.txt\t(working copy)
+@@ -0,0 +1 @@
++foo"""]
+        for snippet in expected:
+            self.assertTrue(snippet in output, output)
 
 
     def test_Rosinstall_diff_svn_outside(self):
