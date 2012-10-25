@@ -102,10 +102,14 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         modify_bzr_repo(clone_path_bzr)
 
     def check_diff_output(self, output):
-        self.assertTrue("@@\n+foo\nIndex: clone_svn/added.txt" in output, output)
-        self.assertTrue("@@\n+foo\ndiff --git clone_hg/added.txt" in output, output)
-        self.assertTrue("@@\n+foo\n=== added file 'added.txt'\n--- clone_bzr/added.txt" in output, output)
-        self.assertTrue("@@ -0,0 +1,1 @@\n+foo\ndiff --git clone_git2/added.txt" in output, output)
+        # this tests that there are proper newlines between diff outputs
+        # for svn, the order varies, so we check two known variants
+        self.assertTrue("\nIndex: clone_svn/added.txt" in output, output)
+        self.assertTrue("\nIndex: clone_svn/added.txt" in output, output)
+        self.assertTrue("\nIndex: clone_svn/modified.txt" in output, output)
+        self.assertTrue("\ndiff --git clone_hg/added.txt" in output, output)
+        self.assertTrue("\n=== added file 'added.txt'\n--- clone_bzr/added.txt" in output, output)
+        self.assertTrue("\ndiff --git clone_git2/added.txt" in output, output)
 
     def test_multi_diff_rosinstall_outside(self):
         '''Test rosinstall diff output from outside workspace.
