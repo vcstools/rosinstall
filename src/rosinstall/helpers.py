@@ -90,7 +90,7 @@ def get_ros_root_from_setupfile(path):
         local_env.pop('ROS_ROOT')
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=local_env, shell=True)
     out = process.communicate()[0]
-
+    out = out.decode('UTF8')
     return out.strip()
 
 
@@ -100,9 +100,10 @@ def get_ros_stack_path(config):
     found_paths = set()
     sources = {}
     for t in config.get_config_elements():
-        if is_path_ros(t.get_path()):
-            found_paths.add(t.get_path())
-            sources[t.get_path()] = t.get_path()
+        el_path = t.get_path()
+        if is_path_ros(el_path):
+            found_paths.add(el_path)
+            sources[el_path] = el_path
             continue
         if isinstance(t, SetupConfigElement):
             ros_root = get_ros_root_from_setupfile(t.get_local_name())
