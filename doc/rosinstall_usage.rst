@@ -11,6 +11,11 @@ Usage
     Options:
       --version             show program's version number and exit
       -h, --help            show this help message and exit
+      -c, --catkin          Declare this is a catkin build.
+      --cmake-prefix-path=CATKINPP
+                            Where to set the CMAKE_PREFIX_PATH, implies --catkin
+      --version             display version information
+      --verbose             display more information
       -n, --nobuild         skip the build step for the ROS stack
       --rosdep-yes          Pass through --rosdep-yes to rosmake
       --delete-changed-uris
@@ -20,6 +25,12 @@ Usage
       --backup-changed-uris=BACKUP_CHANGED
                             backup the local copy of a directory before changing
                             uri to this directory.
+      --diff                shows a combined diff over all SCM entries
+      --status              shows a combined status command over all SCM entries
+      --status-untracked    shows a combined status command over all SCM entries,
+                            also showing untracked files
+      -j JOBS, --parallel=JOBS
+                            How many parallel threads to use for installing
       --generate-versioned-rosinstall=GENERATE_VERSIONED
                             generate a versioned rosintall file
 

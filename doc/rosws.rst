@@ -68,19 +68,16 @@ Usage
   
   Type 'rosws help' for usage.
   Options:
-    help          provide help for commands
-    init          set up a directory as workspace
-    
-    set           add or changes one entry from your workspace config
-    merge         merges your workspace with another config set
-  
-    update        update or check out some of your config elements
-  
-    info          Overview of some entries
-    status        print the change status of files in some SCM controlled entries
-    diff          print a diff over some SCM controlled entries
-  
-    regenerate    create ROS workspace specific setup files
+    help            provide help for commands
+    init            set up a directory as workspace
+    set             add or changes one entry from your workspace config
+    merge           merges your workspace with another config set
+    remove (rm)     remove an entry from your workspace config, without deleting files
+    update (up)     update or check out some of your config elements
+    info            Overview of some entries
+    status (st)     print the change status of files in some SCM controlled entries
+    diff (di)       print a diff over some SCM controlled entries
+    regenerate      create ROS workspace specific setup files
 
 
 init
@@ -108,7 +105,8 @@ If PATH is not given, uses current folder.
     --cmake-prefix-path=CATKINPP
                           Where to set the CMAKE_PREFIX_PATH
     --continue-on-error   Continue despite checkout errors
-
+    -j JOBS, --parallel=JOBS
+                          How many parallel threads to use for installing
 
 Examples::
 
@@ -142,7 +140,7 @@ the element, run rosws update afterwards.
     --bzr                 make an entry a bazaar entry
     -y, --confirm         Do not ask for confirmation
     -t WORKSPACE, --target-workspace=WORKSPACE
-                        which workspace to use
+                          which workspace to use
 
 Examples::
 
@@ -172,10 +170,11 @@ provided in the URI, use the option ``--merge-kill-append``.
   
   Options:
     -h, --help            show this help message and exit
-    --merge-kill-append   merge by deleting given entry and appending new one
+    -a, --merge-kill-append
+                          merge by deleting given entry and appending new one
     -k, --merge-keep      (default) merge by keeping existing entry and
                           discarding new one
-    -m, --merge-replace   merge by replacing given entry with new one
+    -r, --merge-replace   merge by replacing given entry with new one
                           maintaining ordering
     -y, --confirm-all     do not ask for confirmation unless strictly necessary
     -t WORKSPACE, --target-workspace=WORKSPACE
@@ -213,6 +212,12 @@ ask whether to delete or backup the folder.
     --backup-changed-uris=BACKUP_CHANGED
                           backup the local copy of a directory before changing
                           uri to this directory.
+    -j JOBS, --parallel=JOBS
+                          How many parallel threads to use for installing
+    -v, --verbose         Whether to print out more information
+    -t WORKSPACE, --target-workspace=WORKSPACE
+                          which workspace to use
+
 
 Examples::
 
@@ -304,6 +309,7 @@ print a diff over some SCM controlled entries
 
   Options:
     -h, --help            show this help message and exit
+    --untracked           Also shows untracked files
     -t WORKSPACE, --target-workspace=WORKSPACE
                         which workspace to use
   
