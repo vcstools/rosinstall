@@ -41,6 +41,7 @@ NAME='rosbrowse'
 
 
 import sys
+sys.path.insert(0, '/home/eitan/hidof/willow/rosinstall/src')
 try:
     from os import EX_USAGE
 except ImportError:
@@ -49,22 +50,22 @@ except ImportError:
 from rosinstall.distro_locate import get_release_info, get_doc_info, \
                                      get_doc_type, get_doc_www, get_doc_description
 
-def cmd_get_release_info(name, options=None):
+def cmd_get_release_info(name, distro, options=None):
     prefix = options.prefix if options is not None and options.prefix else ''
-    return get_release_info(name, options.distro, prefix)
+    return get_release_info(name, distro, prefix=prefix)
 
-def cmd_get_doc_info(name, options=None):
+def cmd_get_doc_info(name, distro, options=None):
     prefix = options.prefix if options is not None and options.prefix else ''
-    return get_doc_info(name, options.distro, prefix)
+    return get_doc_info(name, distro, prefix=prefix)
 
-def get_type(name, options=None):
-    return get_doc_type(name, options.distro)
+def get_type(name, distro, options=None):
+    return get_doc_type(name, distro)
 
-def cmd_get_www(name, options=None):
-    return get_doc_www(name, options.distro)
+def cmd_get_www(name, distro, options=None):
+    return get_doc_www(name, distro)
 
-def get_description(name, options=None):
-    return get_doc_description(name, options.distro)
+def get_description(name, distro, options=None):
+    return get_doc_description(name, distro)
 
 ################################################################################
 
@@ -72,12 +73,12 @@ def get_description(name, options=None):
 
 def _fullusage():
     sys.stderr.write("""
-%s cmd [options --distro, --prefix, --help]
-\trelease_info\tGet rosinstall info of latest resource release
-\tdoc_info\tGet rosinstall info of latest documentation source
-\ttype\tPackage, stack, or metapackage
-\twww\tGet web page of resource
-\tdescribe\tGet description of resource
+%s 
+\trelease_info\tGet rosinstall info of latest release for a package, stack, or metapackage
+\tdoc_info\tGet rosinstall info of latest documentation source for a package, stack, or metapackage
+\ttype\t\tCheck whether a name corresponds to a package, stack, or metapackage
+\twww\t\tGet the web page of a package, stack, or metapackage
+\tdescribe\tGet the description of a package, stack, or metapackage
 """%(NAME))
     sys.exit(EX_USAGE)
     
@@ -104,28 +105,26 @@ def rosbrowse_main():
     if not cmd in _cmds.keys():
         _fullusage()
 
-    parser = OptionParser(usage="usage: %%prog %s <resource>"%(cmd), prog=NAME)
+    parser = OptionParser(usage="usage: %%prog %s <distro> <package/stack/metapackage>"%(cmd), prog=NAME)
     if cmd in ['release_info', 'doc_info']:
          parser.add_option("--prefix",
                            dest="prefix", default=False,
                            metavar="PATH",
                            help="path prefix for rosinstall")
         
-    # TODO: distro-specific return values
-    parser.add_option("--distro",
-                      dest="distro", default='fuerte',
-                      help="fetch information for specific ROS distribution release")
-    
     # noop parse for now.  Will matter once we can pass in --distro
     options, args = parser.parse_args()
 
-    if len(args) != 2:
-        parser.error("please provide a resource name (package or stack)")
-    name = args[1]
+    if len(args) != 3:
+        parser.print_help()
+        sys.exit(-1)
+
+    distro = args[1]
+    name = args[2]
 
     try:
-        print _cmds[cmd](name, options)
-    except InvalidData as e:
+        print _cmds[cmd](name, distro, options)
+    except Exception as e:
         sys.stderr.write("%s\n"%e)
 
 if __name__ == '__main__':

@@ -86,10 +86,11 @@ def get_release_rosinstall(name, wet_distro, dry_distro, prefix):
 
 def get_manifest_yaml(name, distro):
     #If we didn't find the name, we need to try to find a stack for it
+    url = 'http://ros.org/doc/%s/api/%s/manifest.yaml' % (distro, name)
     try:
-        return yaml.load(urllib2.urlopen('http://ros.org/doc/%s/api/%s/manifest.yaml' % (distro, name)))
+        return yaml.load(urllib2.urlopen(url))
     except:
-        raise IOError("Could not load a documentation manifest for %s-%s from ros.org" % (distro, name))
+        raise IOError("Could not load a documentation manifest for %s-%s from ros.org\nAre you sure this package is documented at %s?" % (distro, name, url))
 
 def get_release_info(name, distro, prefix=None):
     """
@@ -101,10 +102,11 @@ def get_release_info(name, distro, prefix=None):
     4) Look in the distro files again to see if the stack name is there, if it is, return the repo
 
     """
+    url = 'https://raw.github.com/ros/rosdistro/master/releases/%s.yaml' % distro
     try:
-        wet_distro = yaml.load(urllib2.urlopen('https://raw.github.com/ros/rosdistro/master/releases/%s.yaml' % distro))
+        wet_distro = yaml.load(urllib2.urlopen(url))
     except:
-        raise IOError("Could not load the %s rosdistro file from github" % distro)
+        raise IOError("Could not load the %s rosdistro file from github.\nAre you sure the following file exists %s?" % (distro, url))
 
     dry_distro = rospkg_distro.load_distro(rospkg_distro.distro_uri(distro))
 
