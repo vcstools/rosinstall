@@ -1,0 +1,132 @@
+#!/usr/bin/env python
+# Software License Agreement (BSD License)
+#
+# Copyright (c) 2010, Willow Garage, Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of Willow Garage, Inc. nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
+# Author: kwc
+
+"""
+Library for finding ROS packages, metapackages, and stacks.
+"""
+
+NAME='rosbrowse'
+
+
+import sys
+try:
+    from os import EX_USAGE
+except ImportError:
+    EX_USAGE = 0, 1, 2
+
+from rosinstall.distro_locate import get_release_info, get_doc_info, \
+                                     get_doc_type, get_doc_www, get_doc_description
+
+def cmd_get_release_info(name, options=None):
+    prefix = options.prefix if options is not None and options.prefix else ''
+    return get_release_info(name, options.distro, prefix)
+
+def cmd_get_doc_info(name, options=None):
+    prefix = options.prefix if options is not None and options.prefix else ''
+    return get_doc_info(name, options.distro, prefix)
+
+def get_type(name, options=None):
+    return get_doc_type(name, options.distro)
+
+def cmd_get_www(name, options=None):
+    return get_doc_www(name, options.distro)
+
+def get_description(name, options=None):
+    return get_doc_description(name, options.distro)
+
+################################################################################
+
+# Bind library to commandline implementation
+
+def _fullusage():
+    sys.stderr.write("""
+%s cmd [options --distro, --prefix, --help]
+\trelease_info\tGet rosinstall info of latest resource release
+\tdoc_info\tGet rosinstall info of latest documentation source
+\ttype\tPackage, stack, or metapackage
+\twww\tGet web page of resource
+\tdescribe\tGet description of resource
+"""%(NAME))
+    sys.exit(EX_USAGE)
+    
+from operator import getitem
+from functools import partial
+_cmds = {
+    # info/rosinstall are now identical
+    'release_info': cmd_get_release_info,
+    'doc_info': cmd_get_doc_info,
+    'type': get_type,
+    'www': cmd_get_www,
+    'describe': get_description,
+    'description': get_description, #alias
+    }
+
+def rosbrowse_main():
+    from optparse import OptionParser
+    args = sys.argv
+
+    # parse command
+    if len(args) < 2:
+        _fullusage()
+    cmd = args[1]
+    if not cmd in _cmds.keys():
+        _fullusage()
+
+    parser = OptionParser(usage="usage: %%prog %s <resource>"%(cmd), prog=NAME)
+    if cmd in ['release_info', 'doc_info']:
+         parser.add_option("--prefix",
+                           dest="prefix", default=False,
+                           metavar="PATH",
+                           help="path prefix for rosinstall")
+        
+    # TODO: distro-specific return values
+    parser.add_option("--distro",
+                      dest="distro", default='fuerte',
+                      help="fetch information for specific ROS distribution release")
+    
+    # noop parse for now.  Will matter once we can pass in --distro
+    options, args = parser.parse_args()
+
+    if len(args) != 2:
+        parser.error("please provide a resource name (package or stack)")
+    name = args[1]
+
+    try:
+        print _cmds[cmd](name, options)
+    except InvalidData as e:
+        sys.stderr.write("%s\n"%e)
+
+if __name__ == '__main__':
+    rosbrowse_main()
