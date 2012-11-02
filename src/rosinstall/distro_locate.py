@@ -77,7 +77,7 @@ def get_release_rosinstall(name, wet_distro, dry_distro, prefix):
         repo_name, repo_info = info
         if repo_name == name:
             rosinstall = []
-            for pkg in repo_info.['pkgs']keys():
+            for pkg in repo_info.['pkgs'].keys():
                 rosinstall.append(build_rosinstall(repo_name, repo_info['url'], 'git', '/'.join(['release', name, repo_info['version'].split('-')[0]]), prefix))
             return rosinstall
         else:
