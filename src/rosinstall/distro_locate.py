@@ -43,7 +43,7 @@ class InvalidData(Exception): pass
 #Build a rosinstall file given some basic information
 def build_rosinstall(repo_name, uri, vcs_type, version, prefix):
     rosinstall = []
-    repo_name = repo_name if prefix else '/'.join([prefix, repo_name])
+    repo_name = repo_name if not prefix else '/'.join([prefix, repo_name])
 
     if version:
         rosinstall.append({vcs_type: {'local-name': repo_name, 'uri': uri, 'version': version}})
@@ -74,7 +74,7 @@ def get_release_rosinstall(name, wet_distro, dry_distro, prefix):
     info = get_wet_info(wet_distro, name)
     if info:
         repo_name, repo_info = info
-        return build_rosinstall(repo_name, repo_info['url'], 'git', repo_info['version'], prefix)
+        return build_rosinstall(repo_name, repo_info['url'], 'git', '/'.join(['release', name, repo_info['version'].split('-')[0]]), prefix)
 
     #Check if the name is in the dry distro
     info = get_dry_info(dry_distro, name)
