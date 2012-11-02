@@ -77,7 +77,7 @@ def _fullusage():
 \trelease_info\tGet rosinstall info of latest release for a package, stack, or metapackage
 \tdoc_info\tGet rosinstall info of latest documentation source for a package, stack, or metapackage
 \ttype\t\tCheck whether a name corresponds to a package, stack, or metapackage
-\twww\t\tGet the web page of a package, stack, or metapackage
+\twiki\t\tGet the wiki page of a package, stack, or metapackage
 \tdescription\tGet the description of a package, stack, or metapackage
 """%(NAME))
     sys.exit(EX_USAGE)
@@ -89,7 +89,7 @@ _cmds = {
     'release_info': cmd_get_release_info,
     'doc_info': cmd_get_doc_info,
     'type': get_type,
-    'www': cmd_get_www,
+    'wiki': cmd_get_www,
     'describe': get_description,
     'description': get_description, #alias
     }
