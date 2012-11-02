@@ -75,13 +75,14 @@ def get_release_rosinstall(name, wet_distro, dry_distro, prefix):
     info = get_wet_info(wet_distro, name)
     if info:
         repo_name, repo_info = info
-        if repo_name == name:
+        if repo_name == name and repo_info.has_key('packages'):
             rosinstall = []
-            for pkg in repo_info['pkgs'].keys():
-                rosinstall.append(build_rosinstall(repo_name, repo_info['url'], 'git', '/'.join(['release', pkg, repo_info['version'].split('-')[0]]), prefix))
+            pkg_prefix = '/'.join([prefix, repo_name]) if prefix else repo_name
+            for pkg in repo_info['packages'].keys():
+                rosinstall.extend(build_rosinstall(pkg, repo_info['url'], 'git', '/'.join(['release', pkg, repo_info['version'].split('-')[0]]), pkg_prefix))
             return rosinstall
         else:
-            return build_rosinstall(repo_name, repo_info['url'], 'git', '/'.join(['release', name, repo_info['version'].split('-')[0]]), prefix)
+            return build_rosinstall(name, repo_info['url'], 'git', '/'.join(['release', name, repo_info['version'].split('-')[0]]), prefix)
 
     #Check if the name is in the dry distro
     info = get_dry_info(dry_distro, name)
