@@ -49,7 +49,8 @@ def build_rosinstall(repo_name, uri, vcs_type, version, prefix):
         rosinstall.append({vcs_type: {'local-name': repo_name, 'uri': uri, 'version': version}})
     else:
         rosinstall.append({vcs_type: {'local-name': repo_name, 'uri': uri}})
-    return yaml.dump(rosinstall, default_flow_style=False)
+    #return yaml.dump(rosinstall, default_flow_style=False)
+    return rosinstall
     
 #Get information about wet packages or stacks
 def get_wet_info(wet_distro, name):
@@ -74,7 +75,13 @@ def get_release_rosinstall(name, wet_distro, dry_distro, prefix):
     info = get_wet_info(wet_distro, name)
     if info:
         repo_name, repo_info = info
-        return build_rosinstall(repo_name, repo_info['url'], 'git', '/'.join(['release', name, repo_info['version'].split('-')[0]]), prefix)
+        if repo_name == name:
+            rosinstall = []
+            for pkg in repo_info.['pkgs']keys():
+                rosinstall.append(build_rosinstall(repo_name, repo_info['url'], 'git', '/'.join(['release', name, repo_info['version'].split('-')[0]]), prefix))
+            return rosinstall
+        else:
+            return build_rosinstall(repo_name, repo_info['url'], 'git', '/'.join(['release', name, repo_info['version'].split('-')[0]]), prefix)
 
     #Check if the name is in the dry distro
     info = get_dry_info(dry_distro, name)

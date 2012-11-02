@@ -51,11 +51,11 @@ from rosinstall.distro_locate import get_release_info, get_doc_info, \
 
 def cmd_get_release_info(name, distro, options=None):
     prefix = options.prefix if options is not None and options.prefix else ''
-    return get_release_info(name, distro, prefix=prefix)
+    return yaml.dump(get_release_info(name, distro, prefix=prefix), default_flow_style=False)
 
 def cmd_get_doc_info(name, distro, options=None):
     prefix = options.prefix if options is not None and options.prefix else ''
-    return get_doc_info(name, distro, prefix=prefix)
+    return yaml.dump(get_doc_info(name, distro, prefix=prefix), default_flow_style=False)
 
 def get_type(name, distro, options=None):
     return get_doc_type(name, distro)
