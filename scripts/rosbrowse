@@ -77,7 +77,7 @@ def _fullusage():
 \tdoc_info\tGet rosinstall info of latest documentation source for a package, stack, or metapackage
 \ttype\t\tCheck whether a name corresponds to a package, stack, or metapackage
 \twww\t\tGet the web page of a package, stack, or metapackage
-\tdescribe\tGet the description of a package, stack, or metapackage
+\tdescription\tGet the description of a package, stack, or metapackage
 """%(NAME))
     sys.exit(EX_USAGE)
     
