@@ -42,7 +42,6 @@ NAME='rosbrowse'
 
 import yaml
 import sys
-sys.path.insert(0, '/home/eitan/hidof/willow/rosinstall/src')
 try:
     from os import EX_USAGE
 except ImportError:
