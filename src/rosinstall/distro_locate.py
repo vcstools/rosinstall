@@ -90,7 +90,9 @@ def get_manifest_yaml(name, distro):
     try:
         return yaml.load(urllib2.urlopen(url))
     except:
-        raise IOError("Could not load a documentation manifest for %s-%s from ros.org\nAre you sure this package is documented at %s?" % (distro, name, url))
+        raise IOError("Could not load a documentation manifest for %s-%s from ros.org\n\
+Have you selected a valid distro? Did you spell everything correctly? Is your package indexed on ros.org?\n\
+I'm looking here: %s for a yaml file." % (distro, name, url))
 
 def get_release_info(name, distro, prefix=None):
     """
@@ -106,7 +108,9 @@ def get_release_info(name, distro, prefix=None):
     try:
         wet_distro = yaml.load(urllib2.urlopen(url))
     except:
-        raise IOError("Could not load the %s rosdistro file from github.\nAre you sure the following file exists %s?" % (distro, url))
+        raise IOError("Could not load the %s rosdistro file from github.\n\
+Are you sure you've selected a valid distro?\n\
+I'm looking for the following file %s" % (distro, url))
 
     dry_distro = rospkg_distro.load_distro(rospkg_distro.distro_uri(distro))
 
