@@ -40,6 +40,7 @@ Library for finding ROS packages, metapackages, and stacks.
 NAME='rosbrowse'
 
 
+import yaml
 import sys
 try:
     from os import EX_USAGE
