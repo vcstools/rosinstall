@@ -96,19 +96,19 @@ def get_ros_root_from_setupfile(path):
 
 def get_ros_stack_path(config):
     """ Detect valid ROS_ROOT directories from the config elements"""
-
+    # need to track actual path, realpath, and source
     found_paths = set()
     sources = {}
     for t in config.get_config_elements():
         el_path = t.get_path()
         if is_path_ros(el_path):
-            found_paths.add(el_path)
+            found_paths.add(os.path.realpath(el_path))
             sources[el_path] = el_path
             continue
         if isinstance(t, SetupConfigElement):
             ros_root = get_ros_root_from_setupfile(t.get_local_name())
             if ros_root:
-                found_paths.add(ros_root)
+                found_paths.add(os.path.realpath(ros_root))
                 sources[t.get_local_name()] = ros_root
                 continue
 
@@ -116,7 +116,7 @@ def get_ros_stack_path(config):
         raise ROSInstallException(
             "Multiple ros stacks found in config %s, Please elimate all but one.\nThey come from the following sources: %s\n" % (found_paths, sources))
     elif len(found_paths) == 1:
-        return found_paths.pop()
+        return list(sources.values())[0]
     return None
 
 
