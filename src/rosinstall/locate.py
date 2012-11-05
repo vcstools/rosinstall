@@ -45,14 +45,14 @@ class InvalidData(Exception): pass
 def get_rosinstall(name, data, type_, branch=None, prefix=None):
     """
     Compute a rosinstall fragment for checkout
-    
+
     @param name: resource name
     @param data: manifest data for resource
     @param branch: source branch type ('devel' or 'release')
     @param prefix: checkout filepath prefix
     @raise InvalidData
     """
-    
+
     if not 'rosinstall' in data:
         raise InvalidData("rosinstall control information for %s %s\n"%(type_, name))
 
@@ -69,14 +69,14 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
             ri_entry = {'svn': {'local-name': name, 'uri': data['vcs_uri']}}
         else:
             ri_entry = data['rosinstall']
-        
+
     if len(ri_entry) != 1:
         raise InvalidData("rosinstall malformed for %s %s\n"%(type_, name))
 
     prefix = prefix or ''
     for k, v in ri_entry.items():
         if 'local-name' in v:
-            local_name = v['local-name']                
+            local_name = v['local-name']
             # 3513
             # compute path: we can't use os.path.join because rosinstall paths
             # are always Unix-style.
@@ -131,8 +131,8 @@ def get_rosdoc_manifest(arg, distro_name=None):
     get_manifest() gives stacks symbols precedence over package
     symbols.
     @type  arg: str
-    
-    @return: (manifest data, 'package'|'stack'). 
+
+    @return: (manifest data, 'package'|'stack').
     @rtype: ({str: str}, str)
     @raise IOError: if data cannot be loaded
     """
@@ -153,4 +153,3 @@ def get_rosdoc_manifest(arg, distro_name=None):
             return yaml.load(r), 'package'
         except:
             raise IOError(arg)
-        
