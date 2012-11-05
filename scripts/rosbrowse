@@ -37,7 +37,7 @@
 Library for finding ROS packages, metapackages, and stacks.
 """
 
-NAME='rosbrowse'
+NAME = 'rosbrowse'
 
 
 import yaml
@@ -50,19 +50,24 @@ except ImportError:
 from rosinstall.distro_locate import get_release_info, get_doc_info, \
                                      get_doc_type, get_doc_www, get_doc_description
 
+
 def cmd_get_release_info(name, distro, options=None):
     prefix = options.prefix if options is not None and options.prefix else ''
     return yaml.dump(get_release_info(name, distro, prefix=prefix), default_flow_style=False)
+
 
 def cmd_get_doc_info(name, distro, options=None):
     prefix = options.prefix if options is not None and options.prefix else ''
     return yaml.dump(get_doc_info(name, distro, prefix=prefix), default_flow_style=False)
 
+
 def get_type(name, distro, options=None):
     return get_doc_type(name, distro)
 
+
 def cmd_get_www(name, distro, options=None):
     return get_doc_www(name, distro)
+
 
 def get_description(name, distro, options=None):
     return get_doc_description(name, distro)
@@ -71,17 +76,18 @@ def get_description(name, distro, options=None):
 
 # Bind library to commandline implementation
 
+
 def _fullusage():
     sys.stderr.write("""
-%s 
+%s
 \trelease_info\tGet rosinstall info of latest release for a package, stack, or metapackage
 \tdoc_info\tGet rosinstall info of latest documentation source for a package, stack, or metapackage
 \ttype\t\tCheck whether a name corresponds to a package, stack, or metapackage
 \twiki\t\tGet the wiki page of a package, stack, or metapackage
 \tdescription\tGet the description of a package, stack, or metapackage
-"""%(NAME))
+""" % (NAME))
     sys.exit(EX_USAGE)
-    
+
 from operator import getitem
 from functools import partial
 _cmds = {
@@ -91,8 +97,9 @@ _cmds = {
     'type': get_type,
     'wiki': cmd_get_www,
     'describe': get_description,
-    'description': get_description, #alias
+    'description': get_description,  # alias
     }
+
 
 def rosbrowse_main():
     from optparse import OptionParser
@@ -107,11 +114,11 @@ def rosbrowse_main():
 
     parser = OptionParser(usage="usage: %%prog %s <distro> <package/stack/metapackage>"%(cmd), prog=NAME)
     if cmd in ['release_info', 'doc_info']:
-         parser.add_option("--prefix",
-                           dest="prefix", default=False,
-                           metavar="PATH",
-                           help="path prefix for rosinstall")
-        
+        parser.add_option("--prefix",
+                          dest="prefix", default=False,
+                          metavar="PATH",
+                          help="path prefix for rosinstall")
+
     # noop parse for now.  Will matter once we can pass in --distro
     options, args = parser.parse_args()
 
@@ -125,7 +132,8 @@ def rosbrowse_main():
     try:
         print _cmds[cmd](name, distro, options)
     except Exception as e:
-        sys.stderr.write("%s\n"%e)
+        sys.stderr.write("%s\n" % e)
+
 
 if __name__ == '__main__':
     rosbrowse_main()
