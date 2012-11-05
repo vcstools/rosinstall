@@ -104,14 +104,11 @@ def get_ros_stack_path(config):
         if is_path_ros(el_path):
             found_paths.add(os.path.realpath(el_path))
             sources[el_path] = el_path
-            continue
-        if isinstance(t, SetupConfigElement):
+        elif isinstance(t, SetupConfigElement):
             ros_root = get_ros_root_from_setupfile(t.get_local_name())
             if ros_root:
                 found_paths.add(os.path.realpath(ros_root))
                 sources[t.get_local_name()] = ros_root
-                continue
-
     if len(found_paths) > 1:
         raise ROSInstallException(
             "Multiple ros stacks found in config %s, Please elimate all but one.\nThey come from the following sources: %s\n" % (found_paths, sources))
