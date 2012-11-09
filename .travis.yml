@@ -6,13 +6,17 @@ python:
 # command to install dependencies
 install:
   - python setup.py build
-  - sudo pip install pyyaml
+  - sudo pip install pyyaml vcstools
+  - sudo pip install coverage
 # Set git config to silence some stuff in the tests
   - git config --global user.email "foo@example.com"
   - git config --global user.name "Foo Bar"
+# Set the hg user
+  - echo -e "[ui]\nusername = Your Name <your@mail.com>" >> ~/.hgrc
+# Set the bzr user
+  - bzr whoami "Your Name <name@example.com>"
 # command to run tests
 script:
-  - echo -e "[ui]\nusername = Your Name <your@mail.com>" >> ~/.hgrc
   - nosetests --with-coverage --cover-package rosinstall
 notifications:
   email: false
