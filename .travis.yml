@@ -1,0 +1,18 @@
+language: python
+python:
+  - "2.6"
+  - "2.7"
+  - "3.2"
+# command to install dependencies
+install:
+  - python setup.py build
+  - sudo pip install pyyaml
+# Set git config to silence some stuff in the tests
+  - git config --global user.email "foo@example.com"
+  - git config --global user.name "Foo Bar"
+# command to run tests
+script:
+  - echo -e "[ui]\nusername = Your Name <your@mail.com>" >> ~/.hgrc
+  - nosetests --with-coverage --cover-package rosinstall
+notifications:
+  email: false
