@@ -6,6 +6,7 @@ python:
 # command to install dependencies
 install:
   - python setup.py build
+  - sudo apt-get install zsh
   - sudo pip install pyyaml vcstools
   - sudo pip install coverage
 # Set git config to silence some stuff in the tests
