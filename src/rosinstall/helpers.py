@@ -31,6 +31,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import sys
+import codecs
 import subprocess
 from rosinstall.config_elements import SetupConfigElement
 
@@ -90,8 +92,11 @@ def get_ros_root_from_setupfile(path):
         local_env.pop('ROS_ROOT')
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=local_env, shell=True)
     out = process.communicate()[0]
-    out = out.decode('UTF8')
-    return out.strip()
+    if sys.version < '3':
+        out_str = codecs.unicode_escape_decode(out)[0]
+    else:
+        out_str = out
+    return out_str.strip()
 
 
 def get_ros_stack_path(config):
