@@ -195,8 +195,10 @@ unset _SETUPFILES_ROSINSTALL
 export ROS_PACKAGE_PATH=$_ROS_PACKAGE_PATH_ROSINSTALL
 unset _ROS_PACKAGE_PATH_ROSINSTALL
 
-# using ROS_ROOT now being in ROS_PACKAGE_PATH
-export _ROS_ROOT_ROSINSTALL=`/usr/bin/env python << EOPYTHON
+# if setup.sh did not set ROS_ROOT (pre-fuerte)
+if [ -z "${ROS_ROOT}" ]; then
+  # using ROS_ROOT now being in ROS_PACKAGE_PATH
+  export _ROS_ROOT_ROSINSTALL=`/usr/bin/env python << EOPYTHON
 import sys, os;
 if 'ROS_PACKAGE_PATH' in os.environ:
   pkg_path = os.environ['ROS_PACKAGE_PATH']
@@ -207,12 +209,13 @@ if 'ROS_PACKAGE_PATH' in os.environ:
       break
 EOPYTHON`
 
-if [ ! -z "${_ROS_ROOT_ROSINSTALL}" ]; then
-  export ROS_ROOT=$_ROS_ROOT_ROSINSTALL
-  export PATH=$ROS_ROOT/bin:$PATH
-  export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH
-fi
+  if [ ! -z "${_ROS_ROOT_ROSINSTALL}" ]; then
+    export ROS_ROOT=$_ROS_ROOT_ROSINSTALL
+    export PATH=$ROS_ROOT/bin:$PATH
+    export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH
+  fi
 unset _ROS_ROOT_ROSINSTALL
+fi
 """%pycode
 
     return text
@@ -262,33 +265,33 @@ CATKIN_SHELL=%(shell)s
 if [ ! -f "$SCRIPT_PATH/setup.sh" ]; then
   echo "Bug: shell script unable to determine its own location: $SCRIPT_PATH"
   return 22
-fi"""%locals()
+fi
 
-    if not no_ros:
-        text += """
-# unset _ros_decode_path to check later whether setup.sh has sourced ros%(shell)s
-unset -f _ros_decode_path 1> /dev/null 2>&1"""%locals()
+# unset _ros_decode_path (function of rosbash) to check later whether setup.sh has sourced ros%(shell)s
+unset -f _ros_decode_path 1> /dev/null 2>&1
 
-        text += """
-. $SCRIPT_PATH/setup.sh"""
+. $SCRIPT_PATH/setup.sh
 
-    if not no_ros:
-        text += """
-# Cannot rely on $? due to set -o errexit in build scripts
-RETURNCODE=`type _ros_decode_path 2> /dev/null | grep function 1>/dev/null 2>&1 || echo error`
+# if we have a ROS_ROOT, then we might need to source rosbash (pre-fuerte)
+if [ ! -z "${ROS_ROOT}" ]; then
+  # check whether setup.sh also already sourced rosbash
+  # Cannot rely on $? due to set -o errexit in build scripts
+  RETURNCODE=`type _ros_decode_path 2> /dev/null | grep function 1>/dev/null 2>&1 || echo error`
 
-if [ ! "$RETURNCODE" = "" ]; then
-  RETURNCODE=`rospack help 1> /dev/null 2>&1 || echo error`
-  if  [ "$RETURNCODE" = "" ]; then
-    ROSSHELL_PATH=`rospack find rosbash`/ros%(shell)s
-    if [ -e "$ROSSHELL_PATH" ]; then
-      . $ROSSHELL_PATH
+  # for ROS electric and before, source rosbash
+  if [ ! "$RETURNCODE" = "" ]; then
+    RETURNCODE=`rospack help 1> /dev/null 2>&1 || echo error`
+    if  [ "$RETURNCODE" = "" ]; then
+      ROSSHELL_PATH=`rospack find rosbash`/ros%(shell)s
+      if [ -e "$ROSSHELL_PATH" ]; then
+        . $ROSSHELL_PATH
+      fi
+    else
+      echo "rospack could not be found, you cannot have ros%(shell)s features until you bootstrap ros"
     fi
-  else
-    echo "rospack could not be found, you cannot have ros%(shell)s features until you bootstrap ros"
   fi
 fi
-"""%locals()
+""" % locals()
     return text
 
 
