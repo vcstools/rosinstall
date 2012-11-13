@@ -35,7 +35,7 @@
 Official usage:
   %(prog)s CMD [ARGS] [OPTIONS]
 
-rosws will try to infer install path from context
+%(prog)s will try to infer install path from context
 
 Type '%(prog)s help' for usage.
 """
@@ -73,6 +73,8 @@ __ROSWS_CMD_ALIASES__ = {'update': 'up',
                          'diff':   'di'}
 __ROSWS_CMD_DICT__.update(__MULTIPRO_CMD_DICT__)
 
+_PROGNAME = 'rosws'
+
 
 class RoswsCLI(MultiprojectCLI):
 
@@ -85,21 +87,21 @@ class RoswsCLI(MultiprojectCLI):
         if self.config_filename is None:
             print('Error: Bug: config filename required for init')
             return 1
-        parser = OptionParser(usage="""usage: rosws init [TARGET_PATH [SOURCE_PATH]]?""",
+        parser = OptionParser(usage="""usage: %s init [TARGET_PATH [SOURCE_PATH]]?""" % _PROGNAME,
                               formatter=IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["init"] + """
 
-rosws init does the following:
+%(prog)s init does the following:
   1. Reads folder/file/web-uri SOURCE_PATH looking for a rosinstall yaml
-  2. Creates new %s file at TARGET-PATH
+  2. Creates new %(cfg_file)s file at TARGET-PATH
   3. Generates ROS setup files
 
 SOURCE_PATH can e.g. be a folder like /opt/ros/electric
 If PATH is not given, uses current dir.
 
 Examples:
-$ rosws init ~/fuerte /opt/ros/fuerte
-"""%self.config_filename,
+$ %(prog)s init ~/fuerte /opt/ros/fuerte
+""" % {'cfg_file': self.config_filename, 'prog': _PROGNAME},
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("-c", "--catkin", dest="catkin", default=False,
                           help="Declare this is a catkin build.",
@@ -126,7 +128,7 @@ $ rosws init ~/fuerte /opt/ros/fuerte
                 print('Error: Cannot create in target path %s '%target_path)
 
         if os.path.exists(os.path.join(target_path, self.config_filename)):
-            print('Error: There already is a workspace config file %s at "%s". Use rosws install/modify.'%(self.config_filename, target_path))
+            print('Error: There already is a workspace config file %s at "%s". Use %s install/modify.' % (self.config_filename, target_path, _PROGNAME))
             return 1
         if len(args) > 2:
             parser.error('Too many arguments')
@@ -168,7 +170,7 @@ $ rosws init ~/fuerte /opt/ros/fuerte
         return 0
 
     def cmd_merge(self, target_path, argv, config=None):
-        parser = OptionParser(usage="usage: rosws merge [URI] [OPTIONS]",
+        parser = OptionParser(usage="usage: %s merge [URI] [OPTIONS]" % _PROGNAME,
                               formatter=IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["merge"] + """.
 
@@ -182,11 +184,11 @@ replaced. In order to ensure the ordering of elements is as
 provided in the URI, use the option --merge-kill-append.
 
 Examples:
-$ rosws merge someother.rosinstall
+$ %(prog)s merge someother.rosinstall
 
 You can use '-' to pipe in input, as an example:
-$ roslocate info robot_mode | rosws merge -
-""",
+$ roslocate info robot_mode | %(prog)s merge -
+""" % {'prog': _PROGNAME},
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         # same options as for multiproject
         parser.add_option("-a", "--merge-kill-append", dest="merge_kill_append",
@@ -262,12 +264,12 @@ $ roslocate info robot_mode | rosws merge -
             confirmed=options.confirm_all,
             config=config)
         if newconfig is not None:
-            print("Config changed, maybe you need run rosws update to update SCM entries.")
+            print("Config changed, maybe you need run %s update to update SCM entries." % _PROGNAME)
             print("Overwriting %s"%os.path.join(newconfig.get_base_path(), self.config_filename))
             shutil.move(os.path.join(newconfig.get_base_path(), self.config_filename), "%s.bak"%os.path.join(newconfig.get_base_path(), self.config_filename))
             rosinstall_cmd.cmd_persist_config(newconfig)
             rosinstall_cmd.cmd_maybe_refresh_ros_files(newconfig)
-            print("\nrosws update complete.")
+            print("\nupdate complete.")
             if path_changed:
                 print("\nDo not forget to do ...\n$ source %s/setup.sh\n... in every open terminal."%target_path)
         else:
@@ -277,7 +279,7 @@ $ roslocate info robot_mode | rosws merge -
 
 
     def cmd_regenerate(self, target_path, argv, config=None):
-        parser = OptionParser(usage="usage: rosws regenerate",
+        parser = OptionParser(usage="usage: %s regenerate" % _PROGNAME,
                               formatter=IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["remove"] + """
 
@@ -322,7 +324,7 @@ accidentally.
 
     def cmd_info(self, target_path, argv, reverse=True, config=None):
         only_option_valid_attrs = ['path', 'localname', 'version', 'revision', 'cur_revision', 'uri', 'cur_uri', 'scmtype']
-        parser = OptionParser(usage="usage: rosws info [localname]* [OPTIONS]",
+        parser = OptionParser(usage="usage: %s info [localname]* [OPTIONS]" % _PROGNAME,
                               formatter=IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["info"] + """
 
@@ -345,14 +347,14 @@ overlay later entries.
 When given one localname, just show the data of one element in list form.
 This also has the generic properties element which is usually empty.
 
-The --only option accepts keywords: %s
+The --only option accepts keywords: %(opts)s
 
 Examples:
-$ rosws info -t ~/ros/fuerte
-$ rosws info robot_model
-$ rosws info --yaml
-$ rosws info --only=path,cur_uri,cur_revision robot_model geometry
-"""%only_option_valid_attrs,
+$ %(prog)s info -t ~/ros/fuerte
+$ %(prog)s info robot_model
+$ %(prog)s info --yaml
+$ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
+""" % {'prog': _PROGNAME, 'opts': only_option_valid_attrs},
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("--data-only", dest="data_only", default=False,
                           help="Does not provide explanations",
@@ -457,7 +459,7 @@ def usage():
     """
     Prints usage from file header and from dictionary, sorting entries
     """
-    dvars = {'prog': 'rosws'}
+    dvars = {'prog': _PROGNAME}
     dvars.update(vars())
     print(__doc__%dvars)
     # using None to generate empty lines
@@ -483,9 +485,9 @@ def rosws_main(argv=None):
     if argv is None:
         argv = sys.argv
     if (sys.argv[0] == '-c'):
-        sys.argv = ['rosws'] + sys.argv[1:]
+        sys.argv = [_PROGNAME] + sys.argv[1:]
     if '--version' in argv:
-        print("rosws: \t%s\n%s"%(rosinstall.__version__.version, cmd_version()))
+        print("%s: \t%s\n%s" % (_PROGNAME, rosinstall.__version__.version, cmd_version()))
         sys.exit(0)
     workspace = None
     if len(argv) < 2:
@@ -564,9 +566,9 @@ def rosws_main(argv=None):
     except KeyboardInterrupt:
         pass
     except ROSInstallException as e:
-        sys.stderr.write("ERROR in rosinstall: %s\n"%str(e))
+        sys.stderr.write("ERROR in %s: %s\n" % (_PROGNAME, str(e)))
         return 1
     except MultiProjectException as e:
-        sys.stderr.write("ERROR: %s\n"%str(e))
+        sys.stderr.write("ERROR: %s\n" % str(e))
         return 1
 
