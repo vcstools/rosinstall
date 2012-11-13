@@ -44,10 +44,10 @@ A change to expect is abstraction of user interaction.
 
 
 import os
-from rosinstall.common import MultiProjectException, DistributedWork,\
+from rosinstall.common import MultiProjectException, DistributedWork, \
     select_elements, normabspath
 from rosinstall.config import Config, realpath_relation
-from rosinstall.config_yaml import aggregate_from_uris, generate_config_yaml,\
+from rosinstall.config_yaml import aggregate_from_uris, generate_config_yaml, \
     get_path_specs_from_uri
 
 import vcstools
@@ -133,7 +133,7 @@ def add_uris(config, additional_uris, merge_strategy="KillAppend"):
             if (comp_uri is not None and
                 realpath_relation(os.path.abspath(comp_uri),
                                   os.path.abspath(config.get_base_path())) == 'SAME_AS'):
-                print('Warning: Discarding config basepath as additional uri: %s'%uri)
+                print('Warning: Discarding config basepath as additional uri: %s' % uri)
                 continue
             added_uris.append(uri)
 
@@ -156,14 +156,14 @@ def cmd_version():
     """Returns extensive version information"""
     def prettyversion(vdict):
         version = vdict.pop("version")
-        return "%s; %s"%(version, ",".join(list(vdict.values())))
+        return "%s; %s" % (version, ",".join(list(vdict.values())))
     return """vcstools:  %s
 SVN:       %s
 Mercurial: %s
 Git:       %s
 Tar:       %s
 Bzr:       %s
-"""%(vcstools.__version__.version,
+""" % (vcstools.__version__.version,
      prettyversion(vcstools.SvnClient.get_environment_metadata()),
      prettyversion(vcstools.HgClient.get_environment_metadata()),
      prettyversion(vcstools.GitClient.get_environment_metadata()),
@@ -201,7 +201,7 @@ def cmd_status(config, localnames=None, untracked=False):
             if columns > -1 and status is not None:
                 status_aligned = ''
                 for line in status.splitlines():
-                    status_aligned = "%s%s%s\n"%(status_aligned,
+                    status_aligned = "%s%s%s\n" % (status_aligned,
                                                  line[:columns].ljust(8),
                                                  line[columns:])
                 status = status_aligned
@@ -272,28 +272,28 @@ def cmd_install_or_update(
     # Prepare install operation check filesystem and ask user
     preparation_reports = []
     elements = select_elements(config, localnames)
-    for t in elements:
+    for tree_el in elements:
         abs_backup_path = None
         if backup_path is not None:
             abs_backup_path = os.path.join(config.get_base_path(), backup_path)
         try:
-            preparation_report = t.prepare_install(backup_path=abs_backup_path,
+            preparation_report = tree_el.prepare_install(backup_path=abs_backup_path,
                                                    arg_mode=mode,
                                                    robust=robust)
             if preparation_report is not None:
                 if preparation_report.abort:
-                    raise MultiProjectException("Aborting install because of %s"%preparation_report.error)
+                    raise MultiProjectException("Aborting install because of %s" % preparation_report.error)
                 if not preparation_report.skip:
                     preparation_reports.append(preparation_report)
                 else:
                     if preparation_report.error is not None:
-                        print("Skipping install of %s because: %s"%(preparation_report.config_element.get_local_name(),
+                        print("Skipping install of %s because: %s" % (preparation_report.config_element.get_local_name(),
                                                                     preparation_report.error))
-        except MultiProjectException as ex:
-            fail_str = "Failed to install tree '%s'\n %s"%(t.get_path(), ex)
+        except MultiProjectException as exc:
+            fail_str = "Failed to install tree '%s'\n %s" % (tree_el.get_path(), exc)
             if robust:
                 success = False
-                print("Continuing despite %s"%fail_str)
+                print("Continuing despite %s" % fail_str)
             else:
                 raise MultiProjectException(fail_str)
 
@@ -318,11 +318,11 @@ def cmd_install_or_update(
 
     try:
         work.run()
-    except MultiProjectException as e:
-        print ("Exception caught during install: %s"%e)
+    except MultiProjectException as exc:
+        print ("Exception caught during install: %s" % exc)
         success = False
         if not robust:
-            raise e
+            raise exc
     return success
     # TODO go back and make sure that everything in options.path is described
     # in the yaml, and offer to delete otherwise? not sure, but it could go here
@@ -355,15 +355,15 @@ def cmd_info(config, localnames=None):
             uri = ""
             curr_uri = None
             exists = False
-            version = ""# what is given in config file
+            version = ""  # what is given in config file
             modified = ""
-            actualversion = "" # revision number of version
-            specversion = "" # actual revision number
+            actualversion = ""  # revision number of version
+            specversion = ""  # actual revision number
             localname = self.element.get_local_name()
             path = self.element.get_path() or localname
 
             if localname is None or localname == "":
-                raise MultiProjectException("Missing local-name in element: %s"%self.element)
+                raise MultiProjectException("Missing local-name in element: %s" % self.element)
             abs_path = normabspath(path, self.path)
             if (os.path.exists(abs_path)):
                 exists = True
@@ -384,7 +384,7 @@ def cmd_info(config, localnames=None):
                         version.strip() != '' and
                         (specversion is None or specversion.strip() == '')):
 
-                        specversion = '"%s"'%version
+                        specversion = '"%s"' % version
                     actualversion = path_spec.get_current_revision()
                 scm = path_spec.get_scmtype()
                 uri = path_spec.get_uri()

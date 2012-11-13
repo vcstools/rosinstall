@@ -49,7 +49,7 @@ class MultiProjectException(Exception):
     pass
 
 
-def samefile(f1, f2):
+def samefile(file1, file2):
     """
     Test whether two pathnames reference the same actual file
     This is a workaround for the fact that some platforms
@@ -58,17 +58,17 @@ def samefile(f1, f2):
     time we can probably remove this workaround).
     """
     try:
-        return os.path.samefile(f1,f2)
+        return os.path.samefile(file1, file2)
     except AttributeError:
         try:
             from nt import _getfinalpathname
-            return _getfinalpathname(f1) == _getfinalpathname(f2)
+            return _getfinalpathname(file1) == _getfinalpathname(file2)
         except (NotImplementedError, ImportError):
             # On Windows XP and earlier, two files are the same if their
             #  absolute pathnames are the same.
             # Also, on other operating systems, fake this method with a
             #  Windows-XP approximation.
-            return os.path.abspath(f1) == os.path.abspath(f2)
+            return os.path.abspath(file1) == os.path.abspath(file2)
 
 
 def conditional_abspath(uri):
@@ -115,7 +115,7 @@ def normalize_uri(source_uri, base_path):
             source_uri = os.path.normpath(source_uri)
         else:
             source_uri2 = os.path.normpath(os.path.join(base_path, source_uri))
-            print("Warning: Converted relative uri path %s to abspath %s"%(source_uri, source_uri2))
+            print("Warning: Converted relative uri path %s to abspath %s" % (source_uri, source_uri2))
             source_uri = source_uri2
     return source_uri
 
@@ -147,8 +147,9 @@ def string_diff(str1_orig, str2_orig, maxlen=11, backtrack=7):
         if False in charcompare:
             commonprefix = str2[:charcompare.index(False)]
             if len(commonprefix) > maxlen:
-                result = "...%s"%str2[len(commonprefix) - backtrack:]
+                result = "...%s" % str2[len(commonprefix) - backtrack:]
     return result
+
 
 def normabspath(localname, path):
     """
@@ -166,8 +167,8 @@ def realpath_relation(abspath1, abspath2):
     Computes the relationship abspath1 to abspath2
     :returns: None, 'SAME_AS', 'PARENT_OF', 'CHILD_OF'
     """
-    assert os.path.isabs(abspath1), "Bug, %s is not absolute path"%abspath1
-    assert os.path.isabs(abspath2), "Bug, %s is not absolute path"%abspath2
+    assert os.path.isabs(abspath1), "Bug, %s is not absolute path" % abspath1
+    assert os.path.isabs(abspath2), "Bug, %s is not absolute path" % abspath2
     realpath1 = os.path.realpath(abspath1)
     realpath2 = os.path.realpath(abspath2)
     if os.path.dirname(realpath1) == os.path.dirname(realpath2):
@@ -225,7 +226,7 @@ def select_elements(config, localnames):
             os.path.realpath(localnames[0]) == os.path.realpath(config.get_base_path())):
 
             return config.get_config_elements()
-        raise MultiProjectException("Unknown elements '%s'"%notfound)
+        raise MultiProjectException("Unknown elements '%s'" % notfound)
     result = []
     # select in order and remove duplicates
     for element in config.get_config_elements():
@@ -290,7 +291,7 @@ class DistributedWork():
         thread = WorkerThread(worker, self.outputs, self.index)
         if self.index >= len(self.outputs):
             raise MultiProjectException(
-                "Bug: Declared capacity exceeded %s >= %s"%(self.index,
+                "Bug: Declared capacity exceeded %s >= %s" % (self.index,
                                                             len(self.outputs)))
         self.index += 1
         self.threads.append(thread)
@@ -332,14 +333,14 @@ class DistributedWork():
                     if (not self.silent
                         and len(running_threads) > 0):
 
-                        print("[%s] still active"%",".join([th.worker.element.get_local_name() for th in running_threads]))
+                        print("[%s] still active" % ",".join([th.worker.element.get_local_name() for th in running_threads]))
                     for thread in running_threads:
                         # this should prevent busy waiting
                         thread.join(1)
             except KeyboardInterrupt as k:
                 for thread in self.threads:
                     if thread is not None and thread.is_alive():
-                        print("[%s] terminated while active"%thread.worker.element.get_local_name())
+                        print("[%s] terminated while active" % thread.worker.element.get_local_name())
                         thread.terminate()
                 raise k
 
@@ -348,9 +349,9 @@ class DistributedWork():
         for output in self.outputs:
             if "error" in output:
                 if 'entry' in output:
-                    message += "Error processing '%s' : %s\n"%(output['entry'].get_local_name(), output["error"])
+                    message += "Error processing '%s' : %s\n" % (output['entry'].get_local_name(), output["error"])
                 else:
-                    message += "%s\n"%output["error"]
+                    message += "%s\n" % output["error"]
         if message != '':
             raise MultiProjectException(message)
         return self.outputs

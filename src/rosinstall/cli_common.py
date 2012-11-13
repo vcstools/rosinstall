@@ -30,7 +30,6 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-
 import os
 import re
 from optparse import OptionParser
@@ -63,7 +62,7 @@ def get_workspace(argv, shell_path, config_filename=None, varname=None):
         if (config_filename is not None and
             not os.path.isfile(os.path.join(options.workspace, config_filename))):
 
-            raise MultiProjectException("%s has no workspace configuration file '%s'"%(os.path.abspath(options.workspace), config_filename))
+            raise MultiProjectException("%s has no workspace configuration file '%s'" % (os.path.abspath(options.workspace), config_filename))
         return os.path.abspath(options.workspace)
 
     varname_path = None
@@ -83,7 +82,7 @@ def get_workspace(argv, shell_path, config_filename=None, varname=None):
             shell_path = os.path.dirname(shell_path)
 
     if current_path is not None and varname_path is not None and not samefile(current_path, varname_path):
-        raise MultiProjectException("Ambiguous workspace: %s=%s, %s"%(varname, varname_path, os.path.abspath(config_filename)))
+        raise MultiProjectException("Ambiguous workspace: %s=%s, %s" % (varname, varname_path, os.path.abspath(config_filename)))
 
     if current_path is None and varname_path is None:
         raise MultiProjectException("Command requires a target workspace.")
@@ -126,6 +125,7 @@ def _get_status_flags(basepath, line):
         mflag += 'V'
     return mflag
 
+
 def get_info_table_elements(basepath, entries, headers):
     """returns a list of dict with refined information from entries"""
 
@@ -163,31 +163,31 @@ def get_info_table_elements(basepath, entries, headers):
                 # in case of SVN, we can use the final part of standard uri as version
                 uri = line['uri']
                 version = line['version']
-                m = re.match('(.*/)((tags|branches|trunk)(/.*)*)', uri)
-                if m is not None and len(m.groups()) > 1 and uri == ''.join(m.groups()[0:2]):
-                    uri = m.groups()[0]
-                    if (m.groups()[1] is not None and version is None or version.strip() == ''):
-                        version = m.groups()[1]
+                match = re.match('(.*/)((tags|branches|trunk)(/.*)*)', uri)
+                if match is not None and len(match.groups()) > 1 and uri == ''.join(match.groups()[0:2]):
+                    uri = match.groups()[0]
+                    if (match.groups()[1] is not None and version is None or version.strip() == ''):
+                        version = match.groups()[1]
                     else:
-                        version = m.groups()[1]
+                        version = match.groups()[1]
                     line['uri'] = uri
                     line['version'] = version
                 if line['curr_uri'] is not None:
                     uri = line['curr_uri']
-                    m = re.match('(.*/)((tags|branches|trunk)(/.*)*)', uri)
-                    if m is not None and len(m.groups()) > 1 and uri == ''.join(m.groups()[0:2]):
-                        uri = m.groups()[0]
-                        if (m.groups()[1] is not None and version is None or version.strip() == ''):
-                            version = m.groups()[1]
+                    match = re.match('(.*/)((tags|branches|trunk)(/.*)*)', uri)
+                    if match is not None and len(match.groups()) > 1 and uri == ''.join(match.groups()[0:2]):
+                        uri = match.groups()[0]
+                        if (match.groups()[1] is not None and version is None or version.strip() == ''):
+                            version = match.groups()[1]
                         else:
-                            version = m.groups()[1]
+                            version = match.groups()[1]
                         line['curr_uri'] = uri
                         line['curr_version'] = version
 
             if (line['curr_version'] is not None and
                 line['version'] != line['curr_version']):
 
-                output_dict['version'] = "%s  (%s)"%(line['curr_version'], line['version'])
+                output_dict['version'] = "%s  (%s)" % (line['curr_version'], line['version'])
             else:
                 output_dict['version'] = line['version']
 
@@ -195,7 +195,7 @@ def get_info_table_elements(basepath, entries, headers):
                 line['specversion'] != '' and
                 line['actualversion'] != line['specversion']):
 
-                output_dict['matching'] = "%s (%s)"%(line['actualversion'], line['specversion'])
+                output_dict['matching'] = "%s (%s)" % (line['actualversion'], line['specversion'])
             else:
                 output_dict['matching'] = line['actualversion']
 
@@ -214,7 +214,7 @@ def get_info_table_elements(basepath, entries, headers):
                         break
 
             if (not _uris_match(basepath, line['uri'], line['curr_uri'])):
-                output_dict['uri'] = "%s    (%s)"%(line['curr_uri'], line['uri'])
+                output_dict['uri'] = "%s    (%s)" % (line['curr_uri'], line['uri'])
 
         else:
             output_dict['matching'] = " "
@@ -224,16 +224,16 @@ def get_info_table_elements(basepath, entries, headers):
 
     return outputs
 
+
 def get_info_table(basepath, entries, data_only=False, reverse=False):
     """return a refined textual representation of the entries"""
     headers = {
-      'uri':"URI  (Spec) [http(s)://...]",
-      'scm':"SCM ",
-      'localname':"Localname",
-      'version':"Version-Spec",
+      'uri': "URI  (Spec) [http(s)://...]",
+      'scm': "SCM ",
+      'localname': "Localname",
+      'version': "Version-Spec",
       'matching': "UID  (Spec)",
-      'status':"S"
-      }
+      'status': "S"}
 
     # table design
     selected_headers = ['localname', 'status', 'scm', 'version', 'matching', 'uri']
@@ -295,16 +295,16 @@ def get_info_list(basepath, line, data_only=False):
     assert line is not None, "Bug Warning, an element is missing"
 
     headers = {
-      'uri'           : "URI:",
-      'curr_uri'      : "Current URI:",
-      'scm'           : "SCM:",
-      'localname'     : "Localname:",
-      'path'          : "Path",
-      'version'       : "Version-Spec:",
-      'status'        : "Status:",
-      'specversion'   : "Spec-Revision:",
-      'actualversion' : "Current-Revision:",
-      'properties'    : "Other Properties:"}
+      'uri': "URI:",
+      'curr_uri': "Current URI:",
+      'scm': "SCM:",
+      'localname': "Localname:",
+      'path': "Path",
+      'version': "Version-Spec:",
+      'status': "Status:",
+      'specversion': "Spec-Revision:",
+      'actualversion': "Current-Revision:",
+      'properties': "Other Properties:"}
 
     # table design
     selected_headers = ['localname', 'path', 'status',
@@ -320,12 +320,12 @@ def get_info_list(basepath, line, data_only=False):
     result = ''
     for header in selected_headers:
         if not data_only:
-            title = "%s  "%(headers[header].ljust(header_length))
+            title = "%s  " % (headers[header].ljust(header_length))
         else:
             title = ''
         if header in line:
             output = line[header]
         if output is None:
             output = ''
-        result += "%s%s\n"%(title, output)
+        result += "%s%s\n" % (title, output)
     return result

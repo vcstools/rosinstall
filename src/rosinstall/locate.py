@@ -40,7 +40,9 @@ except ImportError:
 BRANCH_RELEASE = 'release'
 BRANCH_DEVEL = 'devel'
 
+
 class InvalidData(Exception): pass
+
 
 def get_rosinstall(name, data, type_, branch=None, prefix=None):
     """
@@ -54,7 +56,7 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
     """
 
     if not 'rosinstall' in data:
-        raise InvalidData("rosinstall control information for %s %s\n"%(type_, name))
+        raise InvalidData("rosinstall control information for %s %s\n" % (type_, name))
 
     ri_entry = None
     if branch and 'rosinstalls' in data:
@@ -71,10 +73,10 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
             ri_entry = data['rosinstall']
 
     if len(ri_entry) != 1:
-        raise InvalidData("rosinstall malformed for %s %s\n"%(type_, name))
+        raise InvalidData("rosinstall malformed for %s %s\n" % (type_, name))
 
     prefix = prefix or ''
-    for k, v in ri_entry.items():
+    for _, v in ri_entry.items():
         if 'local-name' in v:
             local_name = v['local-name']
             # 3513
@@ -85,6 +87,7 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
             v['local-name'] = path
 
     return yaml.dump([ri_entry], default_flow_style=False)
+
 
 def get_vcs_uri_for_branch(data, branch=None):
     """
@@ -99,6 +102,7 @@ def get_vcs_uri_for_branch(data, branch=None):
     else:
         return data.get('vcs_uri', '')
 
+
 def get_vcs(name, data, type_):
     """
     @param name: resource name
@@ -106,6 +110,7 @@ def get_vcs(name, data, type_):
     @param type_: resource type ('stack' or 'package')
     """
     return data.get('vcs', '')
+
 
 def get_repo(name, data, type_):
     """
@@ -115,6 +120,7 @@ def get_repo(name, data, type_):
     """
     return data.get('repository', '')
 
+
 def get_www(name, data, type_):
     """
     @param name: resource name
@@ -122,6 +128,7 @@ def get_www(name, data, type_):
     @param type_: resource type ('stack' or 'package')
     """
     return data.get('url', '')
+
 
 def get_rosdoc_manifest(arg, distro_name=None):
     """
@@ -138,17 +145,17 @@ def get_rosdoc_manifest(arg, distro_name=None):
     """
     try:
         if distro_name is not None:
-            url = 'http://ros.org/doc/%s/api/%s/stack.yaml'%(distro_name, arg)
+            url = 'http://ros.org/doc/%s/api/%s/stack.yaml' % (distro_name, arg)
         else:
-            url = 'http://ros.org/doc/api/%s/stack.yaml'%(arg)
+            url = 'http://ros.org/doc/api/%s/stack.yaml' % (arg)
         r = urlopen(url)
         return yaml.load(r), 'stack'
     except:
         try:
             if distro_name is not None:
-                url = 'http://ros.org/doc/%s/api/%s/manifest.yaml'%(distro_name, arg)
+                url = 'http://ros.org/doc/%s/api/%s/manifest.yaml' % (distro_name, arg)
             else:
-                url = 'http://ros.org/doc/api/%s/manifest.yaml'%(arg)
+                url = 'http://ros.org/doc/api/%s/manifest.yaml' % (arg)
             r = urlopen(url)
             return yaml.load(r), 'package'
         except:

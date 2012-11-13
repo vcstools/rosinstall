@@ -75,11 +75,11 @@ class Config:
             action = self.add_path_spec(path_spec, merge_strategy)
             # Usual action in init should be 'Append', anything else is unusual
             if action == 'KillAppend':
-                print("Replace existing entry %s by appending."%path_spec.get_local_name())
+                print("Replace existing entry %s by appending." % path_spec.get_local_name())
             elif action == 'MergeReplace':
-                print("Replace existing entry %s"%path_spec.get_local_name())
+                print("Replace existing entry %s" % path_spec.get_local_name())
             elif action == 'MergeKeep':
-                print("Keep existing entry %s, discard later one"%path_spec.get_local_name())
+                print("Keep existing entry %s, discard later one" % path_spec.get_local_name())
 
     def __str__(self):
         return str([str(x) for x in self.trees])
@@ -94,24 +94,24 @@ class Config:
         """
         #compute the local_path for the config element
         local_path = normabspath(path_spec.get_local_name(), self.get_base_path())
-        if os.path.isfile(local_path) :
+        if os.path.isfile(local_path):
             if path_spec.get_tags() is not None and 'setup-file' in path_spec.get_tags():
                 elem = SetupConfigElement(local_path,
                                           os.path.normpath(path_spec.get_local_name()),
                                           properties=path_spec.get_tags())
                 return self.insert_element(elem, merge_strategy)
             else:
-                print("!!!!! Warning: Not adding file %s"%local_path)
+                print("!!!!! Warning: Not adding file %s" % local_path)
                 return None
         else:
             # scmtype == None kept for historic reasons here
             if (path_spec.get_scmtype() == None and
                 self.config_filename is not None and
                 os.path.exists(os.path.join(local_path, self.config_filename))):
-                
-                print("!!!!! Warning: Not recursing into other config folder %s containing file %s"%(local_path, self.config_filename))
+
+                print("!!!!! Warning: Not recursing into other config folder %s containing file %s" % (local_path, self.config_filename))
                 return None
-                
+
             if path_spec.get_scmtype() != None:
                 return self._insert_vcs_path_spec(path_spec, local_path, merge_strategy)
             else:
@@ -123,7 +123,7 @@ class Config:
                                           path_spec.get_version(),
                                           properties=path_spec.get_tags())
                 return self.insert_element(elem, merge_strategy)
-                
+
 
 
     def _insert_vcs_path_spec(self, path_spec, local_path, merge_strategy='KillAppend'):
@@ -141,7 +141,7 @@ class Config:
                                                    properties=path_spec.get_tags())
             return self.insert_element(elem, merge_strategy)
         except LookupError as ex:
-            raise MultiProjectException("Abstracted VCS Config failed. Exception: %s"%ex)
+            raise MultiProjectException("Abstracted VCS Config failed. Exception: %s" % ex)
 
     def insert_element(self, new_config_elt, merge_strategy='KillAppend'):
         """
@@ -154,17 +154,17 @@ class Config:
         - MergeKeep: Discard new element
 
         In case local path matches but local name does not, raise Exception
-     
+
         :returns: the action performed None, 'Append', 'KillAppend', 'MergeReplace', 'MergeKeep'"""
         removals = []
         replaced = False
-        for index, loop_elt in enumerate (self.trees):
+        for index, loop_elt in enumerate(self.trees):
             # if paths are os.path.realpath, no symlink problems.
             relationship = realpath_relation(loop_elt.get_path(),
                                              new_config_elt.get_path())
             if relationship == 'SAME_AS':
                 if os.path.normpath(loop_elt.get_local_name()) != os.path.normpath(new_config_elt.get_local_name()):
-                    raise MultiProjectException("Elements with different local_name target the same path: %s, %s"%(loop_elt, new_config_elt))
+                    raise MultiProjectException("Elements with different local_name target the same path: %s, %s" % (loop_elt, new_config_elt))
                 else:
                     if (loop_elt == new_config_elt):
                         return None
@@ -182,7 +182,7 @@ class Config:
                         return 'MergeKeep'
                     else:
                         raise LookupError(
-                            "No such merge strategy: %s"%str(merge_strategy))
+                            "No such merge strategy: %s" % str(merge_strategy))
             elif ((relationship == 'CHILD_OF' and new_config_elt.is_vcs_element())
                   or (relationship == 'PARENT_OF' and loop_elt.is_vcs_element())):
                 # we do not allow any elements to be children of scm elements
@@ -190,7 +190,7 @@ class Config:
                 # delete scm folders on update, and thus subfolders can be
                 # deleted with their parents
                 raise MultiProjectException(
-                    "Managed Element paths overlap: %s, %s"%(loop_elt,
+                    "Managed Element paths overlap: %s, %s" % (loop_elt,
                                                              new_config_elt))
         if replaced:
             return 'MergeReplace'
@@ -208,12 +208,12 @@ class Config:
         :returns: True if such an element was found
         """
         removals = []
-        for t in self.trees:
-            if t.get_local_name() == local_name:
-                removals.append(t)
+        for tree_el in self.trees:
+            if tree_el.get_local_name() == local_name:
+                removals.append(tree_el)
         if len(removals) > 0:
-            for t in removals:
-                self.trees.remove(t)
+            for tree_el in removals:
+                self.trees.remove(tree_el)
             return True
         return False
 
@@ -222,7 +222,7 @@ class Config:
             eclass = self.registry[scmtype]
         except LookupError:
             raise MultiProjectException(
-                "No VCS client registered for vcs type %s"%scmtype)
+                "No VCS client registered for vcs type %s" % scmtype)
         return eclass(scmtype=scmtype,
                       path=path,
                       local_name=local_name,
@@ -236,20 +236,17 @@ class Config:
     def get_config_filename(self):
         return self.config_filename
 
-
     def get_source(self):
         """
         :returns: all elements that got added by user keystrokes (CLI and changed .rosinstall)
         """
         source_aggregate = []
-        for t in self.trees:
-            source_aggregate.append(t.get_path_spec())
+        for tree_el in self.trees:
+            source_aggregate.append(tree_el.get_path_spec())
         return source_aggregate
-
 
     def get_config_elements(self):
         source_aggregate = []
-        for t in self.trees:
-            source_aggregate.append(t)
+        for tree_el in self.trees:
+            source_aggregate.append(tree_el)
         return source_aggregate
-

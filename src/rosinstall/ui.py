@@ -32,6 +32,7 @@
 
 import sys
 
+
 class Ui(object):
     """
     wrap user interaction, such that client libraries may provide own
@@ -57,7 +58,7 @@ class Ui(object):
     def get_backup_path(self):
         """Interactive function asking the user to choose a path for backup"""
         backup_path = self.get_input("Please enter backup pathname: ")
-        print(("backing up to %s"%backup_path))
+        print(("backing up to %s" % backup_path))
         return backup_path
 
     def get_input(self, prompt):
@@ -65,7 +66,7 @@ class Ui(object):
             return input(prompt)
         else:
             return raw_input(prompt)
-    
+
     def prompt_del_abort_retry(self, prompt, allow_skip=False):
         """
         Interactive function asking the user to choose a conflict resolution
@@ -82,7 +83,7 @@ class Ui(object):
 
         mode = ""
 
-        full_prompt = "%s %s: "%(prompt, ", ".join(valid_modes))
+        full_prompt = "%s %s: " % (prompt, ", ".join(valid_modes))
 
         while mode == "":
             mode_input = self.get_input(full_prompt)

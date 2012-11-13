@@ -70,30 +70,30 @@ def roslocate_info(stack, distro, dev):
     :raises: ROSInstallException on errors
     """
     # TODO: use roslocate from code
-    cmd = ['roslocate', 'info', '--distro=%s'%(distro), stack]
+    cmd = ['roslocate', 'info', '--distro=%s' % (distro), stack]
     if dev is True:
         cmd.append('--dev')
     try:
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
-    except OSError as e:
-        raise ROSInstallException('%s\nfailed to execute roslocate; is your ROS environment configured?'%(e))
+        proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    except OSError as exc:
+        raise ROSInstallException('%s\nfailed to execute roslocate; is your ROS environment configured?' % (exc))
 
-    stdout, stderr = p.communicate()
-    if p.returncode != 0:
-        sys.stderr.write('[rosws] Warning: failed to locate stack "%s" in distro "%s".    Falling back on non-distro-specific search; compatibility problems may ensue.\n'%(stack, distro))
+    stdout, stderr = proc.communicate()
+    if proc.returncode != 0:
+        sys.stderr.write('[rosws] Warning: failed to locate stack "%s" in distro "%s".    Falling back on non-distro-specific search; compatibility problems may ensue.\n' % (stack, distro))
         # Could be that the stack hasn't been released; try roslocate
         # again, without specifying the distro.
         cmd = ['roslocate', 'info', stack]
         if dev is True:
             cmd.append('--dev')
         try:
-            p = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        except OSError as e:
-            raise ROSInstallException('%s\nfailed to execute roslocate; is your ROS environment configured?'%(e))
+            proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        except OSError as exc:
+            raise ROSInstallException('%s\nfailed to execute roslocate; is your ROS environment configured?' % (exc))
 
-        stdout, stderr = p.communicate()
-        if p.returncode != 0:
-            raise ROSInstallException('roslocate failed: %s'%(stderr))
+        stdout, stderr = proc.communicate()
+        if proc.returncode != 0:
+            raise ROSInstallException('roslocate failed: %s' % (stderr))
     return yaml.load(stdout)
 
 
@@ -105,16 +105,16 @@ def get_ros_stack_version():
     # r14280)
     cmd = ['rosversion', 'ros']
     try:
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
-    except OSError as e:
-        raise ROSInstallException('%s\nfailed to execute rosversion; is your ROS environment configured?'%(e))
+        proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    except OSError as exc:
+        raise ROSInstallException('%s\nfailed to execute rosversion; is your ROS environment configured?' % (exc))
 
-    stdout, stderr = p.communicate()
-    if p.returncode != 0:
-        raise ROSInstallException('rosversion failed: %s'%(stderr))
+    stdout, stderr = proc.communicate()
+    if proc.returncode != 0:
+        raise ROSInstallException('rosversion failed: %s' % (stderr))
     ver = distutils.version.StrictVersion(stdout).version
     if len(ver) < 2:
-        raise ROSInstallException('invalid ros version: %s'%(stdout))
+        raise ROSInstallException('invalid ros version: %s' % (stdout))
     return ver
 
 
@@ -124,7 +124,7 @@ def rosversion_to_distro_name(ver):
     version. Avoid using this function if you can.
     """
     if len(ver) < 2:
-        raise ROSInstallException('invalid ros version: %s'%(ver))
+        raise ROSInstallException('invalid ros version: %s' % (ver))
     major, minor = ver[0:2]
     if major == 1 and minor == 10:
         return 'groovy'
@@ -137,7 +137,7 @@ def rosversion_to_distro_name(ver):
     elif major == 1 and minor == 4:
         return 'diamondback'
     else:
-        raise ROSInstallException('unknown ros version: %s'%(ver))
+        raise ROSInstallException('unknown ros version: %s' % (ver))
 
 
 def get_dependent_stacks(stack):
@@ -149,12 +149,12 @@ def get_dependent_stacks(stack):
     # we'll call it manually
     cmd = ['rosstack', 'depends-on', stack]
     try:
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
-    except OSError as e:
-        raise ROSInstallException('%s\nfailed to execute rosstack; is your ROS environment configured?'%(e))
-    stdout, stderr = p.communicate()
-    if p.returncode != 0:
-        raise ROSInstallException('rosstack failed: %s'%(stderr))
+        proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    except OSError as exc:
+        raise ROSInstallException('%s\nfailed to execute rosstack; is your ROS environment configured?' % (exc))
+    stdout, stderr = proc.communicate()
+    if proc.returncode != 0:
+        raise ROSInstallException('rosstack failed: %s' % (stderr))
     # Make sure to exclude empty lines
     deps = []
     for line in stdout.splitlines():
@@ -176,14 +176,14 @@ def cmd_add_stack(config, stackname, released=False, recurse=False):
     def _add_stack(config, stackname, distro, released=False):
         stack_element = get_stack_element_in_config(config, stackname)
         if stack_element is not None:
-            print("stack %stackname already in config at %s"%(stackname, stack_element.get_path()))
+            print("stack %stackname already in config at %s" % (stackname, stack_element.get_path()))
             return False
         yaml_dict = roslocate_info(stackname, distro, not released)
         if yaml_dict is not None and len(yaml_dict) > 0:
             path_spec = rosinstall.config_yaml.get_path_spec_from_yaml(yaml_dict[0])
-            
+
             if config.add_path_spec(path_spec, merge_strategy="MergeKeep") is False:
-                print("Config did not add element %s"%path_spec)
+                print("Config did not add element %s" % path_spec)
                 return False
             return True
         print("roslocate did not return anything")
@@ -197,8 +197,8 @@ def cmd_add_stack(config, stackname, released=False, recurse=False):
     if recurse:
         deps = get_dependent_stacks(stackname)
         # Also switch anything that depends on this stack
-        for s in deps:
-            _add_stack(config, s, distro=distro, released=released)
+        for stack in deps:
+            _add_stack(config, stack, distro=distro, released=released)
     return True
 
 
@@ -215,7 +215,7 @@ def cmd_delete_stack(config, stackname, delete=False, recurse=False):
     def _del_stack(config, stackname, delete=False):
         stack_element = get_stack_element_in_config(config, stackname)
         if stack_element is None:
-            print("stack not in config: %s "%stackname)
+            print("stack not in config: %s " % stackname)
             return False
         config.remove_element(stack_element.get_local_name())
         if delete:
@@ -230,8 +230,8 @@ def cmd_delete_stack(config, stackname, delete=False, recurse=False):
     if recurse:
         deps = get_dependent_stacks(stackname)
         # Also switch anything that depends on this stack
-        for s in deps:
-            _del_stack(config, s, delete)
+        for stack in deps:
+            _del_stack(config, stack, delete)
     return True
 
 
@@ -346,9 +346,9 @@ Usage:
     %(prog)s delete [INSTALL_PATH] [STACK] [OPTIONS]
 
 Type '%(prog)s --help' for usage.
-"""%{'prog': 'rosws-stacks'})
+""" % {'prog': 'rosws-stacks'})
 
-    
+
 def rosws_stacks_main(argv=None):
     """
     Calls the function corresponding to the first argument.
@@ -365,11 +365,11 @@ def rosws_stacks_main(argv=None):
                                       config_filename=ROSINSTALL_FILENAME,
                                       varname="ROS_WORKSPACE")
             argv.append('info')
-        except MultiProjectException as e:
-            print(str(e))
+        except MultiProjectException as exc:
+            print(str(exc))
             usage()
-            return 0  
-  
+            return 0
+
     try:
         command = argv[1]
         args = argv[2:]
@@ -386,7 +386,7 @@ def rosws_stacks_main(argv=None):
 
         cli = RosWsStacksCLI()
         commands = {
-            'add':    cli.cmd_add_stack,
+            'add': cli.cmd_add_stack,
             'delete': cli.cmd_delete_stack,
             }
         if command not in commands:
@@ -395,9 +395,9 @@ def rosws_stacks_main(argv=None):
                 command = 'info'
             else:
                 if command.startswith('-'):
-                    print("First argument must be name of a command: %s"%command)
+                    print("First argument must be name of a command: %s" % command)
                 else:
-                    print("Error: unknown command: %s"%command)
+                    print("Error: unknown command: %s" % command)
                 usage()
                 return 1
         workspace = get_workspace(args,

@@ -30,8 +30,6 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-
-
 import sys
 import vcstools
 
@@ -41,7 +39,8 @@ def checkout_rosinstall(rosinstall_data, verbose=False):
         for vcs_type, data in list(frag.items()):
             for reqd in ['local-name', 'uri']:
                 if not reqd in data:
-                    sys.stderr.write('invalid rosinstall snippet, missing key [%s]\n'%(reqd))
+                    sys.stderr.write(
+                        'invalid rosinstall snippet, missing key [%s]\n' % (reqd))
                 path = data['local-name']
                 uri = data['uri']
                 version = data.get('version', '')

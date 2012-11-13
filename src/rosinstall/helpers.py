@@ -76,7 +76,8 @@ def get_ros_root_from_setupfile(path):
 
     :returns: path to ROS_ROOT or None
     """
-    # For groovy, we rely on setup.sh setting ROS_ROOT, as no more rosbuild stack 'ros' exists
+    # For groovy, we rely on setup.sh setting ROS_ROOT, as no more
+    # rosbuild stack 'ros' exists
     dirpath, basename = os.path.split(path)
     if basename != 'setup.sh':
         return None
@@ -90,7 +91,8 @@ def get_ros_root_from_setupfile(path):
     local_env = os.environ
     if 'ROS_ROOT' in local_env:
         local_env.pop('ROS_ROOT')
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=local_env, shell=True)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                               env=local_env, shell=True)
     out = process.communicate()[0]
     if sys.version < '3':
         out_str = codecs.unicode_escape_decode(out)[0]
@@ -104,19 +106,20 @@ def get_ros_stack_path(config):
     # need to track actual path, realpath, and source
     found_paths = set()
     sources = {}
-    for t in config.get_config_elements():
-        el_path = t.get_path()
+    for tree_el in config.get_config_elements():
+        el_path = tree_el.get_path()
         if is_path_ros(el_path):
             found_paths.add(os.path.realpath(el_path))
             sources[el_path] = el_path
-        elif isinstance(t, SetupConfigElement):
-            ros_root = get_ros_root_from_setupfile(t.get_local_name())
+        elif isinstance(tree_el, SetupConfigElement):
+            ros_root = get_ros_root_from_setupfile(tree_el.get_local_name())
             if ros_root:
                 found_paths.add(os.path.realpath(ros_root))
-                sources[t.get_local_name()] = ros_root
+                sources[tree_el.get_local_name()] = ros_root
     if len(found_paths) > 1:
-        raise ROSInstallException(
-            "Multiple ros stacks found in config %s, Please elimate all but one.\nThey come from the following sources: %s\n" % (found_paths, sources))
+        raise ROSInstallException("""\
+Multiple ros stacks found in config %s, Please elimate all but one.
+They come from the following sources: %s\n""" % (found_paths, sources))
     elif len(found_paths) == 1:
         return list(sources.values())[0]
     return None
@@ -125,8 +128,8 @@ def get_ros_stack_path(config):
 def get_ros_package_path(config):
     """ Return the simplifed ROS_PACKAGE_PATH """
     code_trees = []
-    for t in reversed(config.get_config_elements()):
-        if not is_path_ros(t.get_path()):
-            if not os.path.isfile(t.get_path()):
-                code_trees.append(t.get_path())
+    for tree_el in reversed(config.get_config_elements()):
+        if not is_path_ros(tree_el.get_path()):
+            if not os.path.isfile(tree_el.get_path()):
+                code_trees.append(tree_el.get_path())
     return code_trees

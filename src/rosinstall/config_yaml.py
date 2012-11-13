@@ -36,7 +36,7 @@ try:
     from urllib.request import urlopen
 except ImportError:
     from urllib2 import urlopen
-    
+
 from rosinstall.common import MultiProjectException
 
 __REPOTYPES__ = ['svn', 'bzr', 'hg', 'git', 'tar']
@@ -157,7 +157,7 @@ def aggregate_from_uris(config_uris, config_filename=None):
             source_path_specs = get_path_specs_from_uri(loop_uri, config_filename)
             # deal with duplicates in Config class
             if source_path_specs is not None:
-                assert type(source_path_specs) == list, 'Probable bug: expected list, was %s'%type(source_path_specs)
+                assert type(source_path_specs) == list, 'Probable bug: expected list, was %s' % type(source_path_specs)
                 aggregate_source_yaml.extend(source_path_specs)
     return aggregate_source_yaml
 
@@ -222,7 +222,7 @@ class PathSpec:
               uri: https://kforge.org/common/}}
         """
         # TODO switch to new syntax
-        properties = {'local-name' : self._local_name}
+        properties = {'local-name': self._local_name}
         if self._uri is not None:
             properties['uri'] = self._uri
         if self._version is not None:
@@ -335,6 +335,7 @@ def get_path_spec_from_yaml(yaml_dict):
                     version=version,
                     tags=tags)
 
+
 def generate_config_yaml(config, filename, header):
     """
     Writes file filename with header first and then the config as yaml
@@ -346,4 +347,3 @@ def generate_config_yaml(config, filename, header):
             f.write(header.encode('UTF-8'))
         content = yaml.safe_dump([x.get_legacy_yaml() for x in config.get_source()])
         f.write(content.encode('UTF-8'))
-

@@ -57,8 +57,9 @@ from rosinstall import multiproject_cmd, rosinstall_cmd
 from rosinstall.helpers import ROSINSTALL_FILENAME
 import rosinstall.__version__
 
+
 def usage():
-    print(__doc__%vars())
+    print(__doc__ % vars())
     exit(1)
 
 
@@ -138,7 +139,7 @@ Later URIs will shadow packages of earlier URIs.\n",
     #  parser.error("rosinstall no longer bootstraps the build, it will not call rosmake or pass it rosdep options")
 
     if options.version:
-        print("rosinstall %s\n%s"%(rosinstall.__version__.version, multiproject_cmd.cmd_version()))
+        print("rosinstall %s\n%s" % (rosinstall.__version__.version, multiproject_cmd.cmd_version()))
         sys.exit(0)
 
     if len(args) < 1:
@@ -174,9 +175,9 @@ Later URIs will shadow packages of earlier URIs.\n",
     if options.generate_versioned:
         filename = os.path.abspath(options.generate_versioned)
         source_aggregate = multiproject_cmd.cmd_snapshot(config)
-        with open(filename, 'w') as fh:
-            fh.write(yaml.safe_dump(source_aggregate))
-        print("Saved versioned rosinstall of current directory %s to %s"%(options.path, filename))
+        with open(filename, 'w') as fhand:
+            fhand.write(yaml.safe_dump(source_aggregate))
+        print("Saved versioned rosinstall of current directory %s to %s" % (options.path, filename))
         return True
 
     if options.vcs_diff:
@@ -204,10 +205,10 @@ Later URIs will shadow packages of earlier URIs.\n",
                 ", ".join(config_uris))
 
     # includes ROS specific files
-    print("(Over-)Writing %s"%os.path.join(options.path, ROSINSTALL_FILENAME))
+    print("(Over-)Writing %s" % os.path.join(options.path, ROSINSTALL_FILENAME))
     if(os.path.isfile(os.path.join(options.path, ROSINSTALL_FILENAME))):
         shutil.move(os.path.join(options.path, ROSINSTALL_FILENAME),
-                    "%s.bak"%os.path.join(options.path, ROSINSTALL_FILENAME))
+                    "%s.bak" % os.path.join(options.path, ROSINSTALL_FILENAME))
     rosinstall_cmd.cmd_persist_config(config)
 
     ## install or update each element
@@ -233,6 +234,6 @@ Later URIs will shadow packages of earlier URIs.\n",
     print("\nrosinstall update complete.")
     if (options.catkin is False
         and options.catkinpp is None):
-      
-        print("\n\nNow, type 'source %s/setup.bash' to set up your environment.\nAdd that to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells "%os.path.abspath(options.path))
+
+        print("\n\nNow, type 'source %s/setup.bash' to set up your environment.\nAdd that to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % os.path.abspath(options.path))
     return True

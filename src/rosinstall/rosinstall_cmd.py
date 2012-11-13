@@ -66,7 +66,7 @@ def cmd_maybe_refresh_ros_files(config):
     Regenerates setup.* files if they exist already
     """
     if (os.path.isfile(os.path.join(config.get_base_path(), 'setup.sh'))):
-        print("Overwriting setup.sh, setup.bash, and setup.zsh in %s"%config.get_base_path())
+        print("Overwriting setup.sh, setup.bash, and setup.zsh in %s" % config.get_base_path())
         setupfiles.generate_setup(config, no_ros_allowed=True)
 
 
@@ -83,9 +83,9 @@ def cmd_generate_ros_files(config, path, nobuild=False, rosdep_yes=False, catkin
     if catkin:
         setupfiles.generate_catkin_cmake(path, catkinpp)
 
-    else: # DRY install case
+    else:  # DRY install case
         ## Generate setup.sh and save
-        print("(Over-)Writing setup.sh, setup.bash, and setup.zsh in %s"%config.get_base_path())
+        print("(Over-)Writing setup.sh, setup.bash, and setup.zsh in %s" % config.get_base_path())
         setupfiles.generate_setup(config, no_ros_allowed)
 
         if _ros_requires_boostrap(config) and not nobuild:
@@ -98,6 +98,3 @@ def cmd_generate_ros_files(config, path, nobuild=False, rosdep_yes=False, catkin
                 print("Detected ros_comm bootstrapping it too.")
                 ros_comm_insert = " ros_comm"
             subprocess.check_call("source %s && rosmake ros%s --rosdep-install%s" % (os.path.join(path, 'setup.sh'), ros_comm_insert, rosdep_yes_insert), shell=True, executable='/bin/bash')
-
-
-
