@@ -48,19 +48,18 @@ Type '%(prog)s --help' for usage.
 from __future__ import print_function
 import sys
 
-import pkg_resources # else python warning
+import pkg_resources  # else python warning
 import rosinstall.rosws_stacks_cli
 from rosinstall.helpers import ROSInstallException
 from rosinstall.common import MultiProjectException
-
 
 
 if __name__ == "__main__":
     try:
         sys.exit(rosinstall.rosws_stacks_cli.rosws_stacks_main(sys.argv))
     except ROSInstallException as e:
-        sys.stderr.write("ERROR in rosinstall: %s"%str(e))
+        sys.stderr.write("ERROR in rosinstall: %s" % str(e))
         sys.exit(1)
     except MultiProjectException as e:
-        sys.stderr.write("ERROR in config: %s"%str(e))
+        sys.stderr.write("ERROR in config: %s" % str(e))
         sys.exit(1)

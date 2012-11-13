@@ -31,18 +31,6 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import print_function
-
-import os
-import sys
-import yaml
-from optparse import OptionParser
-
-from rosinstall.simple_checkout import checkout_rosinstall
-
-from rosinstall.locate import get_rosdoc_manifest, get_rosinstall,\
-     BRANCH_DEVEL, BRANCH_RELEASE
-
 """
 # checkout a package/stack, uses same options and roslocate
 rosco foo --distro=unstable
@@ -56,6 +44,20 @@ rosco --rosinstall foo.rosinstall
 roslocate info eigen --distro=unstable | rosco
 """
 
+
+from __future__ import print_function
+
+import os
+import sys
+import yaml
+from optparse import OptionParser
+
+from rosinstall.simple_checkout import checkout_rosinstall
+
+from rosinstall.locate import get_rosdoc_manifest, get_rosinstall, \
+     BRANCH_DEVEL, BRANCH_RELEASE
+
+
 def options_to_branch(options):
     # same logic as roslocate
     if options.dev:
@@ -63,22 +65,25 @@ def options_to_branch(options):
     else:
         return BRANCH_RELEASE
 
-def _readfile(parser, filename):
+
+def _readfile(filename):
     """
-    Parse arg input if options.file is flagged 
+    Parse arg input if options.file is flagged
     """
     with open(filename, 'r') as f:
         value = f.read()
     return value
 
+
 def _read_yaml_from_ros_server(name, distro, branch):
     try:
         data, type_ = get_rosdoc_manifest(name, distro)
     except IOError:
-        sys.stderr.write('cannot locate information about %s\n'%(name))
+        sys.stderr.write('cannot locate information about %s\n' % (name))
         sys.exit(1)
     return get_rosinstall(name, data, type_, branch)
-    
+
+
 def rosco_main():
     parser = OptionParser(usage="""
 \trosco [options] <package-or-stack>
@@ -95,7 +100,7 @@ rosco also accepts piped rosinstall input:
                       help="fetch information for specific ROS distribution release")
     parser.add_option("--dev",
                       dest="dev", default=False,
-                      action="store_true", 
+                      action="store_true",
                       help="fetch development branch information")
     options, args = parser.parse_args()
 
@@ -103,10 +108,10 @@ rosco also accepts piped rosinstall input:
     if options.file:
         # yaml from rosinstall file
         if args:
-            parser.error("invalid additional args: "%(args))
+            parser.error("invalid additional args: " % (args))
         if not os.path.isfile(options.file):
-            parser.error("no such file %s"%(options.file))
-        yaml_string = _readfile(parser, options.file)
+            parser.error("no such file %s" % (options.file))
+        yaml_string = _readfile(options.file)
     elif not sys.stdin.isatty():
         # yaml from piped input
         yaml_string = sys.stdin.read()
@@ -118,7 +123,7 @@ rosco also accepts piped rosinstall input:
             parser.error('you may only specify one input argument')
         name = args[0]
         yaml_string = _read_yaml_from_ros_server(name, options.distro, options_to_branch(options))
-    
+
     rosinstall_data = yaml.load(yaml_string)
     if not rosinstall_data or not type(rosinstall_data) == list:
         print(rosinstall_data)
@@ -126,6 +131,6 @@ rosco also accepts piped rosinstall input:
 
     checkout_rosinstall(rosinstall_data, verbose=True)
 
+
 if __name__ == '__main__':
     rosco_main()
-
