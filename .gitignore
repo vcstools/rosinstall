@@ -1,16 +1,14 @@
-syntax: glob
 *.orig
 *.swp
 *.pyc
 *.DS_Store
 *~
 *.log
-*.egg-info/*
+src/rosinstall.egg-info/*
+build/*
+dist/*
 .coverage
 *.deb
 *.tgz
 doc-pak
 description-pak
-
-syntax: regexp
-(target|build|dist)/.*
