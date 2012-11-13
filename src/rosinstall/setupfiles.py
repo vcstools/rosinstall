@@ -219,7 +219,7 @@ fi
     return text
 
 
-def generate_setup_bash_text(shell, no_ros=False):
+def generate_setup_bash_text(shell):
     '''
     Generates the contents that go into a setup.bash or setup.zsh
     file.  The intent of such a file is to enable shell extensions,
@@ -313,7 +313,7 @@ See http://ros.org/wiki/rosinstall.""" % (candidates))
         fhand.write(text)
 
     for shell in ['bash', 'zsh']:
-        text = generate_setup_bash_text(shell, ros_root is None)
+        text = generate_setup_bash_text(shell)
         setup_path = os.path.join(config.get_base_path(), 'setup.%s' % shell)
         with open(setup_path, 'w') as fhand:
             fhand.write(text)
