@@ -73,6 +73,7 @@ __ROSWS_CMD_HELP_LIST__ = __MULTIPRO_CMD_HELP_LIST__[:]
 __ROSWS_CMD_HELP_LIST__.extend([None, 'regenerate'])
 
 _PROGNAME = 'rosws'
+_VARNAME = 'ROS_WORKSPACE'
 
 
 class RoswsCLI(MultiprojectCLI):
@@ -478,7 +479,7 @@ def rosws_main(argv=None, usage=None):
             workspace = get_workspace(argv,
                                       os.getcwd(),
                                       config_filename=ROSINSTALL_FILENAME,
-                                      varname="ROS_WORKSPACE")
+                                      varname=_VARNAME)
             argv.append('info')
         except MultiProjectException as e:
             print(str(e))
@@ -543,7 +544,7 @@ def rosws_main(argv=None, usage=None):
                 workspace = get_workspace(args,
                                           os.getcwd(),
                                           config_filename=ROSINSTALL_FILENAME,
-                                          varname="ROS_WORKSPACE")
+                                          varname=_VARNAME)
             return ws_commands[command](workspace, args)
 
     except KeyboardInterrupt:
