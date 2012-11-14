@@ -140,10 +140,12 @@ def list_usage(progname, description, command_keys, command_helps, command_alias
 class MultiprojectCLI:
 
     def __init__(self,
+                 progname,
                  config_filename=None,
                  config_generator=multiproject_cmd.cmd_persist_config):
         self.config_filename = config_filename
         self.config_generator = config_generator
+        self.progname = progname
 
     # def cmd_init(self, argv):
     #     raise Exception("Not implemented yet")

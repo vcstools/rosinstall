@@ -77,10 +77,11 @@ _PROGNAME = 'rosws'
 
 class RoswsCLI(MultiprojectCLI):
 
-    def __init__(self, config_filename=ROSINSTALL_FILENAME):
+    def __init__(self, config_filename=ROSINSTALL_FILENAME, progname=_PROGNAME):
         MultiprojectCLI.__init__(self,
-                                 config_filename,
-                                 rosinstall_cmd.cmd_persist_config)
+                                 progname=progname,
+                                 config_filename=config_filename,
+                                 config_generator=rosinstall_cmd.cmd_persist_config)
 
     def cmd_init(self, argv):
         if self.config_filename is None:
