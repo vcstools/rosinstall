@@ -177,6 +177,12 @@ class FunctionsTest(unittest.TestCase):
         rosinstall.multiproject_cli._get_mode_from_options(ferr, opts)
         self.assertFalse(None is ferr.rerror)
 
+    def test_list_usage(self):
+        #test function exists and does not fail
+        usage = rosinstall.multiproject_cli.list_usage('foo', 'bardesc %(prog)s', ['cmd1', None, 'cmd2'], {'cmd1': 'help1', 'cmd2': 'help2'}, {'cmd1': 'cmd1a'})
+        tokens = [y.strip() for x in usage.split(' ') for y in x.splitlines()]
+        self.assertEqual(['bardesc', 'foo', 'cmd1', '(cmd1a)', 'help1', '', 'cmd2', 'help2'], tokens)
+
 
         
 class FakeConfig():

@@ -40,6 +40,7 @@ Official usage:
 Type '%(prog)s help' for usage.
 """
 
+from __future__ import print_function
 import os
 import sys
 import yaml
@@ -64,13 +65,12 @@ from rosinstall.config_yaml import get_path_spec_from_yaml
 ## specific output has to be generated.
 
 # extend the commands of multiproject
-__ROSWS_CMD_DICT__ = {
-      "regenerate": "create ROS workspace specific setup files"}
-__ROSWS_CMD_ALIASES__ = {'update': 'up',
-                         'remove': 'rm',
-                         'status': 'st',
-                         'diff': 'di'}
+__ROSWS_CMD_DICT__ = {}
 __ROSWS_CMD_DICT__.update(__MULTIPRO_CMD_DICT__)
+__ROSWS_CMD_DICT__["regenerate"] = "create ROS workspace specific setup files"
+
+__ROSWS_CMD_HELP_LIST__ = __MULTIPRO_CMD_HELP_LIST__[:]
+__ROSWS_CMD_HELP_LIST__.extend([None, 'regenerate'])
 
 _PROGNAME = 'rosws'
 
@@ -450,35 +450,12 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
                 print("\n%s" % table)
 
         return 0
-
-
-def usage():
-    """
-    Prints usage from file header and from dictionary, sorting entries
-    """
-    dvars = {'prog': _PROGNAME}
-    dvars.update(vars())
-    print(__doc__ % dvars)
-    # using None to generate empty lines
-    keys = ['help', 'init',
-            None, 'set', 'merge', 'remove',
-            None, 'update',
-            None, 'info', 'status', 'diff',
-            None, 'regenerate']
-    for key in keys:
-        if key in __ROSWS_CMD_ALIASES__:
-            alias = ' (%s)' % __ROSWS_CMD_ALIASES__[key]
-        else:
-            alias = ''
-        if key is not None:
-            print(("%s%s" % (key, alias)).ljust(10) + '   \t' + __ROSWS_CMD_DICT__[key])
-        else:
-            print('')
-
-
-def rosws_main(argv=None):
+def rosws_main(argv=None, usage=None):
     """
     Calls the function corresponding to the first argument.
+
+    :param argv: sys.argv by default
+    :param usage: function printing usage string, multiproject_cli.list_usage by default
     """
     if argv is None:
         argv = sys.argv
@@ -487,6 +464,13 @@ def rosws_main(argv=None):
     if '--version' in argv:
         print("%s: \t%s\n%s" % (_PROGNAME, rosinstall.__version__.version, cmd_version()))
         sys.exit(0)
+
+    if not usage:
+        usage = lambda: print(list_usage(progname=_PROGNAME,
+                                         description=__doc__,
+                                         command_keys=__ROSWS_CMD_HELP_LIST__,
+                                         command_helps=__ROSWS_CMD_DICT__,
+                                         command_aliases=__MULTIPRO_CMD_ALIASES__))
     workspace = None
     if len(argv) < 2:
         try:
@@ -536,8 +520,8 @@ def rosws_main(argv=None):
             'status': cli.cmd_status,
             'update': cli.cmd_update}
         for label in list(ws_commands.keys()):
-            if label in __ROSWS_CMD_ALIASES__:
-                ws_commands[__ROSWS_CMD_ALIASES__[label]] = ws_commands[label]
+            if label in __MULTIPRO_CMD_ALIASES__:
+                ws_commands[__MULTIPRO_CMD_ALIASES__[label]] = ws_commands[label]
 
         if command not in commands and command not in ws_commands:
             if os.path.exists(command):

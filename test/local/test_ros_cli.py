@@ -74,12 +74,7 @@ class MockConfigElement():
     def is_vcs_element(self):
         return True if self.scmtype else False
 
-class RosinstallUsagetest(unittest.TestCase):
-    def test_usage(self):
-        #test functin exists and does not fail
-        rosinstall.rosws_cli.usage()
 
-        
 class RosinstallCommandlineTest(AbstractFakeRosBasedTest):
 
     def test_require_bootstrap(self):
