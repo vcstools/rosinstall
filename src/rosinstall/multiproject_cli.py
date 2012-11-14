@@ -218,11 +218,11 @@ class MultiprojectCLI:
         else:
             statuslist = multiproject_cmd.cmd_status(config,
                                                      untracked=options.untracked)
-        allstatus = ""
+        allstatus = []
         for entrystatus in statuslist:
             if entrystatus['status'] is not None:
-                allstatus += entrystatus['status']
-        print(allstatus, end='')
+                allstatus.append(entrystatus['status'])
+        print(''.join(allstatus), end='')
         return 0
 
     def cmd_set(self, target_path, argv, config=None):
