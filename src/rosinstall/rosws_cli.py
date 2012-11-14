@@ -50,12 +50,12 @@ from optparse import OptionParser
 
 from rosinstall.cli_common import get_info_list, get_info_table, get_workspace
 import rosinstall.rosinstall_cmd as rosinstall_cmd
-from rosinstall.multiproject_cmd import get_config, cmd_install_or_update,\
+from rosinstall.multiproject_cmd import get_config, cmd_install_or_update, \
     cmd_snapshot, cmd_version, cmd_info
 import rosinstall.__version__
 
 from rosinstall.common import MultiProjectException, select_elements
-from rosinstall.helpers import ROSInstallException, ROSINSTALL_FILENAME,\
+from rosinstall.helpers import ROSInstallException, ROSINSTALL_FILENAME, \
     get_ros_package_path, get_ros_stack_path
 from rosinstall.multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__,\
     IndentedHelpFormatterWithNL
