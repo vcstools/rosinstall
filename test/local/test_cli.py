@@ -54,7 +54,7 @@ from . import mock_client
 
 
 class MockConfigElement():
-    def __init__(self, local_name='', scmtype=None, path=None, uri = None, spec=None):
+    def __init__(self, local_name='', scmtype=None, path=None, uri=None, spec=None):
         self.scmtype = scmtype
         self.path = path
         self.uri = uri
@@ -89,7 +89,7 @@ class GetWorkspaceTest(unittest.TestCase):
         _add_to_file(os.path.join(self.install_path, "configfile"), 'content')
         path = self.install_path
         for i in range(4):
-            path = os.path.join(path, "path%s"%i)
+            path = os.path.join(path, "path%s" % i)
             os.makedirs(path)
 
 
@@ -143,9 +143,9 @@ class GetWorkspaceTest(unittest.TestCase):
         for i in range(4):
             path = os.path.join(path, "path%s"%i)
             argv = []
-            self.assertEqual(self.install_path, rosinstall.cli_common.get_workspace(argv, path, config_filename= "configfile"))
+            self.assertEqual(self.install_path, rosinstall.cli_common.get_workspace(argv, path, config_filename="configfile"))
         try:
-            self.assertEqual(self.install_path, rosinstall.cli_common.get_workspace(argv, path, config_filename= "configfile", varname='VARNAME'))
+            self.assertEqual(self.install_path, rosinstall.cli_common.get_workspace(argv, path, config_filename="configfile", varname='VARNAME'))
             self.fail("expected Exception")
         except MultiProjectException: pass
 
@@ -165,34 +165,34 @@ class FunctionsTest(unittest.TestCase):
             def error(self, foo):
                 self.rerror = foo
 
-        opts = FakeOpts(dele = False, ab = False, back = '')
+        opts = FakeOpts(dele=False, ab=False, back='')
         ferr = FakeErrors()
         self.assertEqual("prompt", rosinstall.multiproject_cli._get_mode_from_options(ferr, opts))
         self.assertEqual(None, ferr.rerror)
-        opts = FakeOpts(dele = True, ab = False, back = '')
+        opts = FakeOpts(dele=True, ab=False, back='')
         ferr = FakeErrors()
         self.assertEqual("delete", rosinstall.multiproject_cli._get_mode_from_options(ferr, opts))
         self.assertEqual(None, ferr.rerror)
-        opts = FakeOpts(dele = False, ab = True, back = '')
+        opts = FakeOpts(dele=False, ab=True, back='')
         ferr = FakeErrors()
         self.assertEqual("abort", rosinstall.multiproject_cli._get_mode_from_options(ferr, opts))
         self.assertEqual(None, ferr.rerror)
-        opts = FakeOpts(dele = False, ab = False, back = 'Foo')
+        opts = FakeOpts(dele=False, ab=False, back='Foo')
         ferr = FakeErrors()
         self.assertEqual("backup", rosinstall.multiproject_cli._get_mode_from_options(ferr, opts))
         self.assertEqual(None, ferr.rerror)
 
-        opts = FakeOpts(dele = True, ab = True, back = '')
+        opts = FakeOpts(dele=True, ab=True, back='')
         ferr = FakeErrors()
         rosinstall.multiproject_cli._get_mode_from_options(ferr, opts)
         self.assertFalse(None is ferr.rerror)
 
-        opts = FakeOpts(dele = False, ab = True, back = 'Foo')
+        opts = FakeOpts(dele=False, ab=True, back='Foo')
         ferr = FakeErrors()
         rosinstall.multiproject_cli._get_mode_from_options(ferr, opts)
         self.assertFalse(None is ferr.rerror)
 
-        opts = FakeOpts(dele = True, ab = False, back = 'Foo')
+        opts = FakeOpts(dele=True, ab=False, back='Foo')
         ferr = FakeErrors()
         rosinstall.multiproject_cli._get_mode_from_options(ferr, opts)
         self.assertFalse(None is ferr.rerror)
@@ -205,7 +205,7 @@ class FunctionsTest(unittest.TestCase):
 
 
 class FakeConfig():
-    def __init__(self, celts=[], elts = [], path = ''):
+    def __init__(self, celts=[], elts=[], path=''):
         self.elts = elts
         self.celts = celts
         self.path = path
@@ -219,17 +219,17 @@ class FakeConfig():
 
 class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):
 
-    def __init__(self, scmtype, path, local_name, uri, version = '', actualversion = '', specversion = '', properties = None):
+    def __init__(self, scmtype, path, local_name, uri, version='', actualversion='', specversion='', properties=None):
         self.scmtype = scmtype
         self.path = path
         self.local_name = local_name
-        self.vcsc = mock_client.MockVcsClient(scmtype, actualversion = actualversion, specversion = specversion)
+        self.vcsc = mock_client.MockVcsClient(scmtype, actualversion=actualversion, specversion=specversion)
         self.uri = uri
         self.version = version
         self.install_success = True
         self.properties = properties
 
-    def install(self, checkout=True, backup = False, backup_path = None, robust = False, verbose=False):
+    def install(self, checkout=True, backup=False, backup_path=None, robust=False, verbose=False):
         if not self.install_success:
             raise MultiProjectException("Unittest Mock says install failed")
 
@@ -271,9 +271,9 @@ class InstallTest(unittest.TestCase):
                          "hg": MockVcsConfigElement,
                          "bzr": MockVcsConfigElement})
         config.get_config_elements()[1].install_success = False
-        rosinstall.multiproject_cmd.cmd_install_or_update(config, robust = True)
+        rosinstall.multiproject_cmd.cmd_install_or_update(config, robust=True)
         try:
-            rosinstall.multiproject_cmd.cmd_install_or_update(config, robust = False)
+            rosinstall.multiproject_cmd.cmd_install_or_update(config, robust=False)
             self.fail("expected Exception")
         except MultiProjectException:
             pass
@@ -295,11 +295,10 @@ class GetStatusDiffCmdTest(unittest.TestCase):
                                        MockVcsConfigElement('bzr', 'bzrpath', 'bzrname', None)])
         result = rosinstall.multiproject_cmd.cmd_status(self.mock_config)
         self.assertTrue(len(result) == 4)
-        self.assertTrue(result[0]['status'].count('git')==1)
-        self.assertTrue(result[1]['status'].count('svn')==1)
-        self.assertTrue(result[2]['status'].count('hg')==1)
-        self.assertTrue(result[3]['status'].count('bzr')==1)
-
+        self.assertTrue(result[0]['status'].count('git') == 1)
+        self.assertTrue(result[1]['status'].count('svn') == 1)
+        self.assertTrue(result[2]['status'].count('hg') == 1)
+        self.assertTrue(result[3]['status'].count('bzr') == 1)
 
     def test_diff(self):
         self.mock_config = FakeConfig()
@@ -316,23 +315,21 @@ class GetStatusDiffCmdTest(unittest.TestCase):
                                        MockVcsConfigElement('bzr', 'bzrpath', 'bzrname', None)])
         result = rosinstall.multiproject_cmd.cmd_diff(self.mock_config)
         self.assertTrue(len(result) == 4)
-        self.assertTrue(result[0]['diff'].count('git')==1)
-        self.assertTrue(result[1]['diff'].count('svn')==1)
-        self.assertTrue(result[2]['diff'].count('hg')==1)
-        self.assertTrue(result[3]['diff'].count('bzr')==1)
-
+        self.assertTrue(result[0]['diff'].count('git') == 1)
+        self.assertTrue(result[1]['diff'].count('svn') == 1)
+        self.assertTrue(result[2]['diff'].count('hg') == 1)
+        self.assertTrue(result[3]['diff'].count('bzr') == 1)
 
     def test_info(self):
         self.mock_config = FakeConfig([], 'foopath')
         result = rosinstall.multiproject_cmd.cmd_info(self.mock_config)
         self.assertTrue(len(result) == 0)
-        self.mock_config = FakeConfig([MockVcsConfigElement('git', 'gitpath', 'gitname', None, version = 'version')],
+        self.mock_config = FakeConfig([MockVcsConfigElement('git', 'gitpath', 'gitname', None, version='version')],
                                       'foopath')
         result = rosinstall.multiproject_cmd.cmd_info(self.mock_config)
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]['scm'], 'git')
         self.assertEqual(result[0]['version'], 'version')
-
 
         self.mock_config = FakeConfig([MockVcsConfigElement('git', 'gitpath', 'gitname', None),
                                        MockVcsConfigElement('svn', 'svnpath', 'svnname', None),
@@ -358,9 +355,9 @@ class GetStatusDiffCmdTest(unittest.TestCase):
                                         el_path,
                                         'gitname',
                                         None,
-                                        version = 'version',
-                                        actualversion = 'actual',
-                                        specversion = 'spec')
+                                        version='version',
+                                        actualversion='actual',
+                                        specversion='spec')
             self.mock_config = FakeConfig([mock], 'foopath')
             result = rosinstall.multiproject_cmd.cmd_info(self.mock_config)
             self.assertEqual(len(result), 1)
@@ -372,9 +369,9 @@ class GetStatusDiffCmdTest(unittest.TestCase):
                                         el_path,
                                         'gitname',
                                         None,
-                                        version = 'version',
-                                        actualversion = 'actual',
-                                        specversion = None) # means scm does not know version
+                                        version='version',
+                                        actualversion='actual',
+                                        specversion=None) # means scm does not know version
             self.mock_config = FakeConfig([mock], 'foopath')
             result = rosinstall.multiproject_cmd.cmd_info(self.mock_config)
             self.assertEqual(len(result), 1)
@@ -385,7 +382,6 @@ class GetStatusDiffCmdTest(unittest.TestCase):
 
         finally:
             shutil.rmtree(root_path)
-
 
     def test_get_status(self):
         self.test_root_path = tempfile.mkdtemp()
@@ -411,7 +407,7 @@ class GetStatusDiffCmdTest(unittest.TestCase):
             self.assertEqual('V', rosinstall.cli_common._get_status_flags(basepath, entry))
             entry = {'uri': self.test_root_path, 'curr_uri': self.test_root_path}
             self.assertEqual('', rosinstall.cli_common._get_status_flags(basepath, entry))
-            entry = {'uri': self.test_root_path, 'curr_uri': self.test_root_path+'/foo/..'}
+            entry = {'uri': self.test_root_path, 'curr_uri': self.test_root_path + '/foo/..'}
             self.assertEqual('', rosinstall.cli_common._get_status_flags(basepath, entry))
             entry = {'actualversion': 'foo', 'specversion': 'bar', 'modified': True}
             self.assertEqual('MV', rosinstall.cli_common._get_status_flags(basepath, entry))
@@ -516,7 +512,7 @@ class GetStatusDiffCmdTest(unittest.TestCase):
                  'actualversion': 'someactualversion',
                  'localname': 'somelocalname',
                  'path': 'somepath'}
-        result =  rosinstall.cli_common.get_info_list(basepath, entry).split()
+        result = rosinstall.cli_common.get_info_list(basepath, entry).split()
         for x in ['somepath', 'somelocalname', 'someactualversion', 'somespecversion', 'someversion', 'somecurr_uri', 'someuri', 'somescm']:
             self.assertTrue(x in result)
 
@@ -560,10 +556,12 @@ class MultiprojectCLITest(AbstractFakeRosBasedTest):
         self.assertEqual(0, cli.cmd_init([self.local_path]))
         self.assertEqual(0, cli.cmd_merge(self.local_path, [self.git_path, "-y"]))
         self.assertEqual(0, cli.cmd_merge(self.local_path, [self.hg_path, "-y"]))
-        config = rosinstall.multiproject_cmd.get_config(basepath = self.local_path,                                                       config_filename = '.rosinstall')
+        config = rosinstall.multiproject_cmd.get_config(basepath=self.local_path,
+                                                        config_filename='.rosinstall')
         self.assertEqual(len(config.get_config_elements()), 2)
         self.assertEqual(0, cli.cmd_remove(self.local_path, [self.git_path]))
-        config = rosinstall.multiproject_cmd.get_config(basepath = self.local_path,                                                       config_filename = '.rosinstall')
+        config = rosinstall.multiproject_cmd.get_config(basepath=self.local_path,
+                                                        config_filename='.rosinstall')
         self.assertEqual(len(config.get_config_elements()), 1)
 
     def test_cmd_add(self):
@@ -574,7 +572,8 @@ class MultiprojectCLITest(AbstractFakeRosBasedTest):
         _create_yaml_file([_create_config_elt_dict("git", os.path.join(self.test_root_path, "ws33", 'ros'), 'ros')],
                           simple_rel_rosinstall)
         self.assertEqual(0, cli.cmd_init([self.local_path, simple_rel_rosinstall]))
-        config = rosinstall.multiproject_cmd.get_config(basepath = self.local_path,                                                       config_filename = '.rosinstall')
+        config = rosinstall.multiproject_cmd.get_config(basepath=self.local_path,
+                                                        config_filename='.rosinstall')
         self.assertEqual(1, len(config.get_config_elements()))
         self.assertEqual('git', config.get_config_elements()[0].get_path_spec().get_scmtype())
 
@@ -585,7 +584,6 @@ class MultiprojectCLITest(AbstractFakeRosBasedTest):
         rosinstall.multiproject_cmd.add_uris(config, [os.path.join(self.local_path, '.rosinstall')])
         self.assertEqual(len(config.get_config_elements()), 1, config)
         self.assertEqual('git', config.get_config_elements()[0].get_path_spec().get_scmtype())
-
 
     def test_get_element_diff(self):
         cli = MultiprojectCLI(progname='multi_cli', config_filename='.rosinstall')
@@ -614,4 +612,4 @@ class MultiprojectCLITest(AbstractFakeRosBasedTest):
                     'specified uri = foouri',
                     'scmtype = fooscm']
         for s in snippets:
-            self.assertTrue(s in output, "missing snippet: '%s' in '%s'"%(s, output))
+            self.assertTrue(s in output, "missing snippet: '%s' in '%s'" % (s, output))

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2009, Willow Garage, Inc.
@@ -51,21 +50,21 @@ from test.scm_test_base import AbstractFakeRosBasedTest, AbstractRosinstallBaseD
 
 
 def has_python3():
-     cmd = "python3 --version"
-     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-     output, err = p.communicate()
-     if not p.returncode == 0:
-          return True
-     return False
+    cmd = "python3 --version"
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, err = p.communicate()
+    if not p.returncode == 0:
+        return True
+    return False
 
 
 HAS_PYTHON3 = has_python3()
 
 
 def _add_to_file(path, content):
-     """Util function to append to file to get a modification"""
-     with open(path, 'ab') as f:
-          f.write(content.encode('UTF-8'))
+    """Util function to append to file to get a modification"""
+    with open(path, 'ab') as f:
+        f.write(content.encode('UTF-8'))
 
 
 class GenerateTest(AbstractFakeRosBasedTest):
@@ -98,16 +97,15 @@ class GenerateTest(AbstractFakeRosBasedTest):
                         self.test_root_path,
                         None)
         result = rosinstall.setupfiles.generate_setup_sh_text(config.get_base_path())
-        self.assertTrue(result.count("#!/usr/bin/env sh")==1)
+        self.assertTrue(result.count("#!/usr/bin/env sh") == 1)
 
         config = Config([PathSpec(self.ros_path),
                          PathSpec(os.path.join("test", "example_dirs", "ros_comm")),
-                         PathSpec("bar.sh", tags = ['setup-file'])],
+                         PathSpec("bar.sh", tags=['setup-file'])],
                         self.test_root_path,
                         None)
         result = rosinstall.setupfiles.generate_setup_sh_text(config.get_base_path())
         self.assertTrue(result.count("#!/usr/bin/env sh") == 1, result)
-
 
     def test_gen_setup_bash(self):
         config = Config([PathSpec(self.ros_path),
@@ -116,59 +114,61 @@ class GenerateTest(AbstractFakeRosBasedTest):
                         self.test_root_path,
                         None)
         result = rosinstall.setupfiles.generate_setup_bash_text('bash')
-        self.assertTrue(result.count("#!/usr/bin/env bash")==1)
-        self.assertTrue(result.count("CATKIN_SHELL=bash")==1)
+        self.assertTrue(result.count("#!/usr/bin/env bash") == 1)
+        self.assertTrue(result.count("CATKIN_SHELL=bash") == 1)
         self.assertTrue(result.count("ROSSHELL_PATH=`rospack find rosbash`/rosbash") == 1)
         result = rosinstall.setupfiles.generate_setup_bash_text('zsh')
-        self.assertTrue(result.count("#!/usr/bin/env zsh")==1)
+        self.assertTrue(result.count("#!/usr/bin/env zsh") == 1)
         self.assertTrue(result.count("CATKIN_SHELL=zsh") == 1)
         self.assertTrue(result.count("ROSSHELL_PATH=`rospack find rosbash`/roszsh") == 1)
 
+
 class Genfiletest(AbstractRosinstallBaseDirTest):
 
-     def test_gen_python_code(self):
-          config = Config([PathSpec(os.path.join("test", "example_dirs", "ros_comm")),
-                           PathSpec("bar.sh", tags = ['setup-file']),
-                           PathSpec("baz")],
-                          self.directory,
-                          None)
-          rosinstall.config_yaml.generate_config_yaml(config, '.rosinstall', '')
-          filename = os.path.join(self.directory, "test_gen.py")
-          _add_to_file(filename, rosinstall.setupfiles.generate_embedded_python())
-          sh_filename = os.path.join(self.directory, "bar.sh")
-          _add_to_file(sh_filename, "#! /usr/bin/env sh")
-          cmd = "python %s"%filename
-          p = subprocess.Popen(cmd, shell=True, cwd=self.directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-          output, err = p.communicate()
-          self.assertEqual(''.encode('UTF-8'), err, err)
-          self.assertTrue('/test/example_dirs/ros_comm'.encode('UTF-8') in output, output)
-          self.assertTrue('baz'.encode('UTF-8') in output, output)
-          self.assertTrue('ROSINSTALL_PATH_SETUPFILE_SEPARATOR'.encode('UTF-8') in output, output)
-          self.assertTrue(output.endswith('/bar.sh\n'.encode('UTF-8')), output)
+    def test_gen_python_code(self):
+        config = Config([PathSpec(os.path.join("test", "example_dirs", "ros_comm")),
+                         PathSpec("bar.sh", tags=['setup-file']),
+                         PathSpec("baz")],
+                        self.directory,
+                        None)
+        rosinstall.config_yaml.generate_config_yaml(config, '.rosinstall', '')
+        filename = os.path.join(self.directory, "test_gen.py")
+        _add_to_file(filename, rosinstall.setupfiles.generate_embedded_python())
+        sh_filename = os.path.join(self.directory, "bar.sh")
+        _add_to_file(sh_filename, "#! /usr/bin/env sh")
+        cmd = "python %s" % filename
+        p = subprocess.Popen(cmd, shell=True, cwd=self.directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, err = p.communicate()
+        self.assertEqual(''.encode('UTF-8'), err, err)
+        self.assertTrue('/test/example_dirs/ros_comm'.encode('UTF-8') in output, output)
+        self.assertTrue('baz'.encode('UTF-8') in output, output)
+        self.assertTrue('ROSINSTALL_PATH_SETUPFILE_SEPARATOR'.encode('UTF-8') in output, output)
+        self.assertTrue(output.endswith('/bar.sh\n'.encode('UTF-8')), output)
 
+    if not HAS_PYTHON3:
 
-     if not HAS_PYTHON3:
-          def test_gen_python_code_python3(self):
-               # requires python3 to be installed, obviously
-               config = Config([PathSpec(os.path.join("test", "example_dirs", "ros_comm")),
-                                PathSpec("bar.sh", tags = ['setup-file']),
-                                PathSpec("baz")],
-                               self.directory,
-                               None)
-               rosinstall.config_yaml.generate_config_yaml(config, '.rosinstall', '')
-               filename = os.path.join(self.directory, "test_gen.py")
-               _add_to_file(filename, rosinstall.setupfiles.generate_embedded_python())
-               sh_filename = os.path.join(self.directory, "bar.sh")
-               _add_to_file(sh_filename, "#! /usr/bin/env sh")
-               cmd = "python3 %s"%filename
-               p = subprocess.Popen(cmd, shell=True, cwd=self.directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-               output, err = p.communicate()
-               self.assertEqual(''.encode('UTF-8'), err, err)
-               self.assertTrue('/test/example_dirs/ros_comm'.encode('UTF-8') in output, output)
-               self.assertTrue('baz'.encode('UTF-8') in output, output)
-               self.assertTrue('ROSINSTALL_PATH_SETUPFILE_SEPARATOR'.encode('UTF-8') in output, output)
-               self.assertTrue(output.endswith('/bar.sh\n'.encode('UTF-8')), output)
+        def test_gen_python_code_python3(self):
+            # requires python3 to be installed, obviously
+            config = Config([PathSpec(os.path.join("test", "example_dirs", "ros_comm")),
+                             PathSpec("bar.sh", tags=['setup-file']),
+                             PathSpec("baz")],
+                            self.directory,
+                            None)
+            rosinstall.config_yaml.generate_config_yaml(config, '.rosinstall', '')
+            filename = os.path.join(self.directory, "test_gen.py")
+            _add_to_file(filename, rosinstall.setupfiles.generate_embedded_python())
+            sh_filename = os.path.join(self.directory, "bar.sh")
+            _add_to_file(sh_filename, "#! /usr/bin/env sh")
+            cmd = "python3 %s" % filename
+            p = subprocess.Popen(cmd, shell=True, cwd=self.directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            output, err = p.communicate()
+            self.assertEqual(''.encode('UTF-8'), err, err)
+            self.assertTrue('/test/example_dirs/ros_comm'.encode('UTF-8') in output, output)
+            self.assertTrue('baz'.encode('UTF-8') in output, output)
+            self.assertTrue('ROSINSTALL_PATH_SETUPFILE_SEPARATOR'.encode('UTF-8') in output, output)
+            self.assertTrue(output.endswith('/bar.sh\n'.encode('UTF-8')), output)
+
 
 def main():
-     import unittest
-     unittest.main()
+    import unittest
+    unittest.main()

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2009, Willow Garage, Inc.
@@ -45,11 +44,11 @@ from test.scm_test_base import AbstractFakeRosBasedTest, _create_yaml_file, _cre
 
 class RosinstallOptionsTest(AbstractFakeRosBasedTest):
     """Test command line option for failure behavior"""
-       
+
     @classmethod
     def setUpClass(self):
         AbstractFakeRosBasedTest.setUpClass()
-        
+
         # create another repo in git
         self.git_path2 = os.path.join(self.test_root_path, "gitrepo2")
         _create_git_repo(self.git_path2)
@@ -62,7 +61,7 @@ class RosinstallOptionsTest(AbstractFakeRosBasedTest):
         # create a broken config
         self.broken_rosinstall = os.path.join(self.test_root_path, "broken.rosinstall")
         _create_yaml_file([_create_config_elt_dict("other", self.ros_path),
-                           _create_config_elt_dict("hg", "hgrepo", self.hg_path+"invalid")],
+                           _create_config_elt_dict("hg", "hgrepo", self.hg_path + "invalid")],
                           self.broken_rosinstall)
 
     def test_Rosinstall_help(self):
@@ -73,7 +72,7 @@ class RosinstallOptionsTest(AbstractFakeRosBasedTest):
             self.fail("expected SystemExit")
         except SystemExit as e:
             self.assertEqual(0, e.code)
-        
+
     def test_rosinstall_delete_changes(self):
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.simple_rosinstall])
@@ -81,7 +80,6 @@ class RosinstallOptionsTest(AbstractFakeRosBasedTest):
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.simple_changed_uri_rosinstall, "--delete-changed-uri"])
         self.assertTrue(rosinstall_main(cmd))
-
 
     def test_rosinstall_abort_changes(self):
         cmd = copy.copy(self.rosinstall_fn)
@@ -102,7 +100,7 @@ class RosinstallOptionsTest(AbstractFakeRosBasedTest):
         directory1 = tempfile.mkdtemp()
         self.directories["backup1"] = directory1
         cmd = copy.copy(self.rosinstall_fn)
-        cmd.extend([self.directory, self.simple_changed_uri_rosinstall, "--backup-changed-uri=%s"%directory1])
+        cmd.extend([self.directory, self.simple_changed_uri_rosinstall, "--backup-changed-uri=%s" % directory1])
         self.assertTrue(rosinstall_main(cmd))
         self.assertEqual(len(os.listdir(directory1)), 1)
 
@@ -127,6 +125,3 @@ class RosinstallOptionsTest(AbstractFakeRosBasedTest):
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.directory, self.broken_rosinstall, "--continue-on-error"])
         self.assertTrue(rosinstall_main(cmd))
-
-
-

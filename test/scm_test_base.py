@@ -45,46 +45,51 @@ import shutil
 import rosinstall
 import rosinstall.helpers
 
+
 def _add_to_file(path, content):
-     """Util function to append to file to get a modification"""
-     with open(path, 'ab') as fhand:
-          fhand.write(content.encode('UTF-8'))
-     
+    """Util function to append to file to get a modification"""
+    with open(path, 'ab') as fhand:
+        fhand.write(content.encode('UTF-8'))
+
+
 def _create_fake_ros_dir(root_path):
-     """setup fake ros root within root_path/ros"""
-     ros_path = os.path.join(root_path, "ros")
-     os.makedirs(ros_path)
-     bin_path = os.path.join(ros_path, "bin")
-     os.makedirs(bin_path)
-     subprocess.check_call(["git", "init"], cwd=ros_path)
-     _add_to_file(os.path.join(ros_path, "stack.xml"), '<stack></stack>')
-     _add_to_file(os.path.join(ros_path, "setup.sh"), 'export FOO_BAR=`pwd`')
-     _add_to_file(os.path.join(bin_path, "rosmake"), '#!/usr/bin/env sh')
-     _add_to_file(os.path.join(bin_path, "rospack"), '#!/usr/bin/env sh')
-     # even faking rosmake
-     subprocess.check_call(["chmod", "u+x", os.path.join(bin_path, "rosmake")])
-     subprocess.check_call(["chmod", "u+x", os.path.join(bin_path, "rospack")])
-     subprocess.check_call(["git", "add", "*"], cwd=ros_path)
-     subprocess.check_call(["git", "commit", "-m", "initial"], cwd=ros_path)
-     
+    """setup fake ros root within root_path/ros"""
+    ros_path = os.path.join(root_path, "ros")
+    os.makedirs(ros_path)
+    bin_path = os.path.join(ros_path, "bin")
+    os.makedirs(bin_path)
+    subprocess.check_call(["git", "init"], cwd=ros_path)
+    _add_to_file(os.path.join(ros_path, "stack.xml"), '<stack></stack>')
+    _add_to_file(os.path.join(ros_path, "setup.sh"), 'export FOO_BAR=`pwd`')
+    _add_to_file(os.path.join(bin_path, "rosmake"), '#!/usr/bin/env sh')
+    _add_to_file(os.path.join(bin_path, "rospack"), '#!/usr/bin/env sh')
+    # even faking rosmake
+    subprocess.check_call(["chmod", "u+x", os.path.join(bin_path, "rosmake")])
+    subprocess.check_call(["chmod", "u+x", os.path.join(bin_path, "rospack")])
+    subprocess.check_call(["git", "add", "*"], cwd=ros_path)
+    subprocess.check_call(["git", "commit", "-m", "initial"], cwd=ros_path)
+
+
 def _create_yaml_file(config_elements, path):
-     content = ''
-     for elt in list(config_elements):
-          content += "- %s:\n"%elt["type"]
-          if elt["uri"] is not None:
-               content += "    uri: '%s'\n"%elt["uri"]
-          content += "    local-name: '%s'\n"%elt["local-name"]
-          if elt["version"] is not None:
-               content += "    version: '%s'\n"%elt["version"]
-     _add_to_file(path, content)
+    content = ''
+    for elt in list(config_elements):
+        content += "- %s:\n" % elt["type"]
+        if elt["uri"] is not None:
+            content += "    uri: '%s'\n" % elt["uri"]
+        content += "    local-name: '%s'\n" % elt["local-name"]
+        if elt["version"] is not None:
+            content += "    version: '%s'\n" % elt["version"]
+    _add_to_file(path, content)
+
 
 def _create_config_elt_dict(scmtype, localname, uri=None, version=None):
-     element = {}
-     element["type"]       = scmtype
-     element["uri"]        = uri
-     element["local-name"] = localname
-     element["version"]    = version
-     return element
+    element = {}
+    element["type"]       = scmtype
+    element["uri"]        = uri
+    element["local-name"] = localname
+    element["version"]    = version
+    return element
+
 
 def _create_git_repo(git_path):
     os.makedirs(git_path)
@@ -92,6 +97,7 @@ def _create_git_repo(git_path):
     subprocess.check_call(["touch", "gitfixed.txt"], cwd=git_path)
     subprocess.check_call(["git", "add", "*"], cwd=git_path)
     subprocess.check_call(["git", "commit", "-m", "initial"], cwd=git_path)
+
 
 def _create_tar_file(tar_file):
     parent_path = os.path.dirname(tar_file)
@@ -108,163 +114,166 @@ def _create_hg_repo(hg_path):
     subprocess.check_call(["hg", "add", "hgfixed.txt"], cwd=hg_path)
     subprocess.check_call(["hg", "commit", "-m", "initial"], cwd=hg_path)
 
-def _nth_line_split(n, output): 
-     """returns the last line as list of non-blank tokens""" 
-     lines = output.splitlines() 
-     if len(lines) > 0: 
-          return lines[n].split() 
-     else: 
-          return []
-    
+
+def _nth_line_split(n, output):
+    """returns the last line as list of non-blank tokens"""
+    lines = output.splitlines()
+    if len(lines) > 0:
+        return lines[n].split()
+    else:
+        return []
+
 # ROSINSTALL_CMD = os.path.join(os.getcwd(), 'scripts/rosinstall')
 # ROSWS_CMD = os.path.join(os.getcwd(), 'scripts/rosws')
 
 
 class AbstractRosinstallCLITest(unittest.TestCase):
 
-     """Base class for cli tests"""
-     @classmethod
-     def setUpClass(self):
-          self.new_environ = copy.copy(os.environ)
-          self.new_environ["PYTHONPATH"] = os.path.join(os.getcwd(), "src")
-          if "ROS_WORKSPACE" in self.new_environ:
-               self.new_environ.pop("ROS_WORKSPACE")
+    """Base class for cli tests"""
+    @classmethod
+    def setUpClass(self):
+        self.new_environ = copy.copy(os.environ)
+        self.new_environ["PYTHONPATH"] = os.path.join(os.getcwd(), "src")
+        if "ROS_WORKSPACE" in self.new_environ:
+            self.new_environ.pop("ROS_WORKSPACE")
 
 
 class AbstractRosinstallBaseDirTest(AbstractRosinstallCLITest):
-     """test class where each test method get its own fresh tempdir named self.directory"""
-     
-     def setUp(self):
-          self.directories = {}
-          self.directory = tempfile.mkdtemp()
-          self.directories["base"] = self.directory
-          self.rosinstall_fn = ["rosinstall", "-n"]
+    """test class where each test method get its own fresh tempdir named self.directory"""
 
-     def tearDown(self):
+    def setUp(self):
+        self.directories = {}
+        self.directory = tempfile.mkdtemp()
+        self.directories["base"] = self.directory
+        self.rosinstall_fn = ["rosinstall", "-n"]
+
+    def tearDown(self):
         for d in self.directories:
             shutil.rmtree(self.directories[d])
         self.directories = {}
 
+
 class AbstractFakeRosBasedTest(AbstractRosinstallBaseDirTest):
-     """
-     creates some larger infrastructure for testing locally:
-     a root folder containing all other folders in self.test_root_path
-     a fake ros folder in self.ros_path
-     a git repo in self.git_path
-     a hg repo in self.hg_path
-     a file named self.simple_rosinstall with ros and gitrepo
-     a file named self.simple_changed_vcs_rosinstall with ros and hgrepo
-     """
-     
-     @classmethod
-     def setUpClass(self):
-          AbstractRosinstallBaseDirTest.setUpClass()
-          # create a dir mimicking ros
-          self.test_root_path = tempfile.mkdtemp()
-          _create_fake_ros_dir(self.test_root_path)
-          # create a repo in git
-          self.ros_path = os.path.join(self.test_root_path, "ros")
-          self.git_path = os.path.join(self.test_root_path, "gitrepo")
-          _create_git_repo(self.git_path)
-          # create a repo in hg
-          self.hg_path = os.path.join(self.test_root_path, "hgrepo")
-          _create_hg_repo(self.hg_path)
-          # create custom rosinstall files to use as input
-          self.simple_rosinstall = os.path.join(self.test_root_path, "simple.rosinstall")
-          _create_yaml_file([_create_config_elt_dict("git", "ros", self.ros_path),
-                             _create_config_elt_dict("git", "gitrepo", self.git_path)],
-                            self.simple_rosinstall)
-          self.simple_changed_vcs_rosinstall = os.path.join(self.test_root_path, "simple_changed_vcs.rosinstall")
-          _create_yaml_file([_create_config_elt_dict("git", "ros", self.ros_path),
-                             _create_config_elt_dict("hg", "hgrepo", self.hg_path)],
-                            self.simple_changed_vcs_rosinstall)
+    """
+    creates some larger infrastructure for testing locally:
+    a root folder containing all other folders in self.test_root_path
+    a fake ros folder in self.ros_path
+    a git repo in self.git_path
+    a hg repo in self.hg_path
+    a file named self.simple_rosinstall with ros and gitrepo
+    a file named self.simple_changed_vcs_rosinstall with ros and hgrepo
+    """
 
-     @classmethod
-     def tearDownClass(self):
-          shutil.rmtree(self.test_root_path)
-          
+    @classmethod
+    def setUpClass(self):
+        AbstractRosinstallBaseDirTest.setUpClass()
+        # create a dir mimicking ros
+        self.test_root_path = tempfile.mkdtemp()
+        _create_fake_ros_dir(self.test_root_path)
+        # create a repo in git
+        self.ros_path = os.path.join(self.test_root_path, "ros")
+        self.git_path = os.path.join(self.test_root_path, "gitrepo")
+        _create_git_repo(self.git_path)
+        # create a repo in hg
+        self.hg_path = os.path.join(self.test_root_path, "hgrepo")
+        _create_hg_repo(self.hg_path)
+        # create custom rosinstall files to use as input
+        self.simple_rosinstall = os.path.join(self.test_root_path, "simple.rosinstall")
+        _create_yaml_file([_create_config_elt_dict("git", "ros", self.ros_path),
+                           _create_config_elt_dict("git", "gitrepo", self.git_path)],
+                          self.simple_rosinstall)
+        self.simple_changed_vcs_rosinstall = os.path.join(self.test_root_path, "simple_changed_vcs.rosinstall")
+        _create_yaml_file([_create_config_elt_dict("git", "ros", self.ros_path),
+                           _create_config_elt_dict("hg", "hgrepo", self.hg_path)],
+                          self.simple_changed_vcs_rosinstall)
+
+    @classmethod
+    def tearDownClass(self):
+        shutil.rmtree(self.test_root_path)
+
+
 class AbstractSCMTest(AbstractRosinstallCLITest):
-     """Base class for diff tests, setting up a tempdir self.test_root_path for a whole class"""
-     @classmethod
-     def setUpClass(self):
-          """creates a directory 'ros' mimicking to be a ROS root to rosinstall"""
-          AbstractRosinstallCLITest.setUpClass()
-          self.test_root_path = tempfile.mkdtemp()
-          self.directories = {}
-          self.directories["root"] = self.test_root_path
+    """Base class for diff tests, setting up a tempdir self.test_root_path for a whole class"""
+    @classmethod
+    def setUpClass(self):
+        """creates a directory 'ros' mimicking to be a ROS root to rosinstall"""
+        AbstractRosinstallCLITest.setUpClass()
+        self.test_root_path = tempfile.mkdtemp()
+        self.directories = {}
+        self.directories["root"] = self.test_root_path
 
-          _create_fake_ros_dir(self.test_root_path)
-          self.local_path = os.path.join(self.test_root_path, "ws")
-          os.makedirs(self.local_path)
-          self.curdir = os.getcwd()
+        _create_fake_ros_dir(self.test_root_path)
+        self.local_path = os.path.join(self.test_root_path, "ws")
+        os.makedirs(self.local_path)
+        self.curdir = os.getcwd()
 
-     @classmethod
-     def tearDownClass(self):
-          os.chdir(self.curdir)
-          for d in self.directories:
-               shutil.rmtree(self.directories[d])
+    @classmethod
+    def tearDownClass(self):
+        os.chdir(self.curdir)
+        for d in self.directories:
+            shutil.rmtree(self.directories[d])
 
-     def assertStatusListEqual(self, listexpect, listactual):
-          """helper fun to check scm status output while discarding file ordering differences"""
-          lines_expect = listexpect.splitlines()
-          lines_actual = listactual.splitlines()
-          for line in lines_expect:
-               self.assertTrue(line in lines_actual, 'Missing entry %s in output %s' % (line, listactual))
-          for line in lines_actual:
-               self.assertTrue(line in lines_expect, 'Superflous entry %s in output %s' % (line, listactual))
+    def assertStatusListEqual(self, listexpect, listactual):
+        """helper fun to check scm status output while discarding file ordering differences"""
+        lines_expect = listexpect.splitlines()
+        lines_actual = listactual.splitlines()
+        for line in lines_expect:
+            self.assertTrue(line in lines_actual, 'Missing entry %s in output %s' % (line, listactual))
+        for line in lines_actual:
+            self.assertTrue(line in lines_expect, 'Superflous entry %s in output %s' % (line, listactual))
 
 
 class UtilTest(unittest.TestCase):
-     """test to check the methods run by unit test setups"""
+    """test to check the methods run by unit test setups"""
 
-     def test_add_to_file(self):
-          self.test_root_path = tempfile.mkdtemp()
-          filepath = os.path.join(self.test_root_path, 'foofile')
-          self.assertFalse(os.path.exists(filepath))
-          _add_to_file(filepath, 'foo')
-          self.assertTrue(os.path.exists(filepath))
-          with open(filepath, 'r') as f:
-               read_data = f.read()
-               self.assertEqual(read_data, 'foo')
-          _add_to_file(filepath, 'bar')
-          with open(filepath, 'r') as f:
-               read_data = f.read()
-               self.assertEqual(read_data, 'foobar')
-          shutil.rmtree(self.test_root_path)
-          
-     def test_create_fake_ros(self):
-          self.test_root_path = tempfile.mkdtemp()
-          rospath = os.path.join(self.test_root_path, 'ros')
-          self.assertFalse(os.path.exists(rospath))
-          _create_fake_ros_dir(self.test_root_path)
-          self.assertTrue(os.path.exists(rospath))
-          self.assertTrue(os.path.exists(os.path.join(rospath, "setup.sh")))
-          self.assertTrue(os.path.exists(os.path.join(rospath, "stack.xml")))
-          self.assertTrue(os.path.exists(os.path.join(rospath, ".git")))
-          shutil.rmtree(self.test_root_path)
+    def test_add_to_file(self):
+        self.test_root_path = tempfile.mkdtemp()
+        filepath = os.path.join(self.test_root_path, 'foofile')
+        self.assertFalse(os.path.exists(filepath))
+        _add_to_file(filepath, 'foo')
+        self.assertTrue(os.path.exists(filepath))
+        with open(filepath, 'r') as f:
+            read_data = f.read()
+            self.assertEqual(read_data, 'foo')
+        _add_to_file(filepath, 'bar')
+        with open(filepath, 'r') as f:
+            read_data = f.read()
+            self.assertEqual(read_data, 'foobar')
+        shutil.rmtree(self.test_root_path)
 
-     def test_create_config_elt_dict(self):
-          scmtype = 'foo'
-          uri = 'bar'
-          localname = 'pip'
-          version = 'pop'
-          element = _create_config_elt_dict(scmtype, localname, uri, version)
-          self.assertEqual(element["type"], scmtype)
-          self.assertEqual(element["uri"], uri)
-          self.assertEqual(element["local-name"], localname)
-          self.assertEqual(element["version"], version)
+    def test_create_fake_ros(self):
+        self.test_root_path = tempfile.mkdtemp()
+        rospath = os.path.join(self.test_root_path, 'ros')
+        self.assertFalse(os.path.exists(rospath))
+        _create_fake_ros_dir(self.test_root_path)
+        self.assertTrue(os.path.exists(rospath))
+        self.assertTrue(os.path.exists(os.path.join(rospath, "setup.sh")))
+        self.assertTrue(os.path.exists(os.path.join(rospath, "stack.xml")))
+        self.assertTrue(os.path.exists(os.path.join(rospath, ".git")))
+        shutil.rmtree(self.test_root_path)
 
-     def test_create_yaml_file(self):
-          self.test_root_path = tempfile.mkdtemp()
-          filepath = os.path.join(self.test_root_path, 'foofile')
-          config_elements = [
-               _create_config_elt_dict("other", "foo"),
-               _create_config_elt_dict("git", "foo", "foouri"),
-               _create_config_elt_dict("svn", "bar", "baruri", "barversion")]
-          _create_yaml_file(config_elements, filepath)
-          with open(filepath, 'r') as f:
-               read_data = f.read()
-               self.assertEqual(read_data, """- other:
+    def test_create_config_elt_dict(self):
+        scmtype = 'foo'
+        uri = 'bar'
+        localname = 'pip'
+        version = 'pop'
+        element = _create_config_elt_dict(scmtype, localname, uri, version)
+        self.assertEqual(element["type"], scmtype)
+        self.assertEqual(element["uri"], uri)
+        self.assertEqual(element["local-name"], localname)
+        self.assertEqual(element["version"], version)
+
+    def test_create_yaml_file(self):
+        self.test_root_path = tempfile.mkdtemp()
+        filepath = os.path.join(self.test_root_path, 'foofile')
+        config_elements = [
+            _create_config_elt_dict("other", "foo"),
+            _create_config_elt_dict("git", "foo", "foouri"),
+            _create_config_elt_dict("svn", "bar", "baruri", "barversion")]
+        _create_yaml_file(config_elements, filepath)
+        with open(filepath, 'r') as f:
+            read_data = f.read()
+            self.assertEqual(read_data, """- other:
     local-name: 'foo'
 - git:
     uri: 'foouri'
@@ -274,4 +283,4 @@ class UtilTest(unittest.TestCase):
     local-name: 'bar'
     version: 'barversion'
 """)
-          shutil.rmtree(self.test_root_path)
+        shutil.rmtree(self.test_root_path)

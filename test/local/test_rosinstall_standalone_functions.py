@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2009, Willow Garage, Inc.
@@ -72,7 +71,7 @@ class FunctionsTest(unittest.TestCase):
         finally:
             rosinstall.helpers.subprocess = subprocess
             rosinstall.helpers.os = os
-        
+
     def test_is_path_stack(self):
         self.assertTrue(rosinstall.helpers.is_path_stack(os.path.join("test", "example_dirs", "ros")))
         self.assertTrue(rosinstall.helpers.is_path_stack(os.path.join("test", "example_dirs", "ros_comm")))

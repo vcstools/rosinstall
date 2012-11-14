@@ -49,6 +49,7 @@ from rosinstall.rosws_cli import rosws_main
 import test.scm_test_base
 from test.scm_test_base import AbstractSCMTest, _add_to_file, _nth_line_split
 
+
 def create_hg_repo(remote_path):
     # create a "remote" repo
     subprocess.check_call(["hg", "init"], cwd=remote_path)
@@ -64,6 +65,7 @@ def create_hg_repo(remote_path):
     subprocess.check_call(["hg", "add", "deleted-fs.txt"], cwd=remote_path)
     subprocess.check_call(["hg", "commit", "-m", "modified"], cwd=remote_path)
 
+
 def modify_hg_repo(clone_path):
     # make local modifications
     subprocess.check_call(["rm", "deleted-fs.txt"], cwd=clone_path)
@@ -73,6 +75,7 @@ def modify_hg_repo(clone_path):
     _add_to_file(os.path.join(clone_path, "added-fs.txt"), "tada\n")
     _add_to_file(os.path.join(clone_path, "added.txt"), "flam\n")
     subprocess.check_call(["hg", "add", "added.txt"], cwd=clone_path)
+
 
 class RosinstallDiffHgTest(AbstractSCMTest):
 
@@ -118,7 +121,7 @@ class RosinstallDiffHgTest(AbstractSCMTest):
         self.check_diff_output(output)
 
         cli = RoswsCLI()
-        self.assertEqual(0,cli.cmd_diff(os.path.join(self.test_root_path, 'ws'), []))
+        self.assertEqual(0, cli.cmd_diff(os.path.join(self.test_root_path, 'ws'), []))
 
     def test_Rosinstall_diff_hg_inside(self):
         """Test diff output for hg when run inside workspace"""
@@ -161,7 +164,7 @@ class RosinstallDiffHgTest(AbstractSCMTest):
         self.assertEqual('M       clone/modified-fs.txt\nM       clone/modified.txt\nA       clone/added.txt\nR       clone/deleted.txt\n!       clone/deleted-fs.txt\n', output)
 
         cli = RoswsCLI()
-        self.assertEqual(0,cli.cmd_diff(directory, []))
+        self.assertEqual(0, cli.cmd_diff(directory, []))
 
     def test_Rosinstall_status_hg_outside(self):
         """Test status output for hg when run outside workspace"""
@@ -218,6 +221,7 @@ class RosinstallDiffHgTest(AbstractSCMTest):
 
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_info(os.path.join(self.test_root_path, 'ws'), []))
+
 
 class RosinstallInfoHgTest(AbstractSCMTest):
 
@@ -276,7 +280,7 @@ class RosinstallInfoHgTest(AbstractSCMTest):
         rosws_main(cmd)
         output = output.getvalue()
         tokens = _nth_line_split(-2, output)
-        self.assertEqual(['clone', 'MV', 'hg', 'footag', self.version_end, "(%s)"%self.version_init, os.path.join(self.test_root_path, 'remote')], tokens)
+        self.assertEqual(['clone', 'MV', 'hg', 'footag', self.version_end, "(%s)" % self.version_init, os.path.join(self.test_root_path, 'remote')], tokens)
 
         subprocess.check_call(["rm", "-rf", "clone"], cwd=self.local_path)
         os.chdir(self.test_root_path)

@@ -1,3 +1,35 @@
+# Software License Agreement (BSD License)
+#
+# Copyright (c) 2009, Willow Garage, Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of Willow Garage, Inc. nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
 import os
 import unittest
 import copy
@@ -16,7 +48,7 @@ class YamlIO_Test(unittest.TestCase):
     def test_get_yaml_from_uri_from_file(self):
         file = os.path.join("test", "example.yaml")
         y = get_yaml_from_uri(file)
-        
+
         self.assertTrue("text" in y)
         self.assertTrue(y["text"] == "foobar")
 
@@ -33,7 +65,6 @@ class YamlIO_Test(unittest.TestCase):
         except MultiProjectException:
             pass
 
-        
     def test_get_yaml_from_uri_from_missing_file(self):
         file = "/asdfasdfasdfasfasdf_does_not_exist"
         try:
@@ -54,10 +85,7 @@ class YamlIO_Test(unittest.TestCase):
 #        self.assertEqual(y, None)
 
 
-
 class ConfigElementYamlFunctions_Test(unittest.TestCase):
-
-    
 
     def test_rewrite_included_source(self):
         base_path = '/foo/bar'
@@ -106,7 +134,7 @@ class UriAggregationTest(unittest.TestCase):
 
     def test_aggregate_from_uris(self):
         pass
-        
+
 
 class ConfigFile_Test(unittest.TestCase):
 
@@ -131,13 +159,13 @@ class ConfigFile_Test(unittest.TestCase):
             read_data = f.read()
         lines = read_data.splitlines()
         self.assertEqual("# Hello", lines[0])
-        self.assertEqual("- svn: {local-name: ros, uri: %s/some/uri}"%self.directory, lines[1])
+        self.assertEqual("- svn: {local-name: ros, uri: %s/some/uri}" % self.directory, lines[1])
 
     def tearDown(self):
         if os.path.exists(self.directory):
             shutil.rmtree(self.directory)
-        
-        
+
+
 class ConfigElementYamlWrapper_Test(unittest.TestCase):
 
     def test_original_syntax_scm(self):
@@ -153,7 +181,7 @@ class ConfigElementYamlWrapper_Test(unittest.TestCase):
         self.assertEqual(version, wrap.get_version())
         self.assertEqual(uri, wrap.get_uri())
         self.assertEqual(struct, wrap.get_legacy_yaml())
-    
+
         # empty version
         local_name = 'common_rosdeps'
         version = None
@@ -179,7 +207,7 @@ class ConfigElementYamlWrapper_Test(unittest.TestCase):
         self.assertEqual(version, wrap.get_version())
         self.assertEqual(uri, wrap.get_uri())
         self.assertEqual({'hg': {'local-name': 'common_rosdeps', 'uri': 'https://kforge.ros.org/common/rosdepcore'}}, wrap.get_legacy_yaml())
-        
+
         # other
         local_name = 'common_rosdeps'
         version = None
@@ -222,7 +250,7 @@ class ConfigElementYamlWrapper_Test(unittest.TestCase):
         self.assertEqual(uri, wrap.get_uri())
         self.assertEqual([{'meta': {'repo-name': 'skynetish-ros-pkg'}}], wrap.get_tags())
         self.assertEqual({scmtype: {'local-name': local_name, 'uri': 'some/uri', 'meta': {'repo-name': 'skynetish-ros-pkg'}}}, wrap.get_legacy_yaml())
-        
+
     def test_original_syntax_invalids(self):
         local_name = 'common_rosdeps'
         version = '1234'
@@ -303,4 +331,3 @@ class ConfigElementYamlWrapper_Test(unittest.TestCase):
             get_path_spec_from_yaml(struct)
             self.fail("expected exception")
         except MultiProjectException: pass
-        

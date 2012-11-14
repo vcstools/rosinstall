@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2009, Willow Garage, Inc.
@@ -44,6 +43,7 @@ from rosinstall.rosinstall_cli import rosinstall_main
 
 from test.scm_test_base import AbstractRosinstallBaseDirTest, AbstractFakeRosBasedTest, _create_yaml_file, _create_config_elt_dict
 
+
 class RosinstallCommandlineOverlays(AbstractFakeRosBasedTest):
     """test creating parallel rosinstall env with overlayed stacks"""
 
@@ -76,7 +76,7 @@ class RosinstallCommandlineOverlays(AbstractFakeRosBasedTest):
         """uses base ros folder"""
         local_rosinstall = os.path.join(self.test_root_path, "local.rosinstall")
         # invalid recursion itno some other rosinstall folder
-        _create_yaml_file([_create_config_elt_dict("other", self.directory)],  local_rosinstall)
+        _create_yaml_file([_create_config_elt_dict("other", self.directory)], local_rosinstall)
 
         cmd = copy.copy(self.rosinstall_fn)
         cmd.extend([self.new_directory, self.ros_path, local_rosinstall])
@@ -147,9 +147,8 @@ class RosinstallCommandlineOverlaysWithSetup(AbstractFakeRosBasedTest):
         yamlsrc = yaml.load(stream)
         stream.close()
         self.assertEqual(2, len(yamlsrc), yamlsrc)
-        self.assertEqual('other', list(yamlsrc[0].keys())[0]) #ros
-        self.assertEqual('hg', list(yamlsrc[1].keys())[0]) #hg_repo
-
+        self.assertEqual('other', list(yamlsrc[0].keys())[0])  # ros
+        self.assertEqual('hg', list(yamlsrc[1].keys())[0])  # hg_repo
 
     def test_Rosinstall_ros_with_folder_and_setupfile(self):
         cmd = copy.copy(self.rosinstall_fn)
@@ -164,7 +163,6 @@ class RosinstallCommandlineOverlaysWithSetup(AbstractFakeRosBasedTest):
         self.assertEqual('other', list(yamlsrc[2].keys())[0])
 
 
-
 class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
 
     def test_prereq(self):
@@ -177,8 +175,8 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
             cmd = copy.copy(self.rosinstall_fn)
             cmd.extend([self.directory, distrodir])
             self.assertTrue(rosinstall_main(cmd))
-            self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh'), shell=True, env=self.new_environ))
-            self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash'), shell=True, env=self.new_environ, executable='/bin/bash'))
+            self.assertEqual(0, subprocess.call(". %s" % os.path.join(self.directory, 'setup.sh'), shell=True, env=self.new_environ))
+            self.assertEqual(0, subprocess.call(". %s" % os.path.join(self.directory, 'setup.bash'), shell=True, env=self.new_environ, executable='/bin/bash'))
 
     if os.path.isdir('/opt/ros/diamondback'):
         def test_local_diamondback(self):
@@ -186,21 +184,21 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
             cmd = copy.copy(self.rosinstall_fn)
             cmd.extend([self.directory, distrodir])
             self.assertTrue(rosinstall_main(cmd))
-            self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
-            self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
-            p = subprocess.Popen("bash -c 'set -e; . %s'"%os.path.join(self.directory, 'setup.bash'),
+            self.assertEqual(0, subprocess.call(". %s" % os.path.join(self.directory, 'setup.sh'), shell=True, env=self.new_environ))
+            self.assertEqual(0, subprocess.call(". %s" % os.path.join(self.directory, 'setup.bash'), shell=True, env=self.new_environ, executable='/bin/bash'))
+            p = subprocess.Popen("bash -c 'set -e; . %s'" % os.path.join(self.directory, 'setup.bash'),
                                  shell=True,
                                  stdout=subprocess.PIPE,
                                  env=self.new_environ)
             output = p.communicate()
             self.assertEqual(0, p.returncode)
-            p = subprocess.Popen("bash -c '. %s; echo $ROS_ROOT'"%os.path.join(self.directory, 'setup.bash'),
+            p = subprocess.Popen("bash -c '. %s; echo $ROS_ROOT'" % os.path.join(self.directory, 'setup.bash'),
                                  shell=True,
                                  stdout=subprocess.PIPE,
                                  env=self.new_environ)
             output = p.communicate()
             self.assertEqual('/opt/ros/diamondback/ros', output[0].decode('UTF-8').rstrip('\n'))
-            p = subprocess.Popen("sh -c '. %s; echo $ROS_ROOT'"%os.path.join(self.directory, 'setup.sh'),
+            p = subprocess.Popen("sh -c '. %s; echo $ROS_ROOT'" % os.path.join(self.directory, 'setup.sh'),
                                  shell=True,
                                  stdout=subprocess.PIPE,
                                  env=self.new_environ)
@@ -213,27 +211,26 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
             cmd = copy.copy(self.rosinstall_fn)
             cmd.extend([self.directory, distrodir])
             self.assertTrue(rosinstall_main(cmd))
-            self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
-            self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
-            p = subprocess.Popen("bash -c 'set -e; . %s'"%os.path.join(self.directory, 'setup.bash'),
+            self.assertEqual(0, subprocess.call(". %s" % os.path.join(self.directory, 'setup.sh'), shell=True, env=self.new_environ))
+            self.assertEqual(0, subprocess.call(". %s" % os.path.join(self.directory, 'setup.bash'), shell=True, env=self.new_environ, executable='/bin/bash'))
+            p = subprocess.Popen("bash -c 'set -e; . %s'" % os.path.join(self.directory, 'setup.bash'),
                                  shell=True,
                                  stdout=subprocess.PIPE,
                                  env=self.new_environ)
             output = p.communicate()
             self.assertEqual(0, p.returncode, (output, p.returncode))
-            p = subprocess.Popen("bash -c '. %s; echo $ROS_ROOT'"%os.path.join(self.directory, 'setup.bash'),
+            p = subprocess.Popen("bash -c '. %s; echo $ROS_ROOT'" % os.path.join(self.directory, 'setup.bash'),
                                  shell=True,
                                  stdout=subprocess.PIPE,
                                  env=self.new_environ)
             output = p.communicate()
             self.assertEqual('/opt/ros/electric/ros', output[0].decode('UTF-8').rstrip('\n'))
-            p = subprocess.Popen("sh -c '. %s; echo $ROS_ROOT'"%os.path.join(self.directory, 'setup.sh'),
+            p = subprocess.Popen("sh -c '. %s; echo $ROS_ROOT'" % os.path.join(self.directory, 'setup.sh'),
                                  shell=True,
                                  stdout=subprocess.PIPE,
                                  env=self.new_environ)
             output = p.communicate()
             self.assertEqual('/opt/ros/electric/ros', output[0].decode('UTF-8').rstrip('\n'))
-
 
     if os.path.isdir('/opt/ros/fuerte'):
         def test_local_fuerte(self):
@@ -241,21 +238,21 @@ class RosinstallLocalDistro(AbstractRosinstallBaseDirTest):
             cmd = copy.copy(self.rosinstall_fn)
             cmd.extend([self.directory, distrodir])
             self.assertTrue(rosinstall_main(cmd))
-            self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ))
-            self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
-            p = subprocess.Popen("bash -c 'set -e; . %s'"%os.path.join(self.directory, 'setup.bash'),
+            self.assertEqual(0, subprocess.call(". %s" % os.path.join(self.directory, 'setup.sh'), shell=True, env=self.new_environ))
+            self.assertEqual(0, subprocess.call(". %s" % os.path.join(self.directory, 'setup.bash'), shell=True, env=self.new_environ, executable='/bin/bash'))
+            p = subprocess.Popen("bash -c 'set -e; . %s'" % os.path.join(self.directory, 'setup.bash'),
                                  shell=True,
                                  stdout=subprocess.PIPE,
                                  env=self.new_environ)
             output = p.communicate()
             self.assertEqual(0, p.returncode, (output, p.returncode))
-            p = subprocess.Popen("bash -c '. %s; echo $ROS_ROOT'"%os.path.join(self.directory, 'setup.bash'),
+            p = subprocess.Popen("bash -c '. %s; echo $ROS_ROOT'" % os.path.join(self.directory, 'setup.bash'),
                                  shell=True,
                                  stdout=subprocess.PIPE,
                                  env=self.new_environ)
             output = p.communicate()
             self.assertEqual('/opt/ros/fuerte/share/ros', output[0].decode('UTF-8').rstrip('\n'))
-            p = subprocess.Popen("sh -c '. %s; echo $ROS_ROOT'"%os.path.join(self.directory, 'setup.sh'),
+            p = subprocess.Popen("sh -c '. %s; echo $ROS_ROOT'" % os.path.join(self.directory, 'setup.sh'),
                                  shell=True,
                                  stdout=subprocess.PIPE,
                                  env=self.new_environ)
