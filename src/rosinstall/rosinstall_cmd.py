@@ -38,9 +38,9 @@ from rosinstall import setupfiles
 from rosinstall.helpers import ROSINSTALL_FILENAME, is_path_ros
 
 
-def cmd_persist_config(config, config_filename=ROSINSTALL_FILENAME):
+def cmd_persist_config(config, config_filename=ROSINSTALL_FILENAME, header=''):
     ## Save .rosinstall
-    header = """# THIS IS A FILE WHICH IS MODIFIED BY rosinstall
+    header = (header or '') + """\
 # IT IS UNLIKELY YOU WANT TO EDIT THIS FILE BY HAND,
 # UNLESS FOR REMOVING ENTRIES.
 # IF YOU WANT TO CHANGE THE ROS ENVIRONMENT VARIABLES

@@ -44,7 +44,6 @@ from __future__ import print_function
 import os
 import sys
 import yaml
-import shutil
 
 from optparse import OptionParser
 
@@ -55,11 +54,11 @@ from rosinstall.multiproject_cmd import get_config, cmd_install_or_update, \
 import rosinstall.__version__
 
 from rosinstall.common import MultiProjectException, select_elements
-from rosinstall.helpers import ROSInstallException, ROSINSTALL_FILENAME, \
+from rosinstall.helpers import ROSINSTALL_FILENAME, \
     get_ros_package_path, get_ros_stack_path
-from rosinstall.multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__,\
-    IndentedHelpFormatterWithNL
-from rosinstall.config_yaml import get_path_spec_from_yaml
+from rosinstall.multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__, \
+    __MULTIPRO_CMD_HELP_LIST__, __MULTIPRO_CMD_ALIASES__, \
+    IndentedHelpFormatterWithNL, list_usage
 
 ## This file adds or extends commands from multiproject_cli where ROS
 ## specific output has to be generated.
@@ -170,113 +169,6 @@ $ %(prog)s init ~/fuerte /opt/ros/fuerte
             print("\nType 'source %s/setup.bash' to change into this environment. Add that source command to the bottom of your ~/.bashrc to set it up every time you log in.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % os.path.abspath(target_path))
         return 0
 
-    def cmd_merge(self, target_path, argv, config=None):
-        parser = OptionParser(usage="usage: %s merge [URI] [OPTIONS]" % _PROGNAME,
-                              formatter=IndentedHelpFormatterWithNL(),
-                              description=__MULTIPRO_CMD_DICT__["merge"] + """.
-
-The command merges config with given other rosinstall element sets, from files or web uris.
-
-The default workspace will be inferred from context, you can specify one using -t.
-
-By default, when an element in an additional URI has the same
-local-name as an existing element, the existing element will be
-replaced. In order to ensure the ordering of elements is as
-provided in the URI, use the option --merge-kill-append.
-
-Examples:
-$ %(prog)s merge someother.rosinstall
-
-You can use '-' to pipe in input, as an example:
-$ roslocate info robot_mode | %(prog)s merge -
-""" % {'prog': _PROGNAME},
-                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
-        # same options as for multiproject
-        parser.add_option("-a", "--merge-kill-append", dest="merge_kill_append",
-                          default=False,
-                          help="merge by deleting given entry and appending new one",
-                          action="store_true")
-        parser.add_option("-k", "--merge-keep", dest="merge_keep",
-                          default=False,
-                          help="merge by keeping existing entry and discarding new one",
-                          action="store_true")
-        parser.add_option("-r", "--merge-replace", dest="merge_replace",
-                          default=True,
-                          help="(default) merge by replacing given entry with new one maintaining ordering",
-                          action="store_true")
-        parser.add_option("-y", "--confirm-all", dest="confirm_all",
-                          default='',
-                          help="do not ask for confirmation unless strictly necessary",
-                          action="store_true")
-        # required here but used one layer above
-        parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
-                          help="which workspace to use",
-                          action="store")
-        (options, args) = parser.parse_args(argv)
-
-        if len(args) > 1:
-            print("Error: Too many arguments.")
-            print(parser.usage)
-            return -1
-        if len(args) == 0:
-            print("Error: Too few arguments.")
-            print(parser.usage)
-            return -1
-
-        config_uris = args
-
-        specs = []
-        if config_uris[0] == '-':
-            pipedata = "".join(sys.stdin.readlines())
-            try:
-                yamldicts = yaml.load(pipedata)
-            except yaml.YAMLError as e:
-                raise MultiProjectException(
-                    "Invalid yaml format: \n%s \n%s" % (pipedata, e))
-            if yamldicts is None:
-                parser.error("No Input read from stdin")
-            # cant have user interaction and piped input
-            options.confirm_all = True
-            specs.extend([get_path_spec_from_yaml(x) for x in yamldicts])
-            config_uris = []
-
-        merge_strategy = None
-        count_mergeoptions = 0
-        if options.merge_kill_append:
-            merge_strategy = 'KillAppend'
-            count_mergeoptions += 1
-        if options.merge_keep:
-            merge_strategy = 'MergeKeep'
-            count_mergeoptions += 1
-        if options.merge_replace:
-            merge_strategy = 'MergeReplace'
-            count_mergeoptions += 1
-        if count_mergeoptions > 1:
-            parser.error("You can only provide one merge-strategy")
-        # default option
-        if count_mergeoptions == 0:
-            merge_strategy = 'MergeReplace'
-
-        (newconfig, path_changed) = self.prompt_merge(
-            target_path,
-            additional_uris=config_uris,
-            additional_specs=specs,
-            path_change_message="ROS_PACKAGE_PATH order changed",
-            merge_strategy=merge_strategy,
-            confirmed=options.confirm_all,
-            config=config)
-        if newconfig is not None:
-            print("Config changed, maybe you need run %s update to update SCM entries." % _PROGNAME)
-            print("Overwriting %s" % os.path.join(newconfig.get_base_path(), self.config_filename))
-            shutil.move(os.path.join(newconfig.get_base_path(), self.config_filename), "%s.bak" % os.path.join(newconfig.get_base_path(), self.config_filename))
-            rosinstall_cmd.cmd_persist_config(newconfig)
-            rosinstall_cmd.cmd_maybe_refresh_ros_files(newconfig)
-            print("\nupdate complete.")
-            if path_changed:
-                print("\nDo not forget to do ...\n$ source %s/setup.sh\n... in every open terminal." % target_path)
-        else:
-            print("Merge caused no change, matching elements already exist")
-        return 0
 
     def cmd_regenerate(self, target_path, argv, config=None):
         parser = OptionParser(usage="usage: %s regenerate" % _PROGNAME,
