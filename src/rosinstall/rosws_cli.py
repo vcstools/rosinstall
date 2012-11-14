@@ -562,10 +562,4 @@ def rosws_main(argv=None):
             return ws_commands[command](workspace, args)
 
     except KeyboardInterrupt:
-        pass
-    except ROSInstallException as e:
-        sys.stderr.write("ERROR in %s: %s\n" % (_PROGNAME, str(e)))
-        return 1
-    except MultiProjectException as e:
-        sys.stderr.write("ERROR: %s\n" % str(e))
         return 1
