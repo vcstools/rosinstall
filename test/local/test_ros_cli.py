@@ -85,13 +85,13 @@ class RosinstallCommandlineTest(AbstractFakeRosBasedTest):
         config = FakeConfig([PathSpec(self.ros_path, 'git', 'gituri', path = self.ros_path)])
         self.assertTrue(rosinstall.rosinstall_cmd._ros_requires_boostrap(config))
 
-        
+
 class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
-    
+
     def test_cmd_generate_ros_files_simple(self):
         self.local_path = os.path.join(self.test_root_path, "ws")
         os.makedirs(self.local_path)
-          
+
         config = FakeConfig(celts = [MockConfigElement(path = self.ros_path)], basepath = self.local_path)
         rosinstall.rosinstall_cmd.cmd_generate_ros_files(config, self.local_path, nobuild = True, rosdep_yes = False, catkin = False, catkinpp = None)
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
@@ -102,18 +102,18 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
     def test_cmd_generate_ros_files_vcs(self):
         self.local_path = os.path.join(self.test_root_path, "ws2")
         os.makedirs(self.local_path)
-        
+
         config = FakeConfig(celts = [MockConfigElement(path = self.ros_path), MockConfigElement(path ='gitrepo', scmtype = 'git', uri = self.git_path), MockConfigElement(path = 'hgrepo', scmtype= 'hg', uri = self.hg_path)], basepath = self.local_path)
         rosinstall.rosinstall_cmd.cmd_generate_ros_files(config, self.local_path, nobuild = True, rosdep_yes = False, catkin = False, catkinpp = None)
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.bash')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.zsh')))
 
-      
+
     def test_cmd_generate_ros_files_catkin(self):
         self.local_path = os.path.join(self.test_root_path, "ws3")
         os.makedirs(self.local_path)
-        
+
         config = FakeConfig([PathSpec(self.ros_path), PathSpec('gitrepo', 'git', uri = self.git_path)], self.local_path)
         rosinstall.rosinstall_cmd.cmd_generate_ros_files(config, self.local_path, nobuild = True, rosdep_yes = False, catkin = True, catkinpp = False)
         self.assertFalse(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
@@ -124,7 +124,7 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
     def test_cmd_generate_ros_files_catkinpp(self):
         self.local_path = os.path.join(self.test_root_path, "ws4")
         os.makedirs(self.local_path)
-        
+
         config = FakeConfig([PathSpec(self.ros_path), PathSpec('gitrepo', 'git', uri = self.git_path)], self.local_path)
         rosinstall.rosinstall_cmd.cmd_generate_ros_files(config, self.local_path, nobuild = True, rosdep_yes = False, catkin = True, catkinpp = True)
         self.assertFalse(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
@@ -145,11 +145,11 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.bash')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.zsh')))
-        
+
     def test_cmd_init(self):
         self.local_path = os.path.join(self.test_root_path, "ws5")
         os.makedirs(self.local_path)
-        
+
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_init([self.local_path, self.ros_path]))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
@@ -158,7 +158,7 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.assertTrue(os.path.exists(os.path.join(self.local_path, '.rosinstall')))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.local_path, 'setup.sh') , shell=True, env=self.new_environ))
         self.assertEqual(0, subprocess.call(". %s"%os.path.join(self.local_path, 'setup.bash') , shell=True, env=self.new_environ, executable='/bin/bash'))
-        
+
         self.assertEqual(0, cli.cmd_merge(self.local_path, [self.ros_path, "-y"]))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'setup.bash')))
@@ -171,7 +171,7 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
     def test_cmd_init_catkin(self):
         self.local_path = os.path.join(self.test_root_path, "ws6")
         os.makedirs(self.local_path)
-        
+
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_init([self.local_path, self.ros_path, "-c"]))
         self.assertFalse(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
@@ -184,7 +184,7 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
     def test_cmd_init_catkin2(self):
         self.local_path = os.path.join(self.test_root_path, "ws7")
         os.makedirs(self.local_path)
-        
+
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_init([self.local_path, self.ros_path, "--catkin"]))
         self.assertFalse(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
@@ -192,12 +192,12 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.assertFalse(os.path.exists(os.path.join(self.local_path, 'setup.zsh')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, '.rosinstall')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'CMakeLists.txt')))
-        
+
 
     def test_cmd_init_catkinpp(self):
         self.local_path = os.path.join(self.test_root_path, "ws8")
         os.makedirs(self.local_path)
-        
+
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_init([self.local_path, self.ros_path, "--catkin", "--cmake-prefix-path=foo"]))
         self.assertFalse(os.path.exists(os.path.join(self.local_path, 'setup.sh')))
@@ -286,7 +286,7 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
             output = p.communicate()[0]
             self.assertEqual(expect.encode('UTF-8'), output.strip(), ("'%s' != '%s'"%(expect, output), cmd, cwd))
             self.assertEqual(0, p.returncode)
-        
+
     def test_init_parallel(self):
         self.local_path = os.path.join(self.test_root_path, "ws13a")
         cli = RoswsCLI()
@@ -296,7 +296,7 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.execute_check_result_allshells(command, self.local_path, expect = self.local_path)
         self.execute_check_result_allshells(command, '.', cwd=self.local_path, expect = self.local_path)
         self.execute_check_result_allshells(command, 'ws13a', cwd=self.test_root_path, expect = self.local_path)
-        
+
         local_ros_path = os.path.join(self.local_path, "ros")
         local_git_path = os.path.join(self.local_path, "gitrepo")
         package_path = "%s:%s"%(local_git_path, local_ros_path)
@@ -304,7 +304,7 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.execute_check_result_allshells(command, self.local_path, expect = package_path)
         self.execute_check_result_allshells(command, '.', cwd=self.local_path, expect = package_path)
         self.execute_check_result_allshells(command, 'ws13a', cwd=self.test_root_path, expect = package_path)
-            
+
     def test_setup_sh(self):
         self.local_path = os.path.join(self.test_root_path, "ws13")
         cli = RoswsCLI()
@@ -314,7 +314,7 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.execute_check_result_allshells(command, self.local_path, expect = self.local_path)
         self.execute_check_result_allshells(command, '.', cwd=self.local_path, expect = self.local_path)
         self.execute_check_result_allshells(command, 'ws13', cwd=self.test_root_path, expect = self.local_path)
-        
+
         local_ros_path = os.path.join(self.local_path, "ros")
         local_git_path = os.path.join(self.local_path, "gitrepo")
         package_path = "%s:%s"%(local_git_path, local_ros_path)
@@ -322,7 +322,7 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.execute_check_result_allshells(command, self.local_path, expect = package_path)
         self.execute_check_result_allshells(command, '.', cwd=self.local_path, expect = package_path)
         self.execute_check_result_allshells(command, 'ws13', cwd=self.test_root_path, expect = package_path)
-        
+
     def test_setup_sh_relros(self):
         self.local_path = os.path.join(self.test_root_path, "ws14")
         cli = RoswsCLI()
@@ -335,13 +335,13 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.execute_check_result_allshells(command, self.local_path, expect = self.local_path)
         self.execute_check_result_allshells(command, '.', cwd=self.local_path, expect = self.local_path)
         self.execute_check_result_allshells(command, 'ws14', cwd=self.test_root_path, expect = self.local_path)
-        
+
         package_path = os.path.join(self.local_path, "ros")
         command = "echo $ROS_PACKAGE_PATH"
         self.execute_check_result_allshells(command, self.local_path, expect = package_path)
         self.execute_check_result_allshells(command, '.', cwd=self.local_path, expect = package_path)
         self.execute_check_result_allshells(command, 'ws14', cwd=self.test_root_path, expect = package_path)
-        
+
 
     def test_setup_sh_relother(self):
         self.local_path = os.path.join(self.test_root_path, "ws15")
@@ -356,14 +356,14 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.execute_check_result_allshells(command, self.local_path, expect = self.local_path)
         self.execute_check_result_allshells(command, '.', cwd=self.local_path, expect = self.local_path)
         self.execute_check_result_allshells(command, 'ws15', cwd=self.test_root_path, expect = self.local_path)
-        
+
         local_ros_path = os.path.join(self.local_path, "ros")
         package_path = "%s:%s"%(self.git_path, local_ros_path)
         command = "echo $ROS_PACKAGE_PATH"
         self.execute_check_result_allshells(command, self.local_path, expect = package_path)
         self.execute_check_result_allshells(command, '.', cwd=self.local_path, expect = package_path)
         self.execute_check_result_allshells(command, 'ws15', cwd=self.test_root_path, expect = package_path)
-        
+
 
     def test_cmd_add_self(self):
         # rosinstall to create dir
@@ -376,7 +376,7 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         config = rosinstall.multiproject_cmd.get_config(basepath = self.local_path,                                                       config_filename = '.rosinstall')
         self.assertEqual(len(config.get_config_elements()), 1)
         self.assertEqual('git', config.get_config_elements()[0].get_path_spec().get_scmtype())
-        
+
         rosinstall.multiproject_cmd.add_uris(config, [self.local_path])
         self.assertEqual(len(config.get_config_elements()), 1, config)
         self.assertEqual('git', config.get_config_elements()[0].get_path_spec().get_scmtype())
@@ -385,7 +385,7 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.assertEqual(len(config.get_config_elements()), 1, config)
         self.assertEqual('git', config.get_config_elements()[0].get_path_spec().get_scmtype())
 
-        
+
     def test_get_element_diff(self):
         cli = RoswsCLI()
         self.assertEqual('', cli._get_element_diff(None, None))
@@ -403,10 +403,10 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
 
         elements = [element2]
         config = FakeConfig(celts=elements)
-        
+
         output = cli._get_element_diff(spec, config)
         self.assertEqual(' foolocalname', output)
-        
+
         output = cli._get_element_diff(spec, config, extra_verbose=True)
         snippets = [' foolocalname',
                     'version = fooversion',

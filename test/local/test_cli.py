@@ -55,6 +55,7 @@ class GetVersionTest(unittest.TestCase):
     def test_version(self):
         self.assertFalse(None == rosinstall.multiproject_cmd.cmd_version())
 
+
 class GetWorkspaceTest(unittest.TestCase):
 
     @classmethod
@@ -72,12 +73,12 @@ class GetWorkspaceTest(unittest.TestCase):
             path = os.path.join(path, "path%s"%i)
             os.makedirs(path)
 
-        
+
     @classmethod
     def tearDownClass(self):
         shutil.rmtree(self.test_root_path)
         os.environ.update(self.environback)
-        
+
     def test_option_arg(self):
         argv = []
         try:
@@ -213,7 +214,7 @@ class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):
     def _get_vcsc(self):
         return self.vcsc
 
-    
+
 class InstallTest(unittest.TestCase):
     def test_mock_install(self):
         git1 = PathSpec('foo', 'git', 'git/uri', 'git.version')
@@ -254,7 +255,7 @@ class InstallTest(unittest.TestCase):
             self.fail("expected Exception")
         except MultiProjectException:
             pass
-    
+
 class GetStatusDiffCmdTest(unittest.TestCase):
 
     def test_status(self):
@@ -277,7 +278,7 @@ class GetStatusDiffCmdTest(unittest.TestCase):
         self.assertTrue(result[2]['status'].count('hg')==1)
         self.assertTrue(result[3]['status'].count('bzr')==1)
 
-          
+
     def test_diff(self):
         self.mock_config = FakeConfig()
         result = rosinstall.multiproject_cmd.cmd_diff(self.mock_config)
@@ -309,8 +310,8 @@ class GetStatusDiffCmdTest(unittest.TestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]['scm'], 'git')
         self.assertEqual(result[0]['version'], 'version')
-   
-        
+
+
         self.mock_config = FakeConfig([MockVcsConfigElement('git', 'gitpath', 'gitname', None),
                                        MockVcsConfigElement('svn', 'svnpath', 'svnname', None),
                                        MockVcsConfigElement('hg', 'hgpath', 'hgname', None),
@@ -359,10 +360,10 @@ class GetStatusDiffCmdTest(unittest.TestCase):
             self.assertEqual(result[0]['version'], 'version')
             self.assertEqual(result[0]['specversion'], '"version"')
             self.assertEqual(result[0]['actualversion'], 'actual')
-            
+
         finally:
             shutil.rmtree(root_path)
-        
+
 
     def test_get_status(self):
         self.test_root_path = tempfile.mkdtemp()
@@ -394,7 +395,7 @@ class GetStatusDiffCmdTest(unittest.TestCase):
             self.assertEqual('MV', rosinstall.cli_common._get_status_flags(basepath, entry))
         finally:
             shutil.rmtree(self.test_root_path)
-        
+
     def test_info_table(self):
         basepath = '/foo/path'
         entries = []
@@ -482,7 +483,7 @@ class GetStatusDiffCmdTest(unittest.TestCase):
                     'actualversion': 'version'}]
         self.assertEqual(["localname", "V", "svn", "tags/tagname", "(branches/branchname)", "version", "(broken)", "some.svn.tags.server/some/"], _nth_line_split(-1, rosinstall.cli_common.get_info_table(basepath, entries)))
 
-        
+
     def test_info_list(self):
         basepath = '/foo/path'
         entry = {'scm': 'somescm',
