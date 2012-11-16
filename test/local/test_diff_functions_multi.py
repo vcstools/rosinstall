@@ -53,6 +53,7 @@ from test.local.test_diff_functions_git import create_git_repo, modify_git_repo
 from test.local.test_diff_functions_hg import create_hg_repo, modify_hg_repo
 from test.local.test_diff_functions_bzr import create_bzr_repo, modify_bzr_repo
 
+
 class RosinstallDiffMultiTest(AbstractSCMTest):
 
     @classmethod
@@ -66,10 +67,10 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         os.makedirs(remote_path_svn)
         os.makedirs(remote_path_hg)
         os.makedirs(remote_path_bzr)
-        
+
         filler_path = os.path.join(self.test_root_path, "filler")
         svn_uri = "file://localhost"+remote_path_svn
-        
+
         create_svn_repo(self.test_root_path, remote_path_svn, filler_path, svn_uri)
         create_git_repo(remote_path_git)
         create_hg_repo(remote_path_hg)
@@ -81,8 +82,8 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
 - svn: {local-name: clone_svn, uri: '%s'}
 - hg: {local-name: clone_hg, uri: ../remote_hg}
 - bzr: {local-name: clone_bzr, uri: ../remote_bzr}
-- git: {local-name: clone_git2, uri: ../remote_git}"""%svn_uri
-        
+- git: {local-name: clone_git2, uri: ../remote_git}""" % svn_uri
+
         _add_to_file(os.path.join(self.local_path, ".rosinstall"), rosinstall_spec)
 
         cmd = ["rosinstall", "ws", "-n"]
@@ -94,7 +95,7 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         clone_path_svn = os.path.join(self.local_path, "clone_svn")
         clone_path_hg = os.path.join(self.local_path, "clone_hg")
         clone_path_bzr = os.path.join(self.local_path, "clone_bzr")
-        
+
         modify_git_repo(clone_path_git2)
         modify_git_repo(clone_path_git)
         modify_svn_repo(clone_path_svn)
@@ -121,7 +122,7 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         sys.stdout = sys.__stdout__
         output = output.getvalue()
         self.check_diff_output(output)
-        
+
     def test_multi_diff_rosws_outside(self):
         '''Test rosws diff output from outside workspace.
         In particular asserts that there are newlines between diffs, and no overlaps'''
@@ -134,7 +135,7 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         self.check_diff_output(output)
 
         cli = RoswsCLI()
-        self.assertEqual(0,cli.cmd_diff(os.path.join(self.test_root_path, 'ws'), []))
+        self.assertEqual(0, cli.cmd_diff(os.path.join(self.test_root_path, 'ws'), []))
 
     def test_multi_diff_rosinstall_inside(self):
         '''Test rosinstall diff output from inside workspace.
@@ -161,8 +162,8 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
 
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_diff(directory, []))
-        
-        
+
+
     def test_multi_status_rosinstall_inside(self):
         """Test rosinstall status output when run inside workspace.
         In particular asserts that there are newlines between statuses, and no overlaps"""
@@ -188,7 +189,7 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         self.assertStatusListEqual('A       clone_git/added.txt\n D      clone_git/deleted-fs.txt\nD       clone_git/deleted.txt\n M      clone_git/modified-fs.txt\nM       clone_git/modified.txt\nA       clone_svn/added.txt\nD       clone_svn/deleted.txt\n!       clone_svn/deleted-fs.txt\nM       clone_svn/modified.txt\nM       clone_hg/modified-fs.txt\nM       clone_hg/modified.txt\nA       clone_hg/added.txt\nR       clone_hg/deleted.txt\n!       clone_hg/deleted-fs.txt\n+N      clone_bzr/added.txt\n D      clone_bzr/deleted-fs.txt\n-D      clone_bzr/deleted.txt\n M      clone_bzr/modified-fs.txt\n M      clone_bzr/modified.txt\nA       clone_git2/added.txt\n D      clone_git2/deleted-fs.txt\nD       clone_git2/deleted.txt\n M      clone_git2/modified-fs.txt\nM       clone_git2/modified.txt\n', output)
 
         cli = RoswsCLI()
-        self.assertEqual(0,cli.cmd_diff(directory, []))
+        self.assertEqual(0, cli.cmd_diff(directory, []))
 
     def test_multi_status_rosinstall_outside(self):
         """Test rosinstall status output when run outside workspace.
@@ -202,7 +203,7 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         sys.stdout = sys.__stdout__
         output = output.getvalue()
         self.assertStatusListEqual('A       clone_git/added.txt\n D      clone_git/deleted-fs.txt\nD       clone_git/deleted.txt\n M      clone_git/modified-fs.txt\nM       clone_git/modified.txt\nA       clone_svn/added.txt\nD       clone_svn/deleted.txt\n!       clone_svn/deleted-fs.txt\nM       clone_svn/modified.txt\nM       clone_hg/modified-fs.txt\nM       clone_hg/modified.txt\nA       clone_hg/added.txt\nR       clone_hg/deleted.txt\n!       clone_hg/deleted-fs.txt\n+N      clone_bzr/added.txt\n D      clone_bzr/deleted-fs.txt\n-D      clone_bzr/deleted.txt\n M      clone_bzr/modified-fs.txt\n M      clone_bzr/modified.txt\nA       clone_git2/added.txt\n D      clone_git2/deleted-fs.txt\nD       clone_git2/deleted.txt\n M      clone_git2/modified-fs.txt\nM       clone_git2/modified.txt\n', output)
-        
+
     def test_multi_status_rosws_outside(self):
         """Test rosws status output when run outside workspace.
         In particular asserts that there are newlines between statuses, and no overlaps"""

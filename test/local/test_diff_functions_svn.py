@@ -49,6 +49,7 @@ from rosinstall.rosws_cli import rosws_main
 import test.scm_test_base
 from test.scm_test_base import AbstractSCMTest, _add_to_file, _nth_line_split
 
+
 def create_svn_repo(test_root_path, remote_path, filler_path, svn_uri):
     # create a "remote" repo
     subprocess.check_call(["svnadmin", "create", remote_path], cwd=test_root_path)
@@ -65,6 +66,7 @@ def create_svn_repo(test_root_path, remote_path, filler_path, svn_uri):
     subprocess.check_call(["svn", "add", "deleted-fs.txt"], cwd=filler_path)
     subprocess.check_call(["svn", "commit", "-m", "modified"], cwd=filler_path)
 
+
 def modify_svn_repo(clone_path):
     # make local modifications
     subprocess.check_call(["rm", "deleted-fs.txt"], cwd=clone_path)
@@ -76,6 +78,7 @@ def modify_svn_repo(clone_path):
     _add_to_file(os.path.join(clone_path, "added.txt"), "flam\n")
     subprocess.check_call(["svn", "add", "--no-auto-props", "added.txt"], cwd=clone_path)
 
+
 class RosinstallDiffSvnTest(AbstractSCMTest):
 
     @classmethod
@@ -83,13 +86,13 @@ class RosinstallDiffSvnTest(AbstractSCMTest):
         AbstractSCMTest.setUpClass()
         remote_path = os.path.join(self.test_root_path, "remote")
         filler_path = os.path.join(self.test_root_path, "filler")
-        
-        svn_uri = "file://localhost"+remote_path
-        
+
+        svn_uri = "file://localhost" + remote_path
+
         create_svn_repo(self.test_root_path, remote_path, filler_path, svn_uri)
 
         # rosinstall the remote repo and fake ros
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- svn: {local-name: clone, uri: '"+svn_uri+"'}")
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- svn: {local-name: clone, uri: '" + svn_uri + "'}")
 
         cmd = ["rosinstall", "ws", "-n"]
         os.chdir(self.test_root_path)
@@ -97,7 +100,6 @@ class RosinstallDiffSvnTest(AbstractSCMTest):
         clone_path = os.path.join(self.local_path, "clone")
 
         modify_svn_repo(clone_path)
-
 
     def check_diff_output(self, output):
         # svn output order varies between versions
@@ -116,7 +118,6 @@ Index: clone/modified.txt
 +foo"""]
         for snippet in expected:
             self.assertTrue(snippet in output, output)
-
 
     def test_Rosinstall_diff_svn_outside(self):
         """Test diff output for svn when run outside workspace"""
@@ -137,7 +138,7 @@ Index: clone/modified.txt
         self.check_diff_output(output)
 
         cli = RoswsCLI()
-        self.assertEqual(0,cli.cmd_diff(os.path.join(self.test_root_path, 'ws'), []))
+        self.assertEqual(0, cli.cmd_diff(os.path.join(self.test_root_path, 'ws'), []))
 
     def test_Rosinstall_diff_svn_inside(self):
         """Test diff output for svn when run inside workspace"""
@@ -180,7 +181,7 @@ Index: clone/modified.txt
         self.assertStatusListEqual('A       clone/added.txt\nD       clone/deleted.txt\n!       clone/deleted-fs.txt\nM       clone/modified.txt\n', output)
 
         cli = RoswsCLI()
-        self.assertEqual(0,cli.cmd_diff(directory, []))
+        self.assertEqual(0, cli.cmd_diff(directory, []))
 
     def test_Rosinstall_status_svn_outside(self):
         """Test status output for svn when run outside workspace"""
@@ -246,7 +247,7 @@ class RosinstallInfoSvnTest(AbstractSCMTest):
         AbstractSCMTest.setUp(self)
         remote_path = os.path.join(self.test_root_path, "remote")
         filler_path = os.path.join(self.test_root_path, "filler")
-        self.svn_uri = "file://localhost"+remote_path
+        self.svn_uri = "file://localhost" + remote_path
 
         # create a "remote" repo
         subprocess.check_call(["svnadmin", "create", remote_path], cwd=self.test_root_path)
@@ -262,7 +263,7 @@ class RosinstallInfoSvnTest(AbstractSCMTest):
         self.version_end = "-r2"
 
         # rosinstall the remote repo and fake ros
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- svn: {local-name: clone, uri: '"+self.svn_uri+"'}")
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- svn: {local-name: clone, uri: '" + self.svn_uri + "'}")
 
         cmd = ["rosws", "update"]
         os.chdir(self.local_path)
@@ -270,7 +271,6 @@ class RosinstallInfoSvnTest(AbstractSCMTest):
         rosws_main(cmd)
         output = output.getvalue()
         sys.stdout = sys.__stdout__
-
 
     def test_rosinstall_detailed_locapath_info(self):
         cmd = ["rosws", "info", "-t", "ws"]
@@ -293,13 +293,13 @@ class RosinstallInfoSvnTest(AbstractSCMTest):
         self.assertEqual(['clone', 'M', 'svn', self.version_end, self.svn_uri], tokens)
 
         subprocess.check_call(["rm", ".rosinstall"], cwd=self.local_path)
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- svn: {local-name: clone, uri: '"+self.svn_uri+"', version: \"1\"}")
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- svn: {local-name: clone, uri: '" + self.svn_uri + "', version: \"1\"}")
         os.chdir(self.test_root_path)
         sys.stdout = output = StringIO();
         rosws_main(cmd)
         output = output.getvalue()
         tokens = _nth_line_split(-2, output)
-        self.assertEqual(['clone', 'MV', 'svn', '1', self.version_end, "(%s)"%self.version_init, self.svn_uri], tokens)
+        self.assertEqual(['clone', 'MV', 'svn', '1', self.version_end, "(%s)" % self.version_init, self.svn_uri], tokens)
 
         subprocess.check_call(["rm", "-rf", "clone"], cwd=self.local_path)
         os.chdir(self.test_root_path)

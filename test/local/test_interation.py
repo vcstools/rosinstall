@@ -39,19 +39,21 @@ import tempfile
 import rosinstall
 import rosinstall.multiproject_cmd
 import rosinstall.ui
-        
+
+
 from test.scm_test_base import AbstractFakeRosBasedTest, _create_yaml_file, _create_config_elt_dict
 
 class FakeUi(rosinstall.ui.Ui):
-    def __init__(self, path = '', mode='skip', prompt_result='y'):
+    def __init__(self, path='', mode='skip', prompt_result='y'):
         self.path = path
         self.mode = mode
     def get_backup_path(self):
         return path
-    def prompt_del_abort_retry(self, prompt, allow_skip = False):
+    def prompt_del_abort_retry(self, prompt, allow_skip=False):
         return mode
     def get_input(self, prompt):
         return prompt_result
+
 
 class RosinstallInteractive(AbstractFakeRosBasedTest):
     """tests with possible User Interaction, using mock to simulate user input"""
@@ -62,19 +64,16 @@ class RosinstallInteractive(AbstractFakeRosBasedTest):
 
     def tearDown(self):
         rosinstall.ui.Ui.set_ui(self.old_ui)
-    
+
     def test_twice_with_relpath(self):
         """runs rosinstall with generated self.simple_rosinstall to create local rosinstall env
         and creates a directory for a second local rosinstall env"""
         AbstractFakeRosBasedTest.setUp(self)
 
-
         self.rel_uri_rosinstall = os.path.join(self.test_root_path, "rel_uri.rosinstall")
         _create_yaml_file([_create_config_elt_dict("git", "ros", self.ros_path),
                            _create_config_elt_dict("git", "gitrepo", os.path.relpath(self.git_path))],
                           self.rel_uri_rosinstall)
-
-
 
         config = rosinstall.multiproject_cmd.get_config(self.directory, [self.rel_uri_rosinstall, self.ros_path])
         rosinstall.multiproject_cmd.cmd_install_or_update(config)
@@ -90,4 +89,3 @@ class RosinstallInteractive(AbstractFakeRosBasedTest):
 
         config = rosinstall.multiproject_cmd.get_config(self.directory, [self.rel_uri_rosinstall, self.ros_path])
         rosinstall.multiproject_cmd.cmd_install_or_update(config)
-

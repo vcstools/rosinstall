@@ -60,6 +60,7 @@ def create_git_repo(remote_path):
     subprocess.check_call(["git", "add", "*"], cwd=remote_path)
     subprocess.check_call(["git", "commit", "-m", "modified"], cwd=remote_path)
 
+
 def modify_git_repo(clone_path):
     # make local modifications
     subprocess.check_call(["rm", "deleted-fs.txt"], cwd=clone_path)
@@ -70,7 +71,8 @@ def modify_git_repo(clone_path):
     _add_to_file(os.path.join(clone_path, "added-fs.txt"), "tada\n")
     _add_to_file(os.path.join(clone_path, "added.txt"), "flam\n")
     subprocess.check_call(["git", "add", "added.txt"], cwd=clone_path)
-    
+
+
 class RosinstallDiffGitTest(AbstractSCMTest):
 
     @classmethod
@@ -115,8 +117,7 @@ class RosinstallDiffGitTest(AbstractSCMTest):
         self.check_diff_output(output)
 
         cli = RoswsCLI()
-        self.assertEqual(0 ,cli.cmd_diff(os.path.join(self.test_root_path, 'ws'), []))
-
+        self.assertEqual(0, cli.cmd_diff(os.path.join(self.test_root_path, 'ws'), []))
 
     def test_Rosinstall_diff_git_inside(self):
         """Test diff output for git when run inside workspace"""
@@ -139,7 +140,6 @@ class RosinstallDiffGitTest(AbstractSCMTest):
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_diff(directory, []))
 
-
     def test_Rosinstall_status_git_inside(self):
         """Test status output for git when run inside workspace"""
         directory = self.test_root_path + "/ws"
@@ -160,7 +160,7 @@ class RosinstallDiffGitTest(AbstractSCMTest):
         self.assertEqual('A       clone/added.txt\n D      clone/deleted-fs.txt\nD       clone/deleted.txt\n M      clone/modified-fs.txt\nM       clone/modified.txt\n', output)
 
         cli = RoswsCLI()
-        self.assertEqual(0,cli.cmd_diff(directory, []))
+        self.assertEqual(0, cli.cmd_diff(directory, []))
 
     def test_Rosinstall_status_git_outside(self):
         """Test status output for git when run outside workspace"""
@@ -205,7 +205,6 @@ class RosinstallDiffGitTest(AbstractSCMTest):
 
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_status(os.path.join(self.test_root_path, 'ws'), ["--untracked"]))
-
 
     def test_rosws_info_git(self):
         cmd = ["rosws", "info", "-t", "ws"]
@@ -254,8 +253,6 @@ class RosinstallInfoGitTest(AbstractSCMTest):
         output = output.getvalue()
         sys.stdout = sys.__stdout__
 
-
-
     def test_rosinstall_detailed_locapath_info(self):
         cmd = ["rosws", "info", "-t", "ws"]
         os.chdir(self.test_root_path)
@@ -280,7 +277,7 @@ class RosinstallInfoGitTest(AbstractSCMTest):
         rosws_main(cmd)
         output = output.getvalue()
         tokens = _nth_line_split(-2, output)
-        self.assertEqual(['clone', 'MV', 'git', 'footag', self.version_end, "(%s)"%self.version_init, os.path.join(self.test_root_path, 'remote')], tokens)
+        self.assertEqual(['clone', 'MV', 'git', 'footag', self.version_end, "(%s)" % self.version_init, os.path.join(self.test_root_path, 'remote')], tokens)
 
         # using a denormalized local-name here
         subprocess.check_call(["rm", ".rosinstall"], cwd=self.local_path)
@@ -289,7 +286,7 @@ class RosinstallInfoGitTest(AbstractSCMTest):
         rosws_main(cmd)
         output = output.getvalue()
         tokens = _nth_line_split(-2, output)
-        self.assertEqual(['clone', 'MV', 'git', 'footag', self.version_end, "(%s)"%self.version_init, os.path.join(self.test_root_path, 'remote')], tokens)
+        self.assertEqual(['clone', 'MV', 'git', 'footag', self.version_end, "(%s)" % self.version_init, os.path.join(self.test_root_path, 'remote')], tokens)
 
         # using an absolute path to clone dir here
         subprocess.check_call(["rm", ".rosinstall"], cwd=self.local_path)
@@ -298,7 +295,7 @@ class RosinstallInfoGitTest(AbstractSCMTest):
         rosws_main(cmd)
         output = output.getvalue()
         tokens = _nth_line_split(-2, output)
-        self.assertEqual([clone_path, 'MV', 'git', 'footag', self.version_end, "(%s)"%self.version_init, os.path.join(self.test_root_path, 'remote')], tokens)
+        self.assertEqual([clone_path, 'MV', 'git', 'footag', self.version_end, "(%s)" % self.version_init, os.path.join(self.test_root_path, 'remote')], tokens)
 
         # using an absolute path here where relative path is shorter to display (also checks x for missing)
         subprocess.check_call(["rm", ".rosinstall"], cwd=self.local_path)

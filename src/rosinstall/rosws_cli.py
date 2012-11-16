@@ -40,47 +40,48 @@ Official usage:
 Type '%(prog)s help' for usage.
 """
 
+from __future__ import print_function
 import os
 import sys
 import yaml
-import shutil
 
 from optparse import OptionParser
 
 from rosinstall.cli_common import get_info_list, get_info_table, get_workspace
 import rosinstall.rosinstall_cmd as rosinstall_cmd
-from rosinstall.multiproject_cmd import get_config, cmd_install_or_update,\
+from rosinstall.multiproject_cmd import get_config, cmd_install_or_update, \
     cmd_snapshot, cmd_version, cmd_info
 import rosinstall.__version__
 
 from rosinstall.common import MultiProjectException, select_elements
-from rosinstall.helpers import ROSInstallException, ROSINSTALL_FILENAME,\
+from rosinstall.helpers import ROSINSTALL_FILENAME, \
     get_ros_package_path, get_ros_stack_path
-from rosinstall.multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__,\
-    IndentedHelpFormatterWithNL
-from rosinstall.config_yaml import get_path_spec_from_yaml
+from rosinstall.multiproject_cli import MultiprojectCLI, __MULTIPRO_CMD_DICT__, \
+    __MULTIPRO_CMD_HELP_LIST__, __MULTIPRO_CMD_ALIASES__, \
+    IndentedHelpFormatterWithNL, list_usage
 
 ## This file adds or extends commands from multiproject_cli where ROS
 ## specific output has to be generated.
 
 # extend the commands of multiproject
-__ROSWS_CMD_DICT__ = {
-      "regenerate": "create ROS workspace specific setup files"}
-__ROSWS_CMD_ALIASES__ = {'update': 'up',
-                         'remove': 'rm',
-                         'status': 'st',
-                         'diff': 'di'}
+__ROSWS_CMD_DICT__ = {}
 __ROSWS_CMD_DICT__.update(__MULTIPRO_CMD_DICT__)
+__ROSWS_CMD_DICT__["regenerate"] = "create ROS workspace specific setup files"
+
+__ROSWS_CMD_HELP_LIST__ = __MULTIPRO_CMD_HELP_LIST__[:]
+__ROSWS_CMD_HELP_LIST__.extend([None, 'regenerate'])
 
 _PROGNAME = 'rosws'
+_VARNAME = 'ROS_WORKSPACE'
 
 
 class RoswsCLI(MultiprojectCLI):
 
-    def __init__(self, config_filename=ROSINSTALL_FILENAME):
+    def __init__(self, config_filename=ROSINSTALL_FILENAME, progname=_PROGNAME):
         MultiprojectCLI.__init__(self,
-                                 config_filename,
-                                 rosinstall_cmd.cmd_persist_config)
+                                 progname=progname,
+                                 config_filename=config_filename,
+                                 config_generator=rosinstall_cmd.cmd_persist_config)
 
     def cmd_init(self, argv):
         if self.config_filename is None:
@@ -168,113 +169,6 @@ $ %(prog)s init ~/fuerte /opt/ros/fuerte
             print("\nType 'source %s/setup.bash' to change into this environment. Add that source command to the bottom of your ~/.bashrc to set it up every time you log in.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % os.path.abspath(target_path))
         return 0
 
-    def cmd_merge(self, target_path, argv, config=None):
-        parser = OptionParser(usage="usage: %s merge [URI] [OPTIONS]" % _PROGNAME,
-                              formatter=IndentedHelpFormatterWithNL(),
-                              description=__MULTIPRO_CMD_DICT__["merge"] + """.
-
-The command merges config with given other rosinstall element sets, from files or web uris.
-
-The default workspace will be inferred from context, you can specify one using -t.
-
-By default, when an element in an additional URI has the same
-local-name as an existing element, the existing element will be
-replaced. In order to ensure the ordering of elements is as
-provided in the URI, use the option --merge-kill-append.
-
-Examples:
-$ %(prog)s merge someother.rosinstall
-
-You can use '-' to pipe in input, as an example:
-$ roslocate info robot_mode | %(prog)s merge -
-""" % {'prog': _PROGNAME},
-                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
-        # same options as for multiproject
-        parser.add_option("-a", "--merge-kill-append", dest="merge_kill_append",
-                          default=False,
-                          help="merge by deleting given entry and appending new one",
-                          action="store_true")
-        parser.add_option("-k", "--merge-keep", dest="merge_keep",
-                          default=False,
-                          help="merge by keeping existing entry and discarding new one",
-                          action="store_true")
-        parser.add_option("-r", "--merge-replace", dest="merge_replace",
-                          default=True,
-                          help="(default) merge by replacing given entry with new one maintaining ordering",
-                          action="store_true")
-        parser.add_option("-y", "--confirm-all", dest="confirm_all",
-                          default='',
-                          help="do not ask for confirmation unless strictly necessary",
-                          action="store_true")
-        # required here but used one layer above
-        parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
-                          help="which workspace to use",
-                          action="store")
-        (options, args) = parser.parse_args(argv)
-
-        if len(args) > 1:
-            print("Error: Too many arguments.")
-            print(parser.usage)
-            return -1
-        if len(args) == 0:
-            print("Error: Too few arguments.")
-            print(parser.usage)
-            return -1
-
-        config_uris = args
-
-        specs = []
-        if config_uris[0] == '-':
-            pipedata = "".join(sys.stdin.readlines())
-            try:
-                yamldicts = yaml.load(pipedata)
-            except yaml.YAMLError as e:
-                raise MultiProjectException(
-                    "Invalid yaml format: \n%s \n%s" % (pipedata, e))
-            if yamldicts is None:
-                parser.error("No Input read from stdin")
-            # cant have user interaction and piped input
-            options.confirm_all = True
-            specs.extend([get_path_spec_from_yaml(x) for x in yamldicts])
-            config_uris = []
-
-        merge_strategy = None
-        count_mergeoptions = 0
-        if options.merge_kill_append:
-            merge_strategy = 'KillAppend'
-            count_mergeoptions += 1
-        if options.merge_keep:
-            merge_strategy = 'MergeKeep'
-            count_mergeoptions += 1
-        if options.merge_replace:
-            merge_strategy = 'MergeReplace'
-            count_mergeoptions += 1
-        if count_mergeoptions > 1:
-            parser.error("You can only provide one merge-strategy")
-        # default option
-        if count_mergeoptions == 0:
-            merge_strategy = 'MergeReplace'
-
-        (newconfig, path_changed) = self.prompt_merge(
-            target_path,
-            additional_uris=config_uris,
-            additional_specs=specs,
-            path_change_message="ROS_PACKAGE_PATH order changed",
-            merge_strategy=merge_strategy,
-            confirmed=options.confirm_all,
-            config=config)
-        if newconfig is not None:
-            print("Config changed, maybe you need run %s update to update SCM entries." % _PROGNAME)
-            print("Overwriting %s" % os.path.join(newconfig.get_base_path(), self.config_filename))
-            shutil.move(os.path.join(newconfig.get_base_path(), self.config_filename), "%s.bak" % os.path.join(newconfig.get_base_path(), self.config_filename))
-            rosinstall_cmd.cmd_persist_config(newconfig)
-            rosinstall_cmd.cmd_maybe_refresh_ros_files(newconfig)
-            print("\nupdate complete.")
-            if path_changed:
-                print("\nDo not forget to do ...\n$ source %s/setup.sh\n... in every open terminal." % target_path)
-        else:
-            print("Merge caused no change, matching elements already exist")
-        return 0
 
     def cmd_regenerate(self, target_path, argv, config=None):
         parser = OptionParser(usage="usage: %s regenerate" % _PROGNAME,
@@ -450,35 +344,12 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
                 print("\n%s" % table)
 
         return 0
-
-
-def usage():
-    """
-    Prints usage from file header and from dictionary, sorting entries
-    """
-    dvars = {'prog': _PROGNAME}
-    dvars.update(vars())
-    print(__doc__ % dvars)
-    # using None to generate empty lines
-    keys = ['help', 'init',
-            None, 'set', 'merge', 'remove',
-            None, 'update',
-            None, 'info', 'status', 'diff',
-            None, 'regenerate']
-    for key in keys:
-        if key in __ROSWS_CMD_ALIASES__:
-            alias = ' (%s)' % __ROSWS_CMD_ALIASES__[key]
-        else:
-            alias = ''
-        if key is not None:
-            print(("%s%s" % (key, alias)).ljust(10) + '   \t' + __ROSWS_CMD_DICT__[key])
-        else:
-            print('')
-
-
-def rosws_main(argv=None):
+def rosws_main(argv=None, usage=None):
     """
     Calls the function corresponding to the first argument.
+
+    :param argv: sys.argv by default
+    :param usage: function printing usage string, multiproject_cli.list_usage by default
     """
     if argv is None:
         argv = sys.argv
@@ -487,13 +358,20 @@ def rosws_main(argv=None):
     if '--version' in argv:
         print("%s: \t%s\n%s" % (_PROGNAME, rosinstall.__version__.version, cmd_version()))
         sys.exit(0)
+
+    if not usage:
+        usage = lambda: print(list_usage(progname=_PROGNAME,
+                                         description=__doc__,
+                                         command_keys=__ROSWS_CMD_HELP_LIST__,
+                                         command_helps=__ROSWS_CMD_DICT__,
+                                         command_aliases=__MULTIPRO_CMD_ALIASES__))
     workspace = None
     if len(argv) < 2:
         try:
             workspace = get_workspace(argv,
                                       os.getcwd(),
                                       config_filename=ROSINSTALL_FILENAME,
-                                      varname="ROS_WORKSPACE")
+                                      varname=_VARNAME)
             argv.append('info')
         except MultiProjectException as e:
             print(str(e))
@@ -536,8 +414,8 @@ def rosws_main(argv=None):
             'status': cli.cmd_status,
             'update': cli.cmd_update}
         for label in list(ws_commands.keys()):
-            if label in __ROSWS_CMD_ALIASES__:
-                ws_commands[__ROSWS_CMD_ALIASES__[label]] = ws_commands[label]
+            if label in __MULTIPRO_CMD_ALIASES__:
+                ws_commands[__MULTIPRO_CMD_ALIASES__[label]] = ws_commands[label]
 
         if command not in commands and command not in ws_commands:
             if os.path.exists(command):
@@ -558,14 +436,8 @@ def rosws_main(argv=None):
                 workspace = get_workspace(args,
                                           os.getcwd(),
                                           config_filename=ROSINSTALL_FILENAME,
-                                          varname="ROS_WORKSPACE")
+                                          varname=_VARNAME)
             return ws_commands[command](workspace, args)
 
     except KeyboardInterrupt:
-        pass
-    except ROSInstallException as e:
-        sys.stderr.write("ERROR in %s: %s\n" % (_PROGNAME, str(e)))
-        return 1
-    except MultiProjectException as e:
-        sys.stderr.write("ERROR: %s\n" % str(e))
         return 1

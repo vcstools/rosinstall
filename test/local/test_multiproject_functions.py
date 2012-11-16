@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2009, Willow Garage, Inc.
@@ -31,7 +30,6 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-
 import os
 import stat
 import struct
@@ -43,8 +41,9 @@ from rosinstall.common import DistributedWork, WorkerThread, normabspath,\
     is_web_uri, select_elements, select_element, normalize_uri, realpath_relation,\
     conditional_abspath, string_diff, MultiProjectException
 
+
 class FooThing:
-    def __init__(self, el, result = None):
+    def __init__(self, el, result=None):
         self.element = el
         self.done = False
         self.result = result
@@ -66,7 +65,7 @@ class MockElement:
     def get_path(self):
         return self.path
 
-    
+
 class FunctionsTest(unittest.TestCase):
 
     def test_normabspath(self):
@@ -107,7 +106,7 @@ class FunctionsTest(unittest.TestCase):
         self.assertEqual('...7890foo3', string_diff('12345678901234567890foo4', '12345678901234567890foo3'))
         self.assertEqual('...7890foo3', string_diff('12345678901234567890foo45', '12345678901234567890foo3'))
         self.assertEqual('...4567890foo123456789123456789', string_diff('12345678901234567890', '12345678901234567890foo123456789123456789'))
-        
+
         self.assertEqual("['foo']", string_diff(['foo'], ['foo']))
         self.assertEqual("['bar']", string_diff(['foo'], ['bar']))
 
@@ -116,7 +115,6 @@ class FunctionsTest(unittest.TestCase):
         self.assertEqual(os.path.normpath(os.path.join(os.getcwd(), path)), conditional_abspath(path))
         path = "http://someuri.com"
         self.assertEqual("http://someuri.com", conditional_abspath(path))
-
 
     def test_abspath_overlap(self):
         base = "/foo/bar"
@@ -153,7 +151,7 @@ class FunctionsTest(unittest.TestCase):
             self.fail("expected Exception")
         except MultiProjectException: pass
         try:
-            w = WorkerThread(FooThing(el = None), 2, 3)
+            w = WorkerThread(FooThing(el=None), 2, 3)
             self.fail("expected Exception")
         except MultiProjectException: pass
         thing = FooThing(FooThing(None))
@@ -163,21 +161,21 @@ class FunctionsTest(unittest.TestCase):
         w.run()
         self.assertEqual(thing.done, True, result)
         self.assertEqual(True, 'error' in result[0])
-        
-        thing = FooThing(FooThing(None), result= {'done': True})
+
+        thing = FooThing(FooThing(None), result={'done': True})
         result = [None]
         w = WorkerThread(thing, result, 0)
         self.assertEqual(thing.done, False)
         w.run()
         self.assertEqual(thing.done, True, result)
         self.assertEqual(False, 'error' in result[0], result)
-        
+
     def test_distributed_work(self):
         work = DistributedWork(3)
-        
-        thing1 = FooThing(FooThing(FooThing(None)), result= {'done': True})
-        thing2 = FooThing(FooThing(FooThing(None)), result= {'done': True})
-        thing3 = FooThing(FooThing(FooThing(None)), result= {'done': True})
+
+        thing1 = FooThing(FooThing(FooThing(None)), result={'done': True})
+        thing2 = FooThing(FooThing(FooThing(None)), result={'done': True})
+        thing3 = FooThing(FooThing(FooThing(None)), result={'done': True})
         self.assertEqual(3, len(work.outputs))
         work.add_thread(thing1)
         self.assertEqual(1, len(work.threads))

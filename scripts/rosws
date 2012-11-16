@@ -39,8 +39,8 @@
 Official usage:
   %(prog)s CMD [ARGS] [OPTIONS]
 
-rosws will try to infer install path from context
-"rosws install" replaces the rosinstall command
+%(prog)s will try to infer install path from context
+"%(prog)s init" replaces the rosinstall command
 
 Type '%(prog)s --help' for usage.
 """
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     try:
         sys.exit(rosinstall.rosws_cli.rosws_main(sys.argv))
     except ROSInstallException as e:
-        sys.stderr.write("ERROR in rosinstall: %s" % str(e))
+        sys.stderr.write("ERROR in rosws: %s" % str(e))
         sys.exit(1)
     except MultiProjectException as e:
         sys.stderr.write("ERROR in config: %s" % str(e))

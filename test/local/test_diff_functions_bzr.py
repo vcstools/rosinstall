@@ -49,6 +49,7 @@ from rosinstall.rosws_cli import rosws_main
 import test.scm_test_base
 from test.scm_test_base import AbstractSCMTest, _add_to_file, _nth_line_split
 
+
 def create_bzr_repo(remote_path):
     # create a "remote" repo
     subprocess.check_call(["bzr", "init"], cwd=remote_path)
@@ -64,6 +65,7 @@ def create_bzr_repo(remote_path):
     subprocess.check_call(["bzr", "add", "deleted-fs.txt"], cwd=remote_path)
     subprocess.check_call(["bzr", "commit", "-m", "modified"], cwd=remote_path)
 
+
 def modify_bzr_repo(clone_path):
     # make local modifications
     subprocess.check_call(["rm", "deleted-fs.txt"], cwd=clone_path)
@@ -73,7 +75,8 @@ def modify_bzr_repo(clone_path):
     _add_to_file(os.path.join(clone_path, "added-fs.txt"), "tada\n")
     _add_to_file(os.path.join(clone_path, "added.txt"), "flam\n")
     subprocess.check_call(["bzr", "add", "added.txt"], cwd=clone_path)
-        
+
+
 class RosinstallDiffBzrTest(AbstractSCMTest):
 
     @classmethod
@@ -85,7 +88,7 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
         create_bzr_repo(remote_path)
 
         # rosinstall the remote repo and fake ros
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- bzr: {local-name: clone, uri: %s}"%remote_path)
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- bzr: {local-name: clone, uri: %s}" % remote_path)
 
         cmd = ["rosinstall", "ws", "-n"]
         os.chdir(self.test_root_path)
@@ -95,7 +98,7 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
 
         modify_bzr_repo(clone_path)
 
-    def check_diff_output (self, output):
+    def check_diff_output(self, output):
         # uncomment following line for easiest way to get actual output with escapes
         # self.assertEqual(None, output);
 
@@ -103,7 +106,7 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
         self.assertTrue(output.startswith("=== added file 'added.txt'\n--- clone/added.txt"), msg=0)
         self.assertTrue(0 < output.find("+++ clone/added.txt"), msg=1)
         self.assertTrue(0 < output.find("@@ -0,0 +1,1 @@\n+flam\n\n"), msg=2)
-        self.assertTrue(0 < output.find("=== removed file 'deleted-fs.txt'\n=== removed file 'deleted.txt'\n=== modified file 'modified-fs.txt'\n--- clone/modified-fs.txt"), msg=3 )
+        self.assertTrue(0 < output.find("=== removed file 'deleted-fs.txt'\n=== removed file 'deleted.txt'\n=== modified file 'modified-fs.txt'\n--- clone/modified-fs.txt"), msg=3)
         self.assertTrue(0 < output.find("@@ -0,0 +1,1 @@\n+foo\n\n=== modified file 'modified.txt'\n--- clone/modified.txt"), msg=4)
 
     def test_Rosinstall_diff_bzr_outside(self):
@@ -125,7 +128,7 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
         self.check_diff_output(output)
 
         cli = RoswsCLI()
-        self.assertEqual(0,cli.cmd_diff(os.path.join(self.test_root_path, 'ws'), []))
+        self.assertEqual(0, cli.cmd_diff(os.path.join(self.test_root_path, 'ws'), []))
 
 
     def test_Rosinstall_diff_bzr_inside(self):
@@ -256,7 +259,7 @@ class RosinstallInfoBzrTest(AbstractSCMTest):
         rosws_main(cmd)
         output = output.getvalue()
         sys.stdout = sys.__stdout__
-      
+
     def test_rosinstall_detailed_locapath_info(self):
         cmd = ["rosws", "info", "-t", "ws"]
         os.chdir(self.test_root_path)
@@ -283,7 +286,7 @@ class RosinstallInfoBzrTest(AbstractSCMTest):
         rosws_main(cmd)
         output = output.getvalue()
         tokens = _nth_line_split(-2, output)
-        self.assertEqual(['clone', 'MV', 'bzr', 'footag', self.version_end, "(%s)"%self.version_init, os.path.join(self.test_root_path, 'remote')], tokens)
+        self.assertEqual(['clone', 'MV', 'bzr', 'footag', self.version_end, "(%s)" % self.version_init, os.path.join(self.test_root_path, 'remote')], tokens)
 
         subprocess.check_call(["rm", "-rf", "clone"], cwd=self.local_path)
         os.chdir(self.test_root_path)
