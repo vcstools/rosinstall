@@ -569,7 +569,9 @@ class MultiprojectCLITest(AbstractFakeRosBasedTest):
         self.local_path = os.path.join(self.test_root_path, "ws33")
         cli = MultiprojectCLI(progname='multi_cli', config_filename='.rosinstall')
         simple_rel_rosinstall = os.path.join(self.test_root_path, "simple_rel3.rosinstall")
-        _create_yaml_file([_create_config_elt_dict("git", os.path.join(self.test_root_path, "ws33", 'ros'), 'ros')],
+        _create_yaml_file([_create_config_elt_dict(scmtype="git",
+                                                   uri=os.path.join(self.test_root_path, "ros"),
+                                                   localname='ros')],
                           simple_rel_rosinstall)
         self.assertEqual(0, cli.cmd_init([self.local_path, simple_rel_rosinstall]))
         config = rosinstall.multiproject_cmd.get_config(basepath=self.local_path,
