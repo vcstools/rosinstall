@@ -4,6 +4,19 @@ Changelog
 0.6
 ---
 
+0.6.21
+------
+
+- unit tests fixed for other ubuntu releases
+- py3k code (verified with unit-tests on travis-ci)
+- fix #20 docs
+- rosbrowse prototype (replaces roslocate)
+- fix #22 some issues with comparing paths
+- many code style issues fixed
+- refactoring of the CLI code
+- setup.sh creation simplified
+
+
 0.6.20
 ------
 
@@ -13,7 +26,7 @@ Changelog
 - unit tests run under python3
 - bugfix #65 string_diff bug
 - bugfix #63 broken import of vcstools version caused by missing import
-- #10 Patch for detecting ROS_ROOT 
+- #10 Patch for detecting ROS_ROOT
 
 0.6.19
 ------
@@ -36,7 +49,7 @@ Changelog
 ------
 
 - improved generated file code
-- workaround for #55 (rosinstall only), missing newlines after diff and status (hg and svn) 
+- workaround for #55 (rosinstall only), missing newlines after diff and status (hg and svn)
 
 0.6.16
 ------
@@ -161,7 +174,7 @@ Changelog
 0.5.30
 ------
 
-- small bugfix location-find with rospack 
+- small bugfix location-find with rospack
 - small bugfix roszsh not found
 - support top-level setup-file element for fuerte
 
