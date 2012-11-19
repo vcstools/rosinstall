@@ -35,7 +35,7 @@ import os
 import shutil
 import datetime
 
-from vcstools import VcsClient
+from vcstools.vcs_abstraction import get_vcs_client
 from vcstools.vcs_base import VcsError
 
 from rosinstall.common import samefile, MultiProjectException
@@ -419,7 +419,7 @@ class AVCSConfigElement(VCSConfigElement):
         # lazy initializer
         if self.vcsc is None:
             try:
-                self.vcsc = VcsClient(self._scmtype, self.get_path())
+                self.vcsc = get_vcs_client(self._scmtype, self.get_path())
             except VcsError as exc:
                 raise MultiProjectException(
                     "Unable to create vcs client of type %s for %s: %s" % (
