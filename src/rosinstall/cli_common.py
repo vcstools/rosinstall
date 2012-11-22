@@ -52,11 +52,11 @@ def get_workspace(argv, shell_path, config_filename=None, varname=None):
     parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
                       help="which workspace to use",
                       action="store")
-    # suppress errors based on any other option this parser is agnostic about
+    # suppress errors based on any other options this parser is agnostic about
     argv2 = [x for x in argv if ((not x.startswith('-')) or
                               x.startswith('--target-workspace=') or
-                              x.startswith('-t=') or
-                              x in ['-t', '--target-workspace'])]
+                              x.startswith('-t') or
+                              x == '--target-workspace')]
     (options, args) = parser.parse_args(argv2)
     if options.workspace is not None:
         if (config_filename is not None and

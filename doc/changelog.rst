@@ -8,6 +8,7 @@ Changelog
 ------
 
 - missing newline on error output
+- fix bug around -t option parsing
 
 0.6.21
 ------
