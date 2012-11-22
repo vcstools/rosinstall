@@ -32,6 +32,7 @@
 
 from __future__ import print_function
 import os
+import sys
 import textwrap
 import shutil
 from optparse import OptionParser, IndentedHelpFormatter

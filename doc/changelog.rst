@@ -9,6 +9,7 @@ Changelog
 
 - missing newline on error output
 - fix bug around -t option parsing
+- fix #27 missing import of sys
 
 0.6.21
 ------
