@@ -238,45 +238,55 @@ class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):
 
 
 class InstallTest(unittest.TestCase):
+
     def test_mock_install(self):
-        git1 = PathSpec('foo', 'git', 'git/uri', 'git.version')
-        svn1 = PathSpec('foos', 'svn', 'svn/uri', '12345')
-        hg1 = PathSpec('fooh', 'hg', 'hg/uri', 'hg.version')
-        bzr1 = PathSpec('foob', 'bzr', 'bzr/uri', 'bzr.version')
-        config = Config([git1, svn1, hg1, bzr1],
-                        '.',
-                        None,
-                        {"svn": MockVcsConfigElement,
-                         "git": MockVcsConfigElement,
-                         "hg": MockVcsConfigElement,
-                         "bzr": MockVcsConfigElement})
-        rosinstall.multiproject_cmd.cmd_install_or_update(config)
-        rosinstall.multiproject_cmd.cmd_install_or_update(config)
-        rosinstall.multiproject_cmd.cmd_install_or_update(config, num_threads=10)
-        rosinstall.multiproject_cmd.cmd_install_or_update(config, num_threads=10)
-        rosinstall.multiproject_cmd.cmd_install_or_update(config, num_threads=1)
-        rosinstall.multiproject_cmd.cmd_install_or_update(config, num_threads=1)
+        test_root = tempfile.mkdtemp()
+        try:
+            git1 = PathSpec('foo', 'git', 'git/uri', 'git.version')
+            svn1 = PathSpec('foos', 'svn', 'svn/uri', '12345')
+            hg1 = PathSpec('fooh', 'hg', 'hg/uri', 'hg.version')
+            bzr1 = PathSpec('foob', 'bzr', 'bzr/uri', 'bzr.version')
+            config = Config([git1, svn1, hg1, bzr1],
+                            test_root,
+                            None,
+                            {"svn": MockVcsConfigElement,
+                             "git": MockVcsConfigElement,
+                             "hg": MockVcsConfigElement,
+                             "bzr": MockVcsConfigElement})
+            rosinstall.multiproject_cmd.cmd_install_or_update(config)
+            rosinstall.multiproject_cmd.cmd_install_or_update(config)
+            rosinstall.multiproject_cmd.cmd_install_or_update(config, num_threads=10)
+            rosinstall.multiproject_cmd.cmd_install_or_update(config, num_threads=10)
+            rosinstall.multiproject_cmd.cmd_install_or_update(config, num_threads=1)
+            rosinstall.multiproject_cmd.cmd_install_or_update(config, num_threads=1)
+        finally:
+            shutil.rmtree(test_root)
+
 
     def test_mock_install_fail(self):
-        # robust
-        git1 = PathSpec('foo', 'git', 'git/uri', 'git.version')
-        svn1 = PathSpec('foos', 'svn', 'svn/uri', '12345')
-        hg1 = PathSpec('fooh', 'hg', 'hg/uri', 'hg.version')
-        bzr1 = PathSpec('foob', 'bzr', 'bzr/uri', 'bzr.version')
-        config = Config([git1, svn1, hg1, bzr1],
-                        '.',
-                        None,
-                        {"svn": MockVcsConfigElement,
-                         "git": MockVcsConfigElement,
-                         "hg": MockVcsConfigElement,
-                         "bzr": MockVcsConfigElement})
-        config.get_config_elements()[1].install_success = False
-        rosinstall.multiproject_cmd.cmd_install_or_update(config, robust=True)
+        test_root = tempfile.mkdtemp()
         try:
-            rosinstall.multiproject_cmd.cmd_install_or_update(config, robust=False)
-            self.fail("expected Exception")
-        except MultiProjectException:
-            pass
+            # robust
+            git1 = PathSpec('foo', 'git', 'git/uri', 'git.version')
+            svn1 = PathSpec('foos', 'svn', 'svn/uri', '12345')
+            hg1 = PathSpec('fooh', 'hg', 'hg/uri', 'hg.version')
+            bzr1 = PathSpec('foob', 'bzr', 'bzr/uri', 'bzr.version')
+            config = Config([git1, svn1, hg1, bzr1],
+                            test_root,
+                            None,
+                            {"svn": MockVcsConfigElement,
+                             "git": MockVcsConfigElement,
+                             "hg": MockVcsConfigElement,
+                             "bzr": MockVcsConfigElement})
+            config.get_config_elements()[1].install_success = False
+            rosinstall.multiproject_cmd.cmd_install_or_update(config, robust=True)
+            try:
+                rosinstall.multiproject_cmd.cmd_install_or_update(config, robust=False)
+                self.fail("expected Exception")
+            except MultiProjectException:
+                pass
+        finally:
+            shutil.rmtree(test_root)
 
 class GetStatusDiffCmdTest(unittest.TestCase):
 
