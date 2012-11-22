@@ -4,6 +4,11 @@ Changelog
 0.6
 ---
 
+0.6.22
+------
+
+- missing newline on error output
+
 0.6.21
 ------
 

@@ -15,8 +15,8 @@ if __name__ == "__main__":
     try:
         sys.exit(not rosinstall_main(sys.argv))
     except ROSInstallException as e:
-        sys.stderr.write("ERROR in rosinstall: %s" % str(e))
+        sys.stderr.write("ERROR in rosinstall: %s\n" % str(e))
         sys.exit(1)
     except MultiProjectException as e:
-        sys.stderr.write("ERROR in config: %s" % str(e))
+        sys.stderr.write("ERROR in config: %s\n" % str(e))
         sys.exit(1)
