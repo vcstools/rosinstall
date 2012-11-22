@@ -59,7 +59,8 @@ class RosWsTest(AbstractFakeRosBasedTest):
         try:
             cli.cmd_init([workspace, 'foo', 'bar'])
             fail("expected exit")
-        except SystemExit: pass
+        except SystemExit:
+            pass
         self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall]))
         self.assertTrue(os.path.exists(workspace))
         self.assertTrue(os.path.exists(os.path.join(workspace, '.rosinstall')))
@@ -124,7 +125,7 @@ class RosWsTest(AbstractFakeRosBasedTest):
         self.assertEqual('gitrepo', config.get_config_elements()[1].get_local_name())
         self.assertEqual(True, config.get_config_elements()[1].is_vcs_element())
         self.assertEqual('hgrepo', config.get_config_elements()[2].get_local_name())
-        self.assertEqual(0, cli.cmd_set(workspace, ['gitrepo', '--detached', '-y']))
+        self.assertEqual(0, cli.cmd_set(workspace, [os.path.join(workspace, 'gitrepo'), '--detached', '-y']))
         config = rosinstall.multiproject_cmd.get_config(workspace, config_filename='.rosinstall')
         self.assertEqual(3, len(config.get_config_elements()))
         self.assertEqual('ros', config.get_config_elements()[0].get_local_name())
@@ -141,14 +142,14 @@ class RosWsTest(AbstractFakeRosBasedTest):
         self.assertEqual('ros', config.get_config_elements()[0].get_local_name())
         self.assertEqual('gitrepo', config.get_config_elements()[1].get_local_name())
         # detached
-        self.assertEqual(0, cli.cmd_set(workspace, ['foo', '-y']))
+        self.assertEqual(0, cli.cmd_set(workspace, [os.path.join(workspace, 'foo'), '-y']))
         config = rosinstall.multiproject_cmd.get_config(workspace, config_filename='.rosinstall')
         self.assertEqual(3, len(config.get_config_elements()))
         self.assertEqual('ros', config.get_config_elements()[0].get_local_name())
         self.assertEqual('gitrepo', config.get_config_elements()[1].get_local_name())
         self.assertEqual(False, config.get_config_elements()[2].is_vcs_element())
         self.assertEqual('foo', config.get_config_elements()[2].get_local_name())
-        self.assertEqual(0, cli.cmd_set(workspace, ['hgrepo', '-y', '--detached']))
+        self.assertEqual(0, cli.cmd_set(workspace, [os.path.join(workspace, 'hgrepo'), '-y', '--detached']))
         config = rosinstall.multiproject_cmd.get_config(workspace, config_filename='.rosinstall')
         self.assertEqual(4, len(config.get_config_elements()))
         self.assertEqual('ros', config.get_config_elements()[0].get_local_name())
@@ -158,7 +159,7 @@ class RosWsTest(AbstractFakeRosBasedTest):
         self.assertEqual(False, config.get_config_elements()[3].is_vcs_element())
         self.assertEqual('hgrepo', config.get_config_elements()[3].get_local_name())
         # turn into scm repo
-        self.assertEqual(0, cli.cmd_set(workspace, ['hgrepo', '../hgrepo', '-y', '--hg']))
+        self.assertEqual(0, cli.cmd_set(workspace, [os.path.join(workspace, 'hgrepo'), '../hgrepo', '-y', '--hg']))
         config = rosinstall.multiproject_cmd.get_config(workspace, config_filename='.rosinstall')
         self.assertEqual(4, len(config.get_config_elements()))
         self.assertEqual('ros', config.get_config_elements()[0].get_local_name())
@@ -176,7 +177,7 @@ class RosWsTest(AbstractFakeRosBasedTest):
         self.assertEqual('gitrepo', config.get_config_elements()[1].get_local_name())
 
         # scm repo
-        self.assertEqual(0, cli.cmd_set(workspace, ['hgrepo', '../hgrepo', '-y', '--hg']))
+        self.assertEqual(0, cli.cmd_set(workspace, [os.path.join(workspace, 'hgrepo'), '../hgrepo', '-y', '--hg']))
         config = rosinstall.multiproject_cmd.get_config(workspace, config_filename='.rosinstall')
         self.assertEqual(3, len(config.get_config_elements()))
         self.assertEqual('ros', config.get_config_elements()[0].get_local_name())
@@ -194,7 +195,7 @@ class RosWsTest(AbstractFakeRosBasedTest):
         self.assertEqual(None, path_spec.get_revision())
         self.assertFalse(path_spec.get_current_revision() is None)
 
-        self.assertEqual(0, cli.cmd_set(workspace, ['hgrepo', '--version-new=0', '-y']))
+        self.assertEqual(0, cli.cmd_set(workspace, [os.path.join(workspace, 'hgrepo'), '--version-new=0', '-y']))
 
         config = rosinstall.multiproject_cmd.get_config(workspace, config_filename='.rosinstall')
         path_spec = config.get_config_elements()[2].get_versioned_path_spec()
@@ -225,7 +226,7 @@ class RosWsTest(AbstractFakeRosBasedTest):
         self.assertEqual(path_spec.get_revision(), path_spec.get_current_revision())
 
         # change spec to 1
-        self.assertEqual(0, cli.cmd_set(workspace, ['hgrepo', '--version-new=1', '-y']))
+        self.assertEqual(0, cli.cmd_set(workspace, [os.path.join(workspace, 'hgrepo'), '--version-new=1', '-y']))
         config = rosinstall.multiproject_cmd.get_config(workspace, config_filename='.rosinstall')
         path_spec = config.get_config_elements()[2].get_versioned_path_spec()
         self.assertEqual('1', path_spec.get_version())
@@ -234,7 +235,7 @@ class RosWsTest(AbstractFakeRosBasedTest):
         self.assertNotEqual(path_spec.get_revision(), path_spec.get_current_revision())
 
         # setting version to ''
-        self.assertEqual(0, cli.cmd_set(workspace, ['hgrepo', "--version-new=''", '-y']))
+        self.assertEqual(0, cli.cmd_set(workspace, [os.path.join(workspace, 'hgrepo'), "--version-new=''", '-y']))
         config = rosinstall.multiproject_cmd.get_config(workspace, config_filename='.rosinstall')
         path_spec = config.get_config_elements()[2].get_versioned_path_spec()
         self.assertEqual(None, path_spec.get_version())
