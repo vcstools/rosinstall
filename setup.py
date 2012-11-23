@@ -27,6 +27,8 @@ setup(name='rosinstall',
       download_url="http://pr.willowgarage.com/downloads/rosinstall/",
       keywords=["ROS"],
       classifiers=["Programming Language :: Python",
+                   "Programming Language :: Python :: 2",
+                   "Programming Language :: Python :: 3",
                    "License :: OSI Approved :: BSD License"],
       description="The installer for ROS",
       long_description="""\
