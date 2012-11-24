@@ -40,12 +40,15 @@ from rosinstall.common import samefile, MultiProjectException
 
 def get_workspace(argv, shell_path, config_filename=None, varname=None):
     """
-    If target option -t is given return value of that one. Else, varname
+    If target option -t is given return value of that one. Else, if varname
     is given and exists, considers that one, plus,
     if config_filename is given, searches for a file named in config_filename
-    in '.', above '.'.
+    in 'shell_path' and ancestors.
     In that case, if two solutions are found, asks the user.
 
+    :param shell_path: where to look for relevant config_filename
+    :param config_filename: optional, filename for files defining workspaces
+    :param varname: optional,
     :returns: abspath if a .rosinstall was found, error and exist else.
     """
     parser = OptionParser()
