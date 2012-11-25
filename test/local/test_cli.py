@@ -103,12 +103,14 @@ class GetWorkspaceTest(unittest.TestCase):
         try:
             self.assertEqual(None, rosinstall.cli_common.get_workspace(argv, self.test_root_path))
             self.fail("expected Exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
         argv = ["."]
         try:
             self.assertEqual(None, rosinstall.cli_common.get_workspace(argv, self.test_root_path))
             self.fail("expected Exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
         abspath = os.path.abspath('good')
         argv = ['bad', '-a', "foo", '-t', 'good', '-b', 'bar', '--bad']
         self.assertEqual(abspath, rosinstall.cli_common.get_workspace(argv, self.test_root_path))
@@ -131,14 +133,16 @@ class GetWorkspaceTest(unittest.TestCase):
         try:
             self.assertEqual(None, rosinstall.cli_common.get_workspace(argv, self.test_root_path, varname='VARNAME'))
             self.fail("expected Exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
 
         self.new_environ["VARNAME"] = ''
         argv = []
         try:
             self.assertEqual(None, rosinstall.cli_common.get_workspace(argv, self.test_root_path, varname='VARNAME'))
             self.fail("expected Exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
 
         self.new_environ["VARNAME"] = self.install_path2
         argv = []
@@ -154,7 +158,8 @@ class GetWorkspaceTest(unittest.TestCase):
         try:
             self.assertEqual(self.install_path, rosinstall.cli_common.get_workspace(argv, path, config_filename="configfile", varname='VARNAME'))
             self.fail("expected Exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
 
 
 
