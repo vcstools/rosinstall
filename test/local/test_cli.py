@@ -116,6 +116,13 @@ class GetWorkspaceTest(unittest.TestCase):
         self.assertEqual(abspath, rosinstall.cli_common.get_workspace(argv, self.test_root_path))
         argv = ['bad', '-a', "foo", '--target-workspace', 'good', '-b', 'bar', '--bad']
         self.assertEqual(abspath, rosinstall.cli_common.get_workspace(argv, self.test_root_path))
+        argv = ['bad', '-a', "foo", '-tgood', '-b', 'bar', '--bad']
+        self.assertEqual(abspath, rosinstall.cli_common.get_workspace(argv, self.test_root_path))
+        # not supported by OptionParser
+        # argv = ['bad', '-a', "foo", '-t=good', '-b', 'bar', '--bad']
+        # self.assertEqual(abspath, rosinstall.cli_common.get_workspace(argv, self.test_root_path))
+        argv = ['bad', '-a', "foo", '-t', 'good', '-b', 'bar', '--bad']
+        self.assertEqual(abspath, rosinstall.cli_common.get_workspace(argv, self.test_root_path))
 
     def test_option_env(self):
         self.new_environ["VARNAME"] = ""
