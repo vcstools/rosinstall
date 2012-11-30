@@ -32,6 +32,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import sys
 import io
 import copy
 import yaml
@@ -39,6 +40,8 @@ import subprocess
 import tempfile
 import unittest
 import shutil
+
+from mock import Mock
 
 import rosinstall.cli_common
 import rosinstall.multiproject_cmd
@@ -637,3 +640,26 @@ class MultiprojectCLITest(AbstractFakeRosBasedTest):
                     'scmtype = fooscm']
         for s in snippets:
             self.assertTrue(s in output, "missing snippet: '%s' in '%s'" % (s, output))
+
+    def test_merge_dash(self):
+        self.local_path = os.path.join(self.test_root_path, "ws35")
+        cli = MultiprojectCLI(progname='multi_cli', config_filename='.rosinstall')
+        self.assertEqual(0, cli.cmd_init([self.local_path, self.simple_rosinstall, "--parallel=5"]))
+        self.assertTrue(os.path.exists(os.path.join(self.local_path, '.rosinstall')))
+        self.assertTrue(os.path.exists(os.path.join(self.local_path, 'gitrepo')))
+        self.assertFalse(os.path.exists(os.path.join(self.local_path, 'hgrepo')))
+        try:
+            backup = sys.stdin
+            with open(self.simple_changed_vcs_rosinstall, 'r') as fhand:
+                contents = fhand.read()
+            sys.stdin = Mock()
+            sys.stdin.readlines.return_value = contents
+            self.assertEqual(0, cli.cmd_merge(self.local_path, ["-"]))
+        finally:
+            sys.stdin = backup
+
+        self.assertTrue(os.path.exists(os.path.join(self.local_path, 'gitrepo')))
+        self.assertFalse(os.path.exists(os.path.join(self.local_path, 'hgrepo')))
+        self.assertEqual(0, cli.cmd_update(self.local_path, ["--parallel=5"]))
+        self.assertTrue(os.path.exists(os.path.join(self.local_path, 'gitrepo')))
+        self.assertTrue(os.path.exists(os.path.join(self.local_path, 'hgrepo')))

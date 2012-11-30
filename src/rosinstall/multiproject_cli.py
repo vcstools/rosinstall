@@ -35,11 +35,12 @@ import os
 import sys
 import textwrap
 import shutil
+import yaml
 from optparse import OptionParser, IndentedHelpFormatter
 
 from rosinstall.common import samefile, select_element, select_elements, \
     MultiProjectException, normalize_uri, string_diff
-from rosinstall.config_yaml import PathSpec
+from rosinstall.config_yaml import PathSpec, get_path_spec_from_yaml
 import rosinstall.multiproject_cmd as multiproject_cmd
 from rosinstall.ui import Ui
 
