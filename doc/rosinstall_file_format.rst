@@ -11,21 +11,21 @@ Format
 ------
 
 The rosinstall file format is a yaml document. It is a list of
-top level dictionaries. Each top level dictionary is expected to have one of the vcs type keys and no other keys.  
+top level dictionaries. Each top level dictionary is expected to have one of the vcs type keys and no other keys.
 
-Inside every top level dictionary there is one required key, ``local-name`` this represents the path where to install files.  It will support both workspace relative paths as well as absolute paths.  
+Inside every top level dictionary there is one required key, ``local-name`` this represents the path where to install files.  It will support both workspace relative paths as well as absolute paths.
 
-Each of the vcs type keys requires a ``uri`` key, and optionally takes a ``version`` key.  
+Each of the vcs type keys requires a ``uri`` key, and optionally takes a ``version`` key.
 
-
+Additional experimental keys exist, which may be changed or go out of support anygiventime: :ref:`inofficial-format`.
 
 Top Level Keys
 --------------
-The valid keys are ``svn``, ``hg``, ``git``, ``bzr``, ``other``, ``setup-file``.   
+The valid keys are ``svn``, ``hg``, ``git``, ``bzr``, ``other``, ``setup-file``.
 
-Each key represents a form of version control system to use.  These are supported from the vcstools module. 
+Each key represents a form of version control system to use.  These are supported from the vcstools module.
 
-The ``other`` key is used to add a path to the workspace without associating a version control system.  
+The ``other`` key is used to add a path to the workspace without associating a version control system.
 
 In [REP126]_ the key ``setup-file`` was added to support the Fuerte
 release.
@@ -47,12 +47,12 @@ possible permutations:
  - other:
      local-name: /opt/ros/fuerte/share/ros
 
-Things to note are: 
+Things to note are:
 
- - VCS keys require ``uri``, but ``version`` is optional though recommended.  
+ - VCS keys require ``uri``, but ``version`` is optional though recommended.
  - Absolute or relative paths are valid for ``local-name``
  - ``setup-file`` and ``other`` do not take any keys besides ``local-name``
- - ``uri`` can be a local file path to a repository. 
+ - ``uri`` can be a local file path to a repository.
 
 See also
 --------

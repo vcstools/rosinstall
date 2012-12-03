@@ -105,6 +105,7 @@ You can build the docs as follows:
    $ cd rosinstall/doc
    $ make html
 
+.. _inofficial-format:
 
 Inofficial file format
 ----------------------
@@ -124,6 +125,6 @@ Example::
     version: foo-1.2.0
 
 The meta element has no further semantics to rosinstall, it is just passed through.
-The tar element is an unsupported but required feature of vcstools, with the peculiar 
+The tar element is an unsupported but required feature of vcstools, with the peculiar
 semantics that 'version' must refer to a folder inside the tar root.
 
