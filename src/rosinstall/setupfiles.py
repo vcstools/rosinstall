@@ -242,8 +242,14 @@ SCRIPT_PATH=`pwd`;
 popd  > /dev/null
 export OLDPWD=$OLDPWDBAK
 """
+        call_setup_sh = ". $SCRIPT_PATH/setup.sh"
     elif shell == 'zsh':
         script_path = 'SCRIPT_PATH="$(dirname $0)"'
+        call_setup_sh = """
+emulate sh # emulate POSIX
+. $SCRIPT_PATH/setup.sh
+emulate zsh # back in zsh
+"""
     else:
         raise ROSInstallException("%s shell unsupported." % shell)
 
@@ -268,7 +274,7 @@ fi
 # unset _ros_decode_path (function of rosbash) to check later whether setup.sh has sourced ros%(shell)s
 unset -f _ros_decode_path 1> /dev/null 2>&1
 
-. $SCRIPT_PATH/setup.sh
+%(call_setup_sh)s
 
 # if we have a ROS_ROOT, then we might need to source rosbash (pre-fuerte)
 if [ ! -z "${ROS_ROOT}" ]; then
@@ -289,7 +295,7 @@ if [ ! -z "${ROS_ROOT}" ]; then
     fi
   fi
 fi
-""" % {'shell': shell, 'script_path': script_path}
+""" % {'shell': shell, 'script_path': script_path, 'call_setup_sh': call_setup_sh}
     return text
 
 
