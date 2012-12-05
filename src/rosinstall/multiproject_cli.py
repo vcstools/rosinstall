@@ -237,7 +237,7 @@ Examples:
 $ %(prog)s merge someother.rosinstall
 
 You can use '-' to pipe in input, as an example:
-$ roslocate info robot_mode | %(prog)s merge -
+$ roslocate info robot_model | %(prog)s merge -
 """ % {'prog': self.progname},
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         # same options as for multiproject
