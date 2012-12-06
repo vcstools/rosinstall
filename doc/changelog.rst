@@ -10,6 +10,7 @@ Changelog
 - missing newline on error output
 - fix bug around -t option parsing
 - fix #27 missing import of sys
+- fix ROS_PACKAGE_PATH set by referenced setup-file overwritten
 
 0.6.21
 ------

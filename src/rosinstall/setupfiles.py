@@ -174,6 +174,9 @@ _ROS_PACKAGE_PATH_ROSINSTALL=`echo "$_PARSED_CONFIG" | sed 's,\(.*\)ROSINSTALL_P
 _SETUPFILES_ROSINSTALL=`echo "$_PARSED_CONFIG" | sed 's,\(.*\)'ROSINSTALL_PATH_SETUPFILE_SEPARATOR'\(.*\),\\2,'`
 unset _PARSED_CONFIG
 
+# reset RPP before running setup files
+export ROS_PACKAGE_PATH=
+
 # colon separates entries
 _LOOP_SETUP_FILE=`echo $_SETUPFILES_ROSINSTALL | sed 's,\([^:]*\)[:]\(.*\),\\1,'`
 while [ ! -z "$_LOOP_SETUP_FILE" ]
@@ -190,7 +193,11 @@ done
 unset _LOOP_SETUP_FILE
 unset _SETUPFILES_ROSINSTALL
 
-export ROS_PACKAGE_PATH=$_ROS_PACKAGE_PATH_ROSINSTALL
+if [ ! "$ROS_PACKAGE_PATH" ]; then
+  export ROS_PACKAGE_PATH=$_ROS_PACKAGE_PATH_ROSINSTALL
+else
+  export ROS_PACKAGE_PATH=$_ROS_PACKAGE_PATH_ROSINSTALL:$ROS_PACKAGE_PATH
+fi
 unset _ROS_PACKAGE_PATH_ROSINSTALL
 
 # if setup.sh did not set ROS_ROOT (pre-fuerte)
