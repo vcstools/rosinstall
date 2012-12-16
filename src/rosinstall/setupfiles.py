@@ -167,7 +167,7 @@ export _PARSED_CONFIG=`/usr/bin/env python << EOPYTHON
 EOPYTHON`
 
 #whitespace separates ros_package_path and setupfile results, using sed to split them up
-_ROS_PACKAGE_PATH_ROSINSTALL=`echo "$_PARSED_CONFIG" | sed 's,\(.*\)ROSINSTALL_PATH_SETUPFILE_SEPARATOR\(.*\),\\1,'`
+export _ROS_PACKAGE_PATH_ROSINSTALL=`echo "$_PARSED_CONFIG" | sed 's,\(.*\)ROSINSTALL_PATH_SETUPFILE_SEPARATOR\(.*\),\\1,'`
 _SETUPFILES_ROSINSTALL=`echo "$_PARSED_CONFIG" | sed 's,\(.*\)'ROSINSTALL_PATH_SETUPFILE_SEPARATOR'\(.*\),\\2,'`
 unset _PARSED_CONFIG
 
@@ -190,11 +190,21 @@ done
 unset _LOOP_SETUP_FILE
 unset _SETUPFILES_ROSINSTALL
 
-if [ ! "$ROS_PACKAGE_PATH" ]; then
-  export ROS_PACKAGE_PATH=$_ROS_PACKAGE_PATH_ROSINSTALL
-else
-  export ROS_PACKAGE_PATH=$_ROS_PACKAGE_PATH_ROSINSTALL:$ROS_PACKAGE_PATH
-fi
+# prepend elements from .rosinstall file to ROS_PACKAGE_PATH
+# removing existing duplicates entries from value set by setup files
+export ROS_PACKAGE_PATH=`/usr/bin/env python << EOPYTHON
+import os
+
+ros_package_path1 = os.environ.get('ROS_PACKAGE_PATH', '')
+original_elements = ros_package_path1.split(':')
+ros_package_path2 = os.environ.get('_ROS_PACKAGE_PATH_ROSINSTALL')
+new_elements = ros_package_path2.split(':')
+for original_path in original_elements:
+  if original_path and original_path not in new_elements:
+    new_elements.append(original_path)
+print(':'.join(new_elements))
+EOPYTHON`
+
 unset _ROS_PACKAGE_PATH_ROSINSTALL
 
 # if setup.sh did not set ROS_ROOT (pre-fuerte)
