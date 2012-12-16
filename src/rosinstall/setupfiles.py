@@ -75,15 +75,12 @@ def generate_catkin_cmake(path, catkinpp):
 
 
 def generate_embedded_python():
-    return """import sys, os, yaml;
+    return """import sys
+import os
+import yaml
 
-filename = '.rosinstall'
-workspace_path = os.path.abspath('.')
-
-if 'ROS_WORKSPACE' in os.environ:
-  workspace_path = os.environ['ROS_WORKSPACE']
-
-filename = os.path.join(workspace_path, filename)
+workspace_path = os.environ.get('ROS_WORKSPACE', os.path.abspath('.'))
+filename = os.path.join(workspace_path, '.rosinstall')
 
 if not os.path.isfile(filename):
     sys.exit("There is no file at %s" % filename)

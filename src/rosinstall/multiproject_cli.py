@@ -770,9 +770,9 @@ The command removes entries from your configuration file, it does not affect you
         local_names_old = [x.get_local_name() for x in config.get_config_elements()]
 
         extra_verbose = confirmed or confirm
-        abort = None
+        abort = False
         last_merge_strategy = None
-        while abort is None:
+        while not abort:
 
             if (last_merge_strategy is None
                 or last_merge_strategy != merge_strategy):
