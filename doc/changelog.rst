@@ -4,6 +4,12 @@ Changelog
 0.6
 ---
 
+0.6.23
+------
+
+- better error message when vcstools has wrong version
+- fix duplicate ROS_PACKAGE_PATH entries from setup-files in fuerte
+
 0.6.22
 ------
 
