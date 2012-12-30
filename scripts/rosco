@@ -55,7 +55,7 @@ from optparse import OptionParser
 from rosinstall.simple_checkout import checkout_rosinstall
 from rosinstall.common import MultiProjectException
 from rosinstall.locate import get_rosdoc_manifest, get_rosinstall, \
-     BRANCH_DEVEL, BRANCH_RELEASE
+     BRANCH_DEVEL, BRANCH_RELEASE, InvalidData
 
 
 def options_to_branch(options):
@@ -77,10 +77,17 @@ def _readfile(filename):
 
 def _read_yaml_from_ros_server(name, distro, branch):
     try:
-        data, type_ = get_rosdoc_manifest(name, distro)
+        data, type_, url = get_rosdoc_manifest(name, distro)
     except IOError as ioe:
         sys.exit('cannot locate information about %s: %s' % (name, ioe))
-    return get_rosinstall(name, data, type_, branch)
+    try:
+        return get_rosinstall(name,
+                              data=data,
+                              type_=type_,
+                              branch=branch)
+    except InvalidData as invd:
+        sys.stderr.write('Using data from url: %s\n' % url)
+        raise invd
 
 
 def rosco_main():
