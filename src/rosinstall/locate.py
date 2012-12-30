@@ -59,8 +59,11 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
         raise InvalidData("rosinstall control information for %s %s" % (type_, name))
 
     ri_entry = None
-    if branch and 'rosinstalls' in data:
-        ri_entry = data['rosinstalls'].get(branch, None)
+    if branch:
+        if 'rosinstalls' in data:
+            ri_entry = data['rosinstalls'].get(branch, None)
+        else:
+            sys.stderr.write('No specific branch data for branch %s found, falling back on default checkout' % branch)
 
     # if we were unable to compute the rosinstall info based on a
     # desired branch, use the default info instead
