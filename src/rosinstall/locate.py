@@ -74,6 +74,8 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
                 # fancy logic to enable package-specific checkout and also
                 # fix a bug in the indexer.
                 ri_entry = {data['vcs']: {'local-name': name, 'uri': data['vcs_uri']}}
+                if 'vcs_version' in data:
+                    ri_entry['version'] = data['vcs_version']
             else:
                 raise InvalidData(
                     "Missing VCS control information for %s %s, requires vcs and vcs_uri, or rosinstall entries" % (type_, name))
