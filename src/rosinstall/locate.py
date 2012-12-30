@@ -32,6 +32,7 @@
 
 # Author: kwc
 
+import sys
 import yaml
 try:
     from urllib.request import urlopen
@@ -55,9 +56,6 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
     @raise InvalidData
     """
 
-    if not 'rosinstall' in data:
-        raise InvalidData("rosinstall control information for %s %s" % (type_, name))
-
     ri_entry = None
     if branch:
         if 'rosinstalls' in data:
@@ -68,12 +66,16 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
     # if we were unable to compute the rosinstall info based on a
     # desired branch, use the default info instead
     if ri_entry is None:
-        if data['vcs'] == 'svn':
-            # fancy logic to enable package-specific checkout and also
-            # fix a bug in the indexer.
-            ri_entry = {'svn': {'local-name': name, 'uri': data['vcs_uri']}}
-        else:
+        if 'rosinstall' in data:
             ri_entry = data['rosinstall']
+        else:
+            if 'vcs' in data and 'vcs_uri' in data:
+                # fancy logic to enable package-specific checkout and also
+                # fix a bug in the indexer.
+                ri_entry = {data['vcs']: {'local-name': name, 'uri': data['vcs_uri']}}
+            else:
+                raise InvalidData(
+                    "Missing VCS control information for %s %s, requires vcs and vcs_uri, or rosinstall entries" % (type_, name))
 
     if len(ri_entry) != 1:
         raise InvalidData("rosinstall malformed for %s %s" % (type_, name))
