@@ -56,7 +56,7 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
     """
 
     if not 'rosinstall' in data:
-        raise InvalidData("rosinstall control information for %s %s\n" % (type_, name))
+        raise InvalidData("rosinstall control information for %s %s" % (type_, name))
 
     ri_entry = None
     if branch and 'rosinstalls' in data:
@@ -73,7 +73,7 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
             ri_entry = data['rosinstall']
 
     if len(ri_entry) != 1:
-        raise InvalidData("rosinstall malformed for %s %s\n" % (type_, name))
+        raise InvalidData("rosinstall malformed for %s %s" % (type_, name))
 
     prefix = prefix or ''
     for _, v in ri_entry.items():

@@ -78,9 +78,8 @@ def _readfile(filename):
 def _read_yaml_from_ros_server(name, distro, branch):
     try:
         data, type_ = get_rosdoc_manifest(name, distro)
-    except IOError:
-        sys.stderr.write('cannot locate information about %s\n' % (name))
-        sys.exit(1)
+    except IOError as ioe:
+        sys.exit('cannot locate information about %s: %s' % (name, ioe))
     return get_rosinstall(name, data, type_, branch)
 
 
