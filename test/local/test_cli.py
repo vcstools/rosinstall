@@ -46,7 +46,7 @@ from mock import Mock
 import rosinstall.cli_common
 import rosinstall.multiproject_cmd
 import rosinstall.multiproject_cli
-from rosinstall.multiproject_cli import MultiprojectCLI
+from rosinstall.multiproject_cli import MultiprojectCLI, _get_element_diff
 import rosinstall.config
 from rosinstall.common import MultiProjectException
 from rosinstall.config import MultiProjectException, Config
@@ -613,10 +613,9 @@ class MultiprojectCLITest(AbstractFakeRosBasedTest):
         self.assertEqual('git', config.get_config_elements()[0].get_path_spec().get_scmtype())
 
     def test_get_element_diff(self):
-        cli = MultiprojectCLI(progname='multi_cli', config_filename='.rosinstall')
-        self.assertEqual('', cli._get_element_diff(None, None))
-        self.assertEqual('', cli._get_element_diff(None, 42))
-        self.assertEqual('', cli._get_element_diff(42, None))
+        self.assertEqual('', _get_element_diff(None, None))
+        self.assertEqual('', _get_element_diff(None, 42))
+        self.assertEqual('', _get_element_diff(42, None))
 
         spec = PathSpec('foolocalname',
                         scmtype='fooscm',
@@ -630,10 +629,10 @@ class MultiprojectCLITest(AbstractFakeRosBasedTest):
         elements = [element2]
         config = FakeConfig(celts=elements)
 
-        output = cli._get_element_diff(spec, config)
+        output = _get_element_diff(spec, config)
         self.assertEqual(' foolocalname', output)
 
-        output = cli._get_element_diff(spec, config, extra_verbose=True)
+        output = _get_element_diff(spec, config, extra_verbose=True)
         snippets = [' foolocalname',
                     'version = fooversion',
                     'specified uri = foouri',
