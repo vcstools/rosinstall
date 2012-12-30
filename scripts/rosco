@@ -53,7 +53,7 @@ import yaml
 from optparse import OptionParser
 
 from rosinstall.simple_checkout import checkout_rosinstall
-
+from rosinstall.common import MultiProjectException
 from rosinstall.locate import get_rosdoc_manifest, get_rosinstall, \
      BRANCH_DEVEL, BRANCH_RELEASE
 
@@ -86,6 +86,7 @@ def _read_yaml_from_ros_server(name, distro, branch):
 
 def rosco_main():
     parser = OptionParser(usage="""
+Checks out out ros packages or stacks into local directory.
 \trosco [options] <package-or-stack>
 \trosco -r <rosinstall-file>
 
@@ -129,7 +130,10 @@ rosco also accepts piped rosinstall input:
         print(rosinstall_data)
         parser.error("input must be a rosinstall snippet")
 
-    checkout_rosinstall(rosinstall_data, verbose=True)
+    try:
+        checkout_rosinstall(rosinstall_data, verbose=True)
+    except MultiProjectException as mpe:
+        sys.exit(mpe)
 
 
 if __name__ == '__main__':
