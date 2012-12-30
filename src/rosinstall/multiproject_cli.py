@@ -409,11 +409,12 @@ $ %(prog)s init ~/fuerte /opt/ros/fuerte
             return 1
         if len(args) > 2:
             parser.error('Too many arguments')
-        config_uris = []
+
         if len(args) == 2:
-            config_uris.append(args[1])
-        if len(config_uris) > 0:
-            print('Using ROS_ROOT: %s' % config_uris[0])
+            print('Using initial elements from: %s' % args[1])
+            config_uris = [args[1]]
+        else:
+            config_uris = []
 
         config = multiproject_cmd.get_config(
             basepath=target_path,
