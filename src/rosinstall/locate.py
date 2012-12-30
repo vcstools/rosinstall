@@ -42,7 +42,8 @@ BRANCH_RELEASE = 'release'
 BRANCH_DEVEL = 'devel'
 
 
-class InvalidData(Exception): pass
+class InvalidData(Exception):
+    pass
 
 
 def get_rosinstall(name, data, type_, branch=None, prefix=None):
