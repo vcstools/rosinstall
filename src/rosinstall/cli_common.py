@@ -48,7 +48,7 @@ def get_workspace(argv, shell_path, config_filename=None, varname=None):
 
     :param shell_path: where to look for relevant config_filename
     :param config_filename: optional, filename for files defining workspaces
-    :param varname: optional,
+    :param varname: optional, env var to be used as workspace folder
     :returns: abspath if a .rosinstall was found, error and exist else.
     """
     parser = OptionParser()

@@ -115,7 +115,7 @@ def get_path_specs_from_uri(uri, config_filename=None, as_is=False):
 
         # treat config files and folders with such files special
         # to prevent 2 workspaces from interacting
-        return rewrite_included_source(specs, os.path.dirname(uri))
+        specs = rewrite_included_source(specs, os.path.dirname(uri))
     return specs
 
 
