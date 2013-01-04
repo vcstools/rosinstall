@@ -32,6 +32,7 @@
 
 # Author: kwc
 
+import sys
 import yaml
 try:
     from urllib.request import urlopen
@@ -41,7 +42,8 @@ BRANCH_RELEASE = 'release'
 BRANCH_DEVEL = 'devel'
 
 
-class InvalidData(Exception): pass
+class InvalidData(Exception):
+    pass
 
 
 def get_rosinstall(name, data, type_, branch=None, prefix=None):
@@ -55,25 +57,31 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
     @raise InvalidData
     """
 
-    if not 'rosinstall' in data:
-        raise InvalidData("rosinstall control information for %s %s\n" % (type_, name))
-
     ri_entry = None
-    if branch and 'rosinstalls' in data:
-        ri_entry = data['rosinstalls'].get(branch, None)
+    if branch:
+        if 'rosinstalls' in data:
+            ri_entry = data['rosinstalls'].get(branch, None)
+        else:
+            sys.stderr.write('No specific branch data for branch %s found, falling back on default checkout' % branch)
 
     # if we were unable to compute the rosinstall info based on a
     # desired branch, use the default info instead
     if ri_entry is None:
-        if data['vcs'] == 'svn':
-            # fancy logic to enable package-specific checkout and also
-            # fix a bug in the indexer.
-            ri_entry = {'svn': {'local-name': name, 'uri': data['vcs_uri']}}
-        else:
+        if 'rosinstall' in data:
             ri_entry = data['rosinstall']
+        else:
+            if 'vcs' in data and 'vcs_uri' in data:
+                # fancy logic to enable package-specific checkout and also
+                # fix a bug in the indexer.
+                ri_entry = {data['vcs']: {'local-name': name, 'uri': data['vcs_uri']}}
+                if 'vcs_version' in data:
+                    ri_entry['version'] = data['vcs_version']
+            else:
+                raise InvalidData(
+                    "Missing VCS control information for %s %s, requires vcs and vcs_uri, or rosinstall entries" % (type_, name))
 
     if len(ri_entry) != 1:
-        raise InvalidData("rosinstall malformed for %s %s\n" % (type_, name))
+        raise InvalidData("rosinstall malformed for %s %s" % (type_, name))
 
     prefix = prefix or ''
     for _, v in ri_entry.items():
@@ -130,33 +138,50 @@ def get_www(name, data, type_):
     return data.get('url', '')
 
 
-def get_rosdoc_manifest(arg, distro_name=None):
+def get_rosdoc_manifest(stackage_name, distro_name=None):
     """
-    Get the rosdoc manifest data and type of arg.
+    Get the rosdoc manifest data and type of stackage_name.
 
-    @param arg: name of package/stack to get manifest information for.
+    @param stackage_name: name of package/stack to get manifest information for.
     get_manifest() gives stacks symbols precedence over package
     symbols.
-    @type  arg: str
+    @type  stackage_name: str
 
     @return: (manifest data, 'package'|'stack').
-    @rtype: ({str: str}, str)
+    @rtype: ({str: str}, str, str)
     @raise IOError: if data cannot be loaded
     """
-    try:
-        if distro_name is not None:
-            url = 'http://ros.org/doc/%s/api/%s/stack.yaml' % (distro_name, arg)
-        else:
-            url = 'http://ros.org/doc/api/%s/stack.yaml' % (arg)
-        r = urlopen(url)
-        return yaml.load(r), 'stack'
-    except:
+    ROSDOC_PREFIX = 'http://ros.org/doc'
+    if distro_name is not None:
+        prefix = '%s/%s' % (ROSDOC_PREFIX, distro_name)
+    else:
+        prefix = ROSDOC_PREFIX
+
+    data = None
+    url_stack = '%s/api/%s/stack.yaml' % (prefix, stackage_name)
+    url_pack = '%s/api/%s/manifest.yaml' % (prefix, stackage_name)
+    errors = []
+    # ! loop vars used after loop as well
+    for type_, url in zip(['stack', 'package'], [url_stack, url_pack]):
+        loop_error = None
         try:
-            if distro_name is not None:
-                url = 'http://ros.org/doc/%s/api/%s/manifest.yaml' % (distro_name, arg)
-            else:
-                url = 'http://ros.org/doc/api/%s/manifest.yaml' % (arg)
-            r = urlopen(url)
-            return yaml.load(r), 'package'
-        except:
-            raise IOError(arg)
+            streamdata = urlopen(url)
+            data = yaml.load(streamdata)
+            if not data:
+                raise InvalidData(
+                    'No Information available on %s %s at %s' % (type_,
+                                                                 stackage_name,
+                                                                 url))
+            break
+        except Exception as loope:
+            loop_error = loope
+            errors.append((url, loope))
+
+    # 1 error is expected when we query package
+    if len(errors) > 1:
+        for (err_url, error) in errors:
+            if error is not None:
+                sys.stderr.write(
+                    'error contacting %s:\n%s\n' % (err_url, error))
+        raise error
+    return (data, type_, url)

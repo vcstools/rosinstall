@@ -53,9 +53,9 @@ import yaml
 from optparse import OptionParser
 
 from rosinstall.simple_checkout import checkout_rosinstall
-
+from rosinstall.common import MultiProjectException
 from rosinstall.locate import get_rosdoc_manifest, get_rosinstall, \
-     BRANCH_DEVEL, BRANCH_RELEASE
+     BRANCH_DEVEL, BRANCH_RELEASE, InvalidData
 
 
 def options_to_branch(options):
@@ -77,15 +77,22 @@ def _readfile(filename):
 
 def _read_yaml_from_ros_server(name, distro, branch):
     try:
-        data, type_ = get_rosdoc_manifest(name, distro)
-    except IOError:
-        sys.stderr.write('cannot locate information about %s\n' % (name))
-        sys.exit(1)
-    return get_rosinstall(name, data, type_, branch)
+        data, type_, url = get_rosdoc_manifest(name, distro)
+    except IOError as ioe:
+        sys.exit('cannot locate information about %s: %s' % (name, ioe))
+    try:
+        return get_rosinstall(name,
+                              data=data,
+                              type_=type_,
+                              branch=branch)
+    except InvalidData as invd:
+        sys.stderr.write('Using data from url: %s\n' % url)
+        raise invd
 
 
 def rosco_main():
     parser = OptionParser(usage="""
+Checks out out ros packages or stacks into local directory.
 \trosco [options] <package-or-stack>
 \trosco -r <rosinstall-file>
 
@@ -129,7 +136,10 @@ rosco also accepts piped rosinstall input:
         print(rosinstall_data)
         parser.error("input must be a rosinstall snippet")
 
-    checkout_rosinstall(rosinstall_data, verbose=True)
+    try:
+        checkout_rosinstall(rosinstall_data, verbose=True)
+    except MultiProjectException as mpe:
+        sys.exit(mpe)
 
 
 if __name__ == '__main__':

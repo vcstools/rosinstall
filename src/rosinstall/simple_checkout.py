@@ -32,21 +32,23 @@
 
 import sys
 import vcstools
+from rosinstall.config_yaml import get_path_spec_from_yaml
 
 
 def checkout_rosinstall(rosinstall_data, verbose=False):
+    """
+    :param rosinstall_data: yaml dict in rosinstall format
+    :raises: rosinstall.common.MultiProjectException for incvalid yaml
+    """
     for frag in rosinstall_data:
-        for vcs_type, data in list(frag.items()):
-            for reqd in ['local-name', 'uri']:
-                if not reqd in data:
-                    sys.stderr.write(
-                        'invalid rosinstall snippet, missing key [%s]\n' % (reqd))
-                path = data['local-name']
-                uri = data['uri']
-                version = data.get('version', '')
+        path_spec = get_path_spec_from_yaml(frag)
+        if verbose:
+            print(path_spec.get_scmtype(),
+                  path_spec.get_path(),
+                  path_spec.get_uri(),
+                  path_spec.get_version())
 
-                if verbose:
-                    print(vcs_type, path, uri, version)
-
-                vcs_client = vcstools.VCSClient(vcs_type, path)
-                vcs_client.checkout(uri, version)
+        vcs_client = vcstools.get_vcs_client(path_spec.get_scmtype(),
+                                             path_spec.get_path())
+        vcs_client.checkout(path_spec.get_uri(),
+                            path_spec.get_version())
