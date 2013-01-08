@@ -202,6 +202,10 @@ def prompt_merge(target_path,
 
         if (last_merge_strategy is None
             or last_merge_strategy != merge_strategy):
+            if not config_filename:
+                # should never happen right now with rosinstall/rosws/wstool
+                # TODO Need a better way to work with clones of original config
+                raise ValueError('Cannot merge when no config filename is set')
             newconfig = multiproject_cmd.get_config(
                 target_path,
                 additional_uris=[],
