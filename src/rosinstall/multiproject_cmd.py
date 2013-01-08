@@ -117,22 +117,24 @@ def add_uris(config, additional_uris, merge_strategy="KillAppend"):
     if config is None:
         raise MultiProjectException("Need to provide a Config.")
 
-    if additional_uris is None or len(additional_uris) == 0:
+    if not additional_uris:
         return {}
 
     if config.get_config_filename() is None:
         added_uris = additional_uris
     else:
         added_uris = []
+        # reject if the additional uri points to the same file as our config is based on
         for uri in additional_uris:
-            # reject if the additional uri points to the same file as our config is based on
+            # check whether we try to merge with other workspace
             comp_uri = None
             if (os.path.isfile(uri)
                 and os.path.basename(uri) == config.get_config_filename()):
-
+                # add from other workspace by file
                 comp_uri = os.path.dirname(uri)
             if (os.path.isdir(uri)
                 and os.path.isfile(os.path.join(uri, config.get_config_filename()))):
+                # add from other workspace by dir
                 comp_uri = uri
             if (comp_uri is not None and
                 realpath_relation(os.path.abspath(comp_uri),
@@ -141,12 +143,13 @@ def add_uris(config, additional_uris, merge_strategy="KillAppend"):
                 continue
             added_uris.append(uri)
 
-    path_specs = aggregate_from_uris(added_uris, config.get_config_filename())
-
     actions = {}
-    for path_spec in path_specs:
-        action = config.add_path_spec(path_spec, merge_strategy)
-        actions[path_spec.get_local_name()] = (action, path_spec)
+    if len(added_uris) > 0:
+        path_specs = aggregate_from_uris(added_uris,
+                                         config.get_config_filename())
+        for path_spec in path_specs:
+            action = config.add_path_spec(path_spec, merge_strategy)
+            actions[path_spec.get_local_name()] = (action, path_spec)
 
     return actions
 
