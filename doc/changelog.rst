@@ -7,6 +7,7 @@ Changelog
 0.6.23
 ------
 
+- fix #47 and #48 rosinstall --generate-versioned-output
 - fix rosco bugs #39 and #40 to work with new indexer
 - better error message when vcstools has wrong version
 - fix duplicate ROS_PACKAGE_PATH entries from setup-files in fuerte
