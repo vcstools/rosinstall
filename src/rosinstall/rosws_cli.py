@@ -378,7 +378,7 @@ def rosws_main(argv=None, usage=None):
             usage()
             return 0
 
-    if '--help' == argv[1]:
+    if argv[1] == '--help' or argv[1] == '-h':
         usage()
         return 0
 
