@@ -251,15 +251,15 @@ def prompt_merge(target_path,
         if len(changed_elements) > 0:
             output += "\n     Change details of element (Use --merge-keep or --merge-replace to change):\n"
             if extra_verbose:
-                output += " %s\n" % ("\n".join(changed_elements))
+                output += " %s\n" % ("\n".join(sorted(changed_elements)))
             else:
-                output += " %s\n" % (", ".join(changed_elements))
+                output += " %s\n" % (", ".join(sorted(changed_elements)))
         if len(new_elements) > 0:
             output += "\n     Add new elements:\n"
             if extra_verbose:
-                output += " %s\n" % ("\n".join(new_elements))
+                output += " %s\n" % ("\n".join(sorted(new_elements)))
             else:
-                output += " %s\n" % (", ".join(new_elements))
+                output += " %s\n" % (", ".join(sorted(new_elements)))
 
         if local_names_old != local_names_new[:len(local_names_old)]:
             old_order = ' '.join(reversed(local_names_old))
