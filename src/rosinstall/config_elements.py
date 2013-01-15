@@ -307,14 +307,16 @@ class VCSConfigElement(ConfigElement):
                         preparation_report.backup_path = Ui.get_ui().get_backup_path()
                     else:
                         preparation_report.backup_path = backup_path
-                if mode == 'abort':
+                elif mode == 'abort':
                     preparation_report.abort = True
                     preparation_report.error = error_message
-                if mode == 'skip':
+                elif mode == 'skip':
                     preparation_report.skip = True
                     preparation_report.error = error_message
-                if mode == 'delete':
+                elif mode == 'delete':
                     preparation_report.backup = False
+                else:
+                    raise RuntimeError('Bug: Unknown option "%s" selected' % mode)
         return preparation_report
 
     def install(self, checkout=True, backup=True, backup_path=None, verbose=False):
