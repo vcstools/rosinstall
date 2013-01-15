@@ -308,6 +308,7 @@ def cmd_install_or_update(
             self.element.install(checkout=self.report.checkout,
                                  backup=self.report.backup,
                                  backup_path=self.report.backup_path,
+                                 inplace=self.report.inplace,
                                  verbose=self.report.verbose)
             return {}
 

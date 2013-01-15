@@ -58,6 +58,7 @@ class PreparationReport(object):
         self.checkout = True     # checkout vs update
         self.backup = False      # backup vs delete
         self.backup_path = None  # where to move tree to
+        self.inplace = False     # whether to follow symlink or just delete
 
 
 ## Each Config element provides actions on a local folder
@@ -100,7 +101,7 @@ class ConfigElement(object):
         preparation_report.skip = True
         return preparation_report
 
-    def install(self, checkout=True, backup=False, backup_path=None, verbose=False):
+    def install(self, checkout=True, backup=False, backup_path=None, inplace=False, verbose=False):
         """
         Attempt to make it so that self.path is the result of checking
         out / updating from remote repo.
@@ -166,7 +167,7 @@ class OtherConfigElement(ConfigElement):
         self.uri = uri
         self.version = version
 
-    def install(self, checkout=True, backup=False, backup_path=None, verbose=False):
+    def install(self, checkout=True, backup=False, backup_path=None, inplace=False, verbose=False):
         return True
 
     def get_versioned_path_spec(self):
@@ -198,7 +199,7 @@ class SetupConfigElement(ConfigElement):
     configuration data for a config.
     """
 
-    def install(self, checkout=True, backup=False, backup_path=None, verbose=False):
+    def install(self, checkout=True, backup=False, backup_path=None, inplace=False, verbose=False):
         return True
 
     def get_versioned_path_spec(self):
@@ -261,13 +262,13 @@ class VCSConfigElement(ConfigElement):
         preparation_report = PreparationReport(self)
         present = self.detect_presence()
         if present or self.path_exists():
+            is_link = os.path.islink(self.path)
             # Directory exists see what we need to do
             error_message = None
-
             if not present:
                 error_message = "Failed to detect %s presence at %s." % (
                     self.get_vcs_type_name(), self.path)
-                if os.path.islink(self.path):
+                if is_link:
                     error_message += " Path is symlink, only symlink will be removed."
             else:
                 cur_url = self._get_vcsc().get_url()
@@ -295,8 +296,10 @@ class VCSConfigElement(ConfigElement):
                 if arg_mode == 'prompt':
                     print("Prepare updating %s (version %s) to %s" % (
                             self.uri, self.version, self.path))
-                    mode = Ui.get_ui().prompt_del_abort_retry(error_message,
-                                                              allow_skip=True)
+                    mode = Ui.get_ui().prompt_del_abort_retry(
+                        error_message,
+                        allow_skip=True,
+                        allow_inplace=is_link)
                 else:
                     mode = arg_mode
                 if mode == 'backup':
@@ -315,11 +318,18 @@ class VCSConfigElement(ConfigElement):
                     preparation_report.error = error_message
                 elif mode == 'delete':
                     preparation_report.backup = False
+                elif mode == 'inplace':
+                    preparation_report.inplace = True
                 else:
                     raise RuntimeError('Bug: Unknown option "%s" selected' % mode)
         return preparation_report
 
-    def install(self, checkout=True, backup=True, backup_path=None, verbose=False):
+    def install(self,
+                checkout=True,
+                backup=True,
+                backup_path=None,
+                inplace=False,
+                verbose=False):
         """
         Runs the equivalent of SCM checkout for new local repos or
         update for existing.
@@ -330,19 +340,24 @@ class VCSConfigElement(ConfigElement):
         if backup is false folder will be DELETED.
         :param backup_path: if checkout is true and backup is true,
         move folder to this location
+        :param inplace: for symlinks, allows to delete contents
+        at target location and checkout to there.
         """
         if checkout is True:
             print("[%s] Installing %s (version %s) to %s" % (
                     self.get_local_name(), self.uri, self.version, self.get_path()))
             if self.path_exists():
-                if (backup is False):
-                    if os.path.islink(self.path):
+                if os.path.islink(self.path):
+                    if inplace is False:
                         # remove same as unlink
                         os.remove(self.path)
                     else:
-                        shutil.rmtree(self.path)
+                        shutil.rmtree(os.path.realpath(self.path))
                 else:
-                    self.backup(backup_path)
+                    if backup is False:
+                        shutil.rmtree(self.path)
+                    else:
+                        self.backup(backup_path)
             if not self._get_vcsc().checkout(self.uri,
                                              self.version,
                                              verbose=verbose):
