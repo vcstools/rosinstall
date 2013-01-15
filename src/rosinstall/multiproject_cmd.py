@@ -379,8 +379,7 @@ def cmd_info(config, localnames=None):
 
             if localname is None or localname == "":
                 raise MultiProjectException("Missing local-name in element: %s" % self.element)
-            abs_path = normabspath(path, self.path)
-            if (os.path.exists(abs_path)):
+            if (os.path.exists(normabspath(path, self.path))):
                 exists = True
             if self.element.is_vcs_element():
                 if not exists:

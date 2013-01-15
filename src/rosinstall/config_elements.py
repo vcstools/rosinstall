@@ -267,6 +267,8 @@ class VCSConfigElement(ConfigElement):
             if not present:
                 error_message = "Failed to detect %s presence at %s." % (
                     self.get_vcs_type_name(), self.path)
+                if os.path.islink(self.path):
+                    error_message += " Path is symlink, only symlink will be removed."
             else:
                 cur_url = self._get_vcsc().get_url()
                 if cur_url is not None:
@@ -332,7 +334,11 @@ class VCSConfigElement(ConfigElement):
                     self.get_local_name(), self.uri, self.version, self.get_path()))
             if self.path_exists():
                 if (backup is False):
-                    shutil.rmtree(self.path)
+                    if os.path.islink(self.path):
+                        # remove same as unlink
+                        os.remove(self.path)
+                    else:
+                        shutil.rmtree(self.path)
                 else:
                     self.backup(backup_path)
             if not self._get_vcsc().checkout(self.uri,

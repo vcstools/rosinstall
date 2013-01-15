@@ -8,6 +8,7 @@ Changelog
 ------
 
 - fix #47 and #48 rosinstall --generate-versioned-output
+- fix wstool #4, deletion of symlinked folders
 - fix rosco bugs #39 and #40 to work with new indexer
 - better error message when vcstools has wrong version
 - fix duplicate ROS_PACKAGE_PATH entries from setup-files in fuerte
