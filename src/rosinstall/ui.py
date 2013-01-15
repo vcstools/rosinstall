@@ -83,8 +83,7 @@ class Ui(object):
 
         mode = ""
 
-        full_prompt = "%s %s: " % (prompt, ", ".join(valid_modes))
-
+        full_prompt = "%s\n  %s: " % (prompt, ", ".join(valid_modes))
         while mode == "":
             mode_input = self.get_input(full_prompt)
             if mode_input == 'b' or mode_input == 'backup':
