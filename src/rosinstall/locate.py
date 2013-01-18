@@ -62,7 +62,7 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
         if 'rosinstalls' in data:
             ri_entry = data['rosinstalls'].get(branch, None)
         else:
-            sys.stderr.write('No specific branch data for branch %s found, falling back on default checkout' % branch)
+            sys.stderr.write('Warning: No specific branch data for branch "%s" found, falling back on default checkout\n' % branch)
 
     # if we were unable to compute the rosinstall info based on a
     # desired branch, use the default info instead

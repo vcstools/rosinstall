@@ -190,11 +190,11 @@ def roslocate_main():
     try:
         data, type_, url = get_rosdoc_manifest(name, options.distro)
     except IOError:
-        sys.stderr.write('cannot locate information about %s\n' % (name))
-        sys.exit(1)
+        sys.exit('cannot locate information about %s\n' % (name))
 
     try:
         print _cmds[cmd](name, data, type_, options)
+        sys.stdout.flush() # raises correct error when used in a pipe
     except InvalidData as e:
         sys.stderr.write("%s\n" % e)
 
