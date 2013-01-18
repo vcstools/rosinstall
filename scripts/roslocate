@@ -56,11 +56,13 @@ def options_to_branch(options):
     # we don't let the user express the full range of options at the
     # command-line, mainly for (1) simplicity and (2) the distro
     # branch is not reliable.
+    if options.dev and options.rel:
+        sys.exit('only one of --dev and --rel can be used')
     if options.dev:
         return BRANCH_DEVEL
-    else:
+    elif options.rel:
         return BRANCH_RELEASE
-
+    return None
 
 def cmd_get_rosinstall(name, data, type_, options=None):
     branch = options_to_branch(options)
@@ -179,6 +181,10 @@ def roslocate_main():
                       dest="dev", default=False,
                       action="store_true",
                       help="fetch development branch information")
+    parser.add_option("--rel",
+                      dest="rel", default=False,
+                      action="store_true",
+                      help="fetch release branch information")
 
     # noop parse for now.  Will matter once we can pass in --distro
     options, args = parser.parse_args()
