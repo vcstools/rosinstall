@@ -197,7 +197,10 @@ def roslocate_main():
         sys.stdout.flush() # raises correct error when used in a pipe
     except InvalidData as e:
         sys.stderr.write("%s\n" % e)
-
+    except IOError as ioe:
+        if ioe.errno == 32:
+            sys.exit(ioe)
+        raise
 
 if __name__ == '__main__':
     roslocate_main()
