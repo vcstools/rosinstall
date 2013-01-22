@@ -324,7 +324,7 @@ def cmd_install_or_update(
         print ("Exception caught during install: %s" % exc)
         success = False
         if not robust:
-            raise exc
+            raise
     return success
     # TODO go back and make sure that everything in options.path is described
     # in the yaml, and offer to delete otherwise? not sure, but it could go here
