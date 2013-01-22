@@ -662,3 +662,55 @@ class MultiprojectCLITest(AbstractFakeRosBasedTest):
         self.assertEqual(0, cli.cmd_update(self.local_path, ["--parallel=5"]))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'gitrepo')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'hgrepo')))
+
+    def test_export(self):
+        root_path = tempfile.mkdtemp()
+        el_path = os.path.join(root_path, "ros")
+        os.makedirs(el_path)
+        try:
+            # default test
+            self.mock_config = FakeConfig([], 'foopath')
+            result = rosinstall.multiproject_cmd.cmd_snapshot(self.mock_config)
+            self.assertEqual(0, len(result))
+            mock = MockVcsConfigElement('git',
+                                        el_path,
+                                        'gitname',
+                                        None,
+                                        version='version',
+                                        actualversion='actual',
+                                        specversion='spec')
+            self.mock_config = FakeConfig([mock], 'foopath')
+            result = rosinstall.multiproject_cmd.cmd_snapshot(self.mock_config)
+            self.assertEqual(1, len(result))
+            self.assertEqual('actual', result[0]['git']['version'])
+            # test other is discarded
+            mock2 = rosinstall.config_elements.OtherConfigElement(el_path,
+                                                                  'othername')
+            self.mock_config = FakeConfig([mock, mock2], 'foopath')
+            result = rosinstall.multiproject_cmd.cmd_snapshot(self.mock_config)
+            self.assertEqual(1, len(result))
+            # test fallbacks on specs if actual version is not known
+            mock = MockVcsConfigElement('git',
+                                        el_path,
+                                        'gitname',
+                                        None,
+                                        version='version',
+                                        actualversion=None,
+                                        specversion='spec')
+            self.mock_config = FakeConfig([mock], 'foopath')
+            result = rosinstall.multiproject_cmd.cmd_snapshot(self.mock_config)
+            self.assertEqual(1, len(result))
+            self.assertEqual('spec', result[0]['git']['version'])
+            mock = MockVcsConfigElement('git',
+                                        el_path,
+                                        'gitname',
+                                        None,
+                                        version='version',
+                                        actualversion=None,
+                                        specversion=None)
+            self.mock_config = FakeConfig([mock], 'foopath')
+            result = rosinstall.multiproject_cmd.cmd_snapshot(self.mock_config)
+            self.assertEqual(1, len(result))
+            self.assertEqual('version', result[0]['git']['version'])
+        finally:
+            shutil.rmtree(root_path)

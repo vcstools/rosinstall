@@ -174,7 +174,18 @@ class PathSpec:
                  currevision=None,
                  path=None,
                  curr_uri=None):
-        """Fills in local properties based on dict, unifies different syntaxes"""
+        """
+        Fills in local properties based on dict, unifies different syntaxes
+        :param local-name: to be unique within config, filesystem path to folder
+        :param scmtype: one of __ALLTYPES__
+        :param uri: uri from config file
+        :param version: version label from config file (branchname, tagname, sha-id)
+        :param tags: arbirtrary meta-information (used for ROS package indexing)
+        :param revision: unique id of label stored in version
+        :param currrevision: unique id of actual version in file system
+        :param path: path to folder (currently equivalent to local_name)
+        :param curr_uri: actual remote uri used in local checkout
+        """
         self._local_name = local_name
         self._path = path
         self._uri = uri

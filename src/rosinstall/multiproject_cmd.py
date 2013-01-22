@@ -43,12 +43,13 @@ A change to expect is abstraction of user interaction.
 """
 
 
+import sys
 import os
 from rosinstall.common import MultiProjectException, DistributedWork, \
     select_elements, normabspath
 from rosinstall.config import Config, realpath_relation
 from rosinstall.config_yaml import aggregate_from_uris, generate_config_yaml, \
-    get_path_specs_from_uri
+    get_path_specs_from_uri, PathSpec
 
 import vcstools
 import vcstools.__version__
@@ -332,8 +333,22 @@ def cmd_snapshot(config, localnames=None):
     elements = select_elements(config, localnames)
     source_aggregate = []
     for element in elements:
-        source = element.get_versioned_path_spec().get_legacy_yaml()
-        source_aggregate.append(source)
+        if element.is_vcs_element():
+            spec = element.get_versioned_path_spec()
+            export_spec = PathSpec(
+                local_name=spec.get_local_name(),
+                scmtype=spec.get_scmtype(),
+                uri=spec.get_uri() or spec.get_curr_uri(),
+                version=(spec.get_current_revision() or
+                         spec.get_revision() or
+                         spec.get_version()),
+                path=spec.get_path())
+            if not export_spec.get_version():
+                sys.stderr.write('Warning, discarding non-vcs element %s\n' % element.get_local_name())
+            source = export_spec.get_legacy_yaml()
+            source_aggregate.append(source)
+        else:
+            sys.stderr.write('Warning, discarding non-vcs element %s\n' % element.get_local_name())
     return source_aggregate
 
 
