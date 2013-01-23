@@ -308,6 +308,7 @@ def cmd_install_or_update(
             self.element.install(checkout=self.report.checkout,
                                  backup=self.report.backup,
                                  backup_path=self.report.backup_path,
+                                 inplace=self.report.inplace,
                                  verbose=self.report.verbose)
             return {}
 
@@ -323,7 +324,7 @@ def cmd_install_or_update(
         print ("Exception caught during install: %s" % exc)
         success = False
         if not robust:
-            raise exc
+            raise
     return success
     # TODO go back and make sure that everything in options.path is described
     # in the yaml, and offer to delete otherwise? not sure, but it could go here
@@ -379,8 +380,7 @@ def cmd_info(config, localnames=None):
 
             if localname is None or localname == "":
                 raise MultiProjectException("Missing local-name in element: %s" % self.element)
-            abs_path = normabspath(path, self.path)
-            if (os.path.exists(abs_path)):
+            if (os.path.exists(normabspath(path, self.path))):
                 exists = True
             if self.element.is_vcs_element():
                 if not exists:

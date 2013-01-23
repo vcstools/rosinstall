@@ -67,32 +67,38 @@ class Ui(object):
         else:
             return raw_input(prompt)
 
-    def prompt_del_abort_retry(self, prompt, allow_skip=False):
+    def prompt_del_abort_retry(self,
+                               prompt,
+                               allow_skip=False,
+                               allow_inplace=False):
         """
         Interactive function asking the user to choose a conflict resolution
+        :param prompt: message to display, str
+        :param allow_skip: whether to display skip option, bool
+        :param inplace: whether to show option for inplace replacing (symlinks)
+        :return: user choice one of backup, delete, abort, inplace, skip
         """
-        if allow_skip:
-            valid_modes = ['(d)elete and replace',
-                           '(a)bort',
-                           '(b)ackup and replace',
-                           '(s)kip']
+        valid_modes = ['(d)elete and replace',
+                       '(a)bort']
+        if allow_inplace:
+            valid_modes.append('(i)nplace delete and replace at symlink')
         else:
-            valid_modes = ['(d)elete and replace',
-                           '(a)bort',
-                           '(b)ackup and replace']
+            valid_modes.append('(b)ackup and replace')
+        if allow_skip:
+            valid_modes.append('(s)kip')
 
         mode = ""
-
-        full_prompt = "%s %s: " % (prompt, ", ".join(valid_modes))
-
+        full_prompt = "%s\n  %s: " % (prompt, ", ".join(valid_modes))
         while mode == "":
             mode_input = self.get_input(full_prompt)
-            if mode_input == 'b' or mode_input == 'backup':
+            if not allow_inplace and mode_input == 'b':
                 mode = 'backup'
-            elif mode_input == 'd' or mode_input == 'delete':
+            elif mode_input == 'd':
                 mode = 'delete'
-            elif mode_input == 'a' or mode_input == 'abort':
+            elif mode_input == 'a':
                 mode = 'abort'
-            elif allow_skip and mode_input == 's' or mode_input == 'skip':
+            elif allow_inplace and mode_input == 'i':
+                mode = 'inplace'
+            elif allow_skip and mode_input == 's':
                 mode = 'skip'
         return mode

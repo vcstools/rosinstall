@@ -234,7 +234,8 @@ class FakeConfig():
 
 class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):
 
-    def __init__(self, scmtype, path, local_name, uri, version='', actualversion='', specversion='', properties=None):
+    def __init__(self, scmtype, path, local_name, uri, version='',
+                 actualversion='', specversion='', properties=None):
         self.scmtype = scmtype
         self.path = path
         self.local_name = local_name
@@ -244,7 +245,8 @@ class MockVcsConfigElement(rosinstall.config_elements.VCSConfigElement):
         self.install_success = True
         self.properties = properties
 
-    def install(self, checkout=True, backup=False, backup_path=None, robust=False, verbose=False):
+    def install(self, checkout=True, backup=False, backup_path=None,
+                robust=False, verbose=False, inplace=False):
         if not self.install_success:
             raise MultiProjectException("Unittest Mock says install failed")
 
@@ -287,12 +289,12 @@ class InstallTest(unittest.TestCase):
             hg1 = PathSpec('fooh', 'hg', 'hg/uri', 'hg.version')
             bzr1 = PathSpec('foob', 'bzr', 'bzr/uri', 'bzr.version')
             config = Config([git1, svn1, hg1, bzr1],
-                            test_root,
-                            None,
-                            {"svn": MockVcsConfigElement,
-                             "git": MockVcsConfigElement,
-                             "hg": MockVcsConfigElement,
-                             "bzr": MockVcsConfigElement})
+                            install_path=test_root,
+                            config_filename=None,
+                            extended_types={"svn": MockVcsConfigElement,
+                                            "git": MockVcsConfigElement,
+                                            "hg": MockVcsConfigElement,
+                                            "bzr": MockVcsConfigElement})
             config.get_config_elements()[1].install_success = False
             rosinstall.multiproject_cmd.cmd_install_or_update(config, robust=True)
             try:
