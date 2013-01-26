@@ -59,7 +59,7 @@ class RosinstallBoxturtleTest(AbstractRosinstallBaseDirTest):
     def test_get_yaml_from_uri_from_url(self):
         url = "http://www.ros.org/rosinstalls/boxturtle_base.rosinstall"
         yaml_elements = get_yaml_from_uri(url)
-        self.assertTrue(ros_found_in_yaml(yaml_elements), "No ros element in %s"%url)
+        self.assertTrue(ros_found_in_yaml(yaml_elements), "No ros element in %s" % url)
 
     def test_source(self):
         """checkout into temp dir and test setup files"""
@@ -82,5 +82,7 @@ class RosinstallBoxturtleTest(AbstractRosinstallBaseDirTest):
                           {'svn': { 'uri': 'https://code.ros.org/svn/ros/stacks/ros_release/trunk',
                                     'local-name': 'ros_release'} }
                           ])
-        subprocess.check_output(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ)
-        subprocess.check_output(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='bash')
+        subprocess.check_output(". %s" % os.path.join(self.directory, 'setup.sh'),
+                                shell=True, env=self.new_environ)
+        subprocess.check_output(". %s" % os.path.join(self.directory, 'setup.bash'),
+                                shell=True, env=self.new_environ, executable='bash')
