@@ -69,7 +69,7 @@ class RosinstallBoxturtleTest(AbstractRosinstallBaseDirTest):
         generated_rosinstall_filename = os.path.join(self.directory, ".rosinstall")
         self.assertTrue(os.path.exists(generated_rosinstall_filename))
         self.assertTrue(os.path.exists(os.path.join(self.directory, "ros")))
-        self.assertTrue(os.path.exists(os.path.join(self.directory, "ros_release")))
+        self.assertTrue(os.path.exists(os.path.join(self.directory, "ros_comm")))
         self.assertTrue(os.path.exists(os.path.join(self.directory, "setup.sh")))
         self.assertTrue(os.path.exists(os.path.join(self.directory, "setup.bash")))
         subprocess.check_output(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ)
