@@ -200,7 +200,7 @@ class PathSpec:
         return str(self.get_legacy_yaml())
 
     def __repr__(self):
-        return self.__str__()
+        return "PathSpec(%s)" % self.__str__()
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
