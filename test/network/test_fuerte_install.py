@@ -54,37 +54,43 @@ class RosinstallFuerteTest(AbstractRosinstallBaseDirTest):
         AbstractRosinstallBaseDirTest.setUpClass()
 
     def test_get_path_specs_from_uri_from_url(self):
+        # wet
+        url = "http://ros.org/rosinstalls/fuerte-ros-full.rosinstall"
+        path_specs = get_path_specs_from_uri(url)
+        self.assertTrue(ros_found_in_path_spec(path_specs), "No ros element in fuerte %s, URL %s" % (path_specs, url))
+        # dry
         url = "http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=fuerte&variant=desktop-full&overlay=no"
         path_specs = get_path_specs_from_uri(url)
-        self.assertTrue(ros_found_in_path_spec(path_specs), "No ros element in fuerte %s" % path_specs)
+        self.assertTrue(ros_found_in_path_spec(path_specs), "No ros element in fuerte %s, URL %s" % (path_specs, url))
 
     def test_get_yaml_from_uri_from_url(self):
+        # wet
+        url = "http://ros.org/rosinstalls/fuerte-ros-full.rosinstall"
+        yaml_elements = get_yaml_from_uri(url)
+        self.assertTrue(ros_found_in_yaml(yaml_elements), "No ros element in %s" % url)
+        # dry (contains "other" ros element)
         url = "http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=fuerte&variant=desktop-full&overlay=no"
         yaml_elements = get_yaml_from_uri(url)
-        self.assertTrue(ros_found_in_yaml(yaml_elements), "No ros element in %s"%url)
+        self.assertTrue(ros_found_in_yaml(yaml_elements), "No ros element in %s" % url)
 
-    # def test_source(self):
-    #     """checkout into temp dir and test setup files"""
-    #     cmd = copy.copy(self.rosinstall_fn)
-    #     url = "http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=fuerte&variant=desktop-full&overlay=no"
-    #     self.simple_rosinstall = os.path.join(self.directory, "simple.rosinstall")
-    #     response = urllib2.urlopen(url)
-    #     contents = response.read()
-    #     with open(self.simple_rosinstall, 'w') as fhand:
-    #         fhand.write(contents)
-    #     config = get_config(self.directory, [self.simple_rosinstall])
-    #     for elt in config.get_config_elements():
-    #         if elt.name not in ['ros', 'ros_comm']:
-    #             config.remove_element(elt.name)
-    #     print(config)
-    #     assert 0
-    #     cmd.extend(['-j8', self.directory, self.simple_rosinstall])
-    #     self.assertTrue(rosinstall_main(cmd))
-    #     generated_rosinstall_filename = os.path.join(self.directory, ".rosinstall")
-    #     self.assertTrue(os.path.exists(generated_rosinstall_filename))
-    #     self.assertTrue(os.path.exists(os.path.join(self.directory, "ros")))
-    #     self.assertTrue(os.path.exists(os.path.join(self.directory, "ros_comm")))
-    #     self.assertTrue(os.path.exists(os.path.join(self.directory, "setup.sh")))
-    #     self.assertTrue(os.path.exists(os.path.join(self.directory, "setup.bash")))
-    #     subprocess.check_output(". %s"%os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ)
-    #     subprocess.check_output(". %s"%os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='bash')
+    def test_source(self):
+        """checkout into temp dir and test setup files"""
+        cmd = copy.copy(self.rosinstall_fn)
+        url = "http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=fuerte&variant=robot&overlay=no"
+        self.simple_rosinstall = os.path.join(self.directory, "simple.rosinstall")
+        response = urllib2.urlopen(url)
+        contents = response.read()
+        with open(self.simple_rosinstall, 'w') as fhand:
+            fhand.write(contents)
+        config = get_config(self.directory, [self.simple_rosinstall])
+        cmd.extend(['-j8', self.directory, self.simple_rosinstall])
+        self.assertTrue(rosinstall_main(cmd))
+        generated_rosinstall_filename = os.path.join(self.directory, ".rosinstall")
+        self.assertTrue(os.path.exists(generated_rosinstall_filename))
+        # fuerte core ros stacks are catkinized, installed via catkin workspace
+        self.assertTrue(os.path.exists(os.path.join(self.directory, "common")))
+        self.assertTrue(os.path.exists(os.path.join(self.directory, "dynamic_reconfigure")))
+        self.assertTrue(os.path.exists(os.path.join(self.directory, "setup.sh")))
+        self.assertTrue(os.path.exists(os.path.join(self.directory, "setup.bash")))
+        subprocess.check_output(". %s" % os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ)
+        subprocess.check_output(". %s" % os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='bash')
