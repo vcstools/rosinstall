@@ -281,7 +281,7 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
             cmd = ". %s ; %s" % (os.path.join(path, 'setup.%s' % shell), command)
             p = subprocess.Popen(cmd, shell=True, cwd=cwd, stdout=subprocess.PIPE, executable='/bin/%s' % shell)
             output = p.communicate()[0]
-            self.assertEqual(expect.encode('UTF-8'), output.strip(), ("'%s' != '%s'" % (expect, output), cmd, cwd))
+            self.assertEqual(expect.encode('UTF-8'), output.strip(), ("'%s' != '%s', cmd: %s, cwd: %s" % (expect, output, cmd, cwd)))
             self.assertEqual(0, p.returncode)
 
     def test_init_parallel(self):
