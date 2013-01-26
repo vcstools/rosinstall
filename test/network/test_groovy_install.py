@@ -52,11 +52,11 @@ class RosinstallGroovyTest(AbstractRosinstallBaseDirTest):
         AbstractRosinstallBaseDirTest.setUpClass()
 
     def test_get_path_specs_from_uri_from_url(self):
-        url = "http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=groovy&variant=desktop-full&overlay=no"
+        url = "http://packages.ros.org/web/rosinstall/generate/raw/groovy/ros-base"
         path_specs = get_path_specs_from_uri(url)
         self.assertTrue(ros_found_in_path_spec(path_specs), "No ros element in groovy")
 
     def test_get_yaml_from_uri_from_url(self):
-        url = "http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=groovy&variant=desktop-full&overlay=no"
+        url = "http://packages.ros.org/web/rosinstall/generate/raw/groovy/ros-base"
         yaml_elements = get_yaml_from_uri(url)
         self.assertTrue(ros_found_in_yaml(yaml_elements), "No ros element in %s"%url)
