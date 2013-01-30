@@ -65,10 +65,10 @@ class RosinstallBoxturtleTest(AbstractRosinstallBaseDirTest):
         """checkout into temp dir and test setup files"""
         cmd = copy.copy(self.rosinstall_fn)
         self.simple_rosinstall = os.path.join(self.directory, "simple.rosinstall")
-        _create_yaml_file(['-j8', _create_config_elt_dict("svn", "ros", 'https://code.ros.org/svn/ros/stacks/ros/tags/boxturtle'),
+        _create_yaml_file([_create_config_elt_dict("svn", "ros", 'https://code.ros.org/svn/ros/stacks/ros/tags/boxturtle'),
                            _create_config_elt_dict("svn", "ros_release", 'https://code.ros.org/svn/ros/stacks/ros_release/trunk')],
                           self.simple_rosinstall)
-        cmd.extend([self.directory, self.simple_rosinstall])
+        cmd.extend(['-j8', self.directory, self.simple_rosinstall])
         self.assertTrue(rosinstall_main(cmd))
         generated_rosinstall_filename = os.path.join(self.directory, ".rosinstall")
         self.assertTrue(os.path.exists(generated_rosinstall_filename))
