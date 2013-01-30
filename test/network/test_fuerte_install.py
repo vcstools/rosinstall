@@ -34,7 +34,10 @@ import os
 import copy
 import subprocess
 import tempfile
-import urllib2
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
 
 import rosinstall
 import rosinstall.helpers
@@ -78,7 +81,7 @@ class RosinstallFuerteTest(AbstractRosinstallBaseDirTest):
         cmd = copy.copy(self.rosinstall_fn)
         url = "http://packages.ros.org/cgi-bin/gen_rosinstall.py?rosdistro=fuerte&variant=robot&overlay=no"
         self.simple_rosinstall = os.path.join(self.directory, "simple.rosinstall")
-        response = urllib2.urlopen(url)
+        response = urlopen(url)
         contents = response.read()
         with open(self.simple_rosinstall, 'w') as fhand:
             fhand.write(contents)
