@@ -83,14 +83,11 @@ class RosinstallFuerteTest(AbstractRosinstallBaseDirTest):
         with open(self.simple_rosinstall, 'w') as fhand:
             fhand.write(contents)
         config = get_config(self.directory, [self.simple_rosinstall])
-        cmd.extend(['-j8', self.directory, self.simple_rosinstall])
+        cmd.extend(['-j8', '--catkin', self.directory, self.simple_rosinstall])
         self.assertTrue(rosinstall_main(cmd))
         generated_rosinstall_filename = os.path.join(self.directory, ".rosinstall")
         self.assertTrue(os.path.exists(generated_rosinstall_filename))
         # fuerte core ros stacks are catkinized, installed via catkin workspace
         self.assertTrue(os.path.exists(os.path.join(self.directory, "common")))
         self.assertTrue(os.path.exists(os.path.join(self.directory, "dynamic_reconfigure")))
-        self.assertTrue(os.path.exists(os.path.join(self.directory, "setup.sh")))
-        self.assertTrue(os.path.exists(os.path.join(self.directory, "setup.bash")))
-        subprocess.check_call(". %s" % os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ)
-        subprocess.check_call(". %s" % os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='bash')
+        self.assertTrue(os.path.exists(os.path.join(self.directory, "CMakeLists.txt")))
