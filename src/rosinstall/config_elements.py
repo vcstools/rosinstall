@@ -344,7 +344,7 @@ class VCSConfigElement(ConfigElement):
         at target location and checkout to there.
         """
         if checkout is True:
-            print("[%s] Installing %s (version %s) to %s" % (
+            print("[%s] Fetching %s (version %s) to %s" % (
                     self.get_local_name(), self.uri, self.version, self.get_path()))
             if self.path_exists():
                 if os.path.islink(self.path):
