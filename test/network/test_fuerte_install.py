@@ -92,5 +92,5 @@ class RosinstallFuerteTest(AbstractRosinstallBaseDirTest):
         self.assertTrue(os.path.exists(os.path.join(self.directory, "dynamic_reconfigure")))
         self.assertTrue(os.path.exists(os.path.join(self.directory, "setup.sh")))
         self.assertTrue(os.path.exists(os.path.join(self.directory, "setup.bash")))
-        subprocess.check_output(". %s" % os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ)
-        subprocess.check_output(". %s" % os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='bash')
+        subprocess.check_call(". %s" % os.path.join(self.directory, 'setup.sh') , shell=True, env=self.new_environ)
+        subprocess.check_call(". %s" % os.path.join(self.directory, 'setup.bash') , shell=True, env=self.new_environ, executable='bash')

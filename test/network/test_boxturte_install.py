@@ -82,7 +82,7 @@ class RosinstallBoxturtleTest(AbstractRosinstallBaseDirTest):
                           {'svn': { 'uri': 'https://code.ros.org/svn/ros/stacks/ros_release/trunk',
                                     'local-name': 'ros_release'} }
                           ])
-        subprocess.check_output(". %s" % os.path.join(self.directory, 'setup.sh'),
+        subprocess.check_call(". %s" % os.path.join(self.directory, 'setup.sh'),
                                 shell=True, env=self.new_environ)
-        subprocess.check_output(". %s" % os.path.join(self.directory, 'setup.bash'),
+        subprocess.check_call(". %s" % os.path.join(self.directory, 'setup.bash'),
                                 shell=True, env=self.new_environ, executable='bash')
