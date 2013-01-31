@@ -4,6 +4,11 @@ Changelog
 0.6
 ---
 
+0.6.24
+------
+
+- fix None split when chaining workspaces via setup-file
+
 0.6.23
 ------
 

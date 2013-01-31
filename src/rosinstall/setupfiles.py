@@ -197,7 +197,7 @@ import os
 
 ros_package_path1 = os.environ.get('ROS_PACKAGE_PATH', '')
 original_elements = ros_package_path1.split(':')
-ros_package_path2 = os.environ.get('_ROS_PACKAGE_PATH_ROSINSTALL')
+ros_package_path2 = os.environ.get('_ROS_PACKAGE_PATH_ROSINSTALL', '')
 new_elements = ros_package_path2.split(':')
 for original_path in original_elements:
   if original_path and original_path not in new_elements:
