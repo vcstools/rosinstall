@@ -40,10 +40,10 @@ To test with coverage, make sure to have python-coverage installed and run::
 
   $ nosetests --with-coverage --cover-package vcstools
 
-To run python3 compatibility tests, run either::
+To run python3 compatibility tests, you'd need python-dateutil for python3.
+Best to create a virtualenv for python3 and pip install python-dateutil to that one. Then::
 
-  $ nosetests3
-  $ python3 -m unittest discover --pattern*.py
+  $ python -m unittest discover --pattern *.py
 
 Releasing
 ---------
