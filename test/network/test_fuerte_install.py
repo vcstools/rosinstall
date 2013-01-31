@@ -83,8 +83,8 @@ class RosinstallFuerteTest(AbstractRosinstallBaseDirTest):
         self.simple_rosinstall = os.path.join(self.directory, "simple.rosinstall")
         response = urlopen(url)
         contents = response.read()
-        with open(self.simple_rosinstall, 'w') as fhand:
-            fhand.write(str(contents))
+        with open(self.simple_rosinstall, 'wb') as fhand:
+            fhand.write(contents)
         config = get_config(self.directory, [self.simple_rosinstall])
         cmd.extend(['-j8', '--catkin', self.directory, self.simple_rosinstall])
         self.assertTrue(rosinstall_main(cmd))
