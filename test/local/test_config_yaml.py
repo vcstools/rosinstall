@@ -40,7 +40,9 @@ import shutil
 import rosinstall.config_yaml
 import rosinstall.config
 from rosinstall.common import MultiProjectException
-from rosinstall.config_yaml import rewrite_included_source, get_path_spec_from_yaml, get_yaml_from_uri, get_path_specs_from_uri, PathSpec
+from rosinstall.config_yaml import rewrite_included_source, \
+    get_path_spec_from_yaml, get_yaml_from_uri, get_path_specs_from_uri, \
+    PathSpec, aggregate_from_uris
 
 
 class YamlIO_Test(unittest.TestCase):
@@ -142,7 +144,15 @@ class ConfigElementYamlFunctions_Test(unittest.TestCase):
 class UriAggregationTest(unittest.TestCase):
 
     def test_aggregate_from_uris(self):
-        pass
+        self.directory = tempfile.mkdtemp()
+        config = rosinstall.config.Config([PathSpec('ros', 'svn', 'some/uri')], self.directory)
+        rosinstall.config_yaml.generate_config_yaml(config, 'foo', "# Hello\n")
+        ryaml = aggregate_from_uris([self.directory], config.get_config_filename())
+        self.assertEqual(ryaml[0].get_legacy_yaml(), {'other': {'local-name': self.directory}})
+
+    def tearDown(self):
+        if os.path.exists(self.directory):
+            shutil.rmtree(self.directory)
 
 
 class ConfigFile_Test(unittest.TestCase):
