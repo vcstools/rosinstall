@@ -367,9 +367,9 @@ class MultiprojectCLI:
     def __init__(self,
                  progname,
                  config_filename=None,
-                 config_generator=multiproject_cmd.cmd_persist_config):
+                 config_generator=None):
         self.config_filename = config_filename
-        self.config_generator = config_generator
+        self.config_generator = config_generator or multiproject_cmd.cmd_persist_config
         self.progname = progname
 
     def cmd_init(self, argv):
