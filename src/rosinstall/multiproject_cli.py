@@ -368,6 +368,16 @@ class MultiprojectCLI:
                  progname,
                  config_filename=None,
                  config_generator=None):
+        '''
+        creates the instance. Historically, rosinstall allowed "other"
+        elements that went into the ROS_PACKAGE_PATH, but were ignored
+        for vcs operations. A pure vcs tool has no use for such
+        elements.
+
+        :param progname: name to diplay in help
+        :param config_filename: filename of files maintaining workspaces (.rosinstall)
+        :param config_generator: function that writes config file
+        '''
         self.config_filename = config_filename
         self.config_generator = config_generator or multiproject_cmd.cmd_persist_config
         self.progname = progname
