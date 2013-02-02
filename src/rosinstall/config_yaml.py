@@ -139,7 +139,7 @@ def rewrite_included_source(source_path_specs, source_dir):
     return source_path_specs
 
 
-def aggregate_from_uris(config_uris, config_filename=None):
+def aggregate_from_uris(config_uris, config_filename=None, allow_other_element=True):
     """
     Builds a List of PathSpec from a list of location strings (uri,
     paths). If locations is a folder, attempts to find config_filename in it,
@@ -149,6 +149,7 @@ def aggregate_from_uris(config_uris, config_filename=None):
 
     :param config_uris: source of yaml
     :param config_filename: file to use when given a folder
+    :param allow_other_element: if False, discards elements to be added without SCM information
     """
     aggregate_source_yaml = []
     # build up a merged list of config elements from all given config_uris
@@ -158,6 +159,11 @@ def aggregate_from_uris(config_uris, config_filename=None):
             # deal with duplicates in Config class
             if source_path_specs is not None:
                 assert type(source_path_specs) == list, 'Probable bug: expected list, was %s' % type(source_path_specs)
+                if not allow_other_element:
+                    for spec in source_path_specs:
+                        if not spec.get_scmtype():
+                            raise MultiProjectException("Forbidden non-SCM element: %s (%s)" %
+                                  (spec.get_local_name(), spec.get_legacy_type()))
                 aggregate_source_yaml.extend(source_path_specs)
     return aggregate_source_yaml
 

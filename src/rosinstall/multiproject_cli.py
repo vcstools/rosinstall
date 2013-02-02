@@ -166,7 +166,8 @@ def prompt_merge(target_path,
                  show_advanced=True,
                  show_verbosity=True,
                  config_filename=None,
-                 config=None):
+                 config=None,
+                 allow_other_element=True):
     """
     Prompts the user for the resolution of a merge. Without
     further options, will prompt only if elements change. New
@@ -182,6 +183,7 @@ def prompt_merge(target_path,
     :param config: None or a Config object for target path if available
     :param show_advanced: if true allow to change merge strategy
     :param show_verbosity: if true allows to change verbosity
+    :param allow_other_element: if False merge fails hwen it could cause other elements
     :returns: tupel (Config or None if no change, bool path_changed)
     """
     if config is None:
@@ -213,7 +215,8 @@ def prompt_merge(target_path,
             config_actions = multiproject_cmd.add_uris(
                 newconfig,
                 additional_uris=additional_uris,
-                merge_strategy=merge_strategy)
+                merge_strategy=merge_strategy,
+                allow_other_element=allow_other_element)
             for path_spec in additional_specs:
                 action = newconfig.add_path_spec(path_spec, merge_strategy)
                 config_actions[path_spec.get_local_name()] = (action, path_spec)
@@ -367,6 +370,7 @@ class MultiprojectCLI:
     def __init__(self,
                  progname,
                  config_filename=None,
+                 allow_other_element=False,
                  config_generator=None):
         '''
         creates the instance. Historically, rosinstall allowed "other"
@@ -376,11 +380,13 @@ class MultiprojectCLI:
 
         :param progname: name to diplay in help
         :param config_filename: filename of files maintaining workspaces (.rosinstall)
+        :param allow_other_element: bool, if True rosinstall semantics for "other" apply
         :param config_generator: function that writes config file
         '''
         self.config_filename = config_filename
         self.config_generator = config_generator or multiproject_cmd.cmd_persist_config
         self.progname = progname
+        self.allow_other_element=allow_other_element
 
     def cmd_init(self, argv):
         if self.config_filename is None:
@@ -435,7 +441,9 @@ $ %(prog)s init ~/fuerte /opt/ros/fuerte
         config = multiproject_cmd.get_config(
             basepath=target_path,
             additional_uris=config_uris,
-            config_filename=self.config_filename)
+            config_filename=(self.config_filename
+                             if self.allow_other_element
+                             else None))
 
         # includes ROS specific files
 
@@ -539,7 +547,6 @@ $ roslocate info robot_model | %(prog)s merge -
         # default option
         if count_mergeoptions == 0:
             merge_strategy = 'MergeReplace'
-
         (newconfig, _) = prompt_merge(
             target_path,
             additional_uris=config_uris,
@@ -548,7 +555,8 @@ $ roslocate info robot_model | %(prog)s merge -
             merge_strategy=merge_strategy,
             confirmed=options.confirm_all,
             config_filename=self.config_filename,
-            config=config)
+            config=config,
+            allow_other_element=self.allow_other_element)
         if newconfig is not None:
             print("Config changed, maybe you need run %s update to update SCM entries." % self.progname)
             print("Overwriting %s" % os.path.join(newconfig.get_base_path(), self.config_filename))
@@ -556,7 +564,7 @@ $ roslocate info robot_model | %(prog)s merge -
             self.config_generator(newconfig, self.config_filename, get_header(self.progname))
             print("\nupdate complete.")
         else:
-            print("Merge caused no change, matching elements already exist")
+            print("Merge caused no change, no new elements found")
         return 0
 
     def cmd_diff(self, target_path, argv, config=None):
@@ -654,9 +662,10 @@ $ rosws set robot_model --version robot_model-1.7.1
 $ rosws set robot_model --detached
 """,
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
-        parser.add_option("--detached", dest="detach", default=False,
-                          help="make an entry unmanaged (default for new element)",
-                          action="store_true")
+        if self.allow_other_element:
+            parser.add_option("--detached", dest="detach", default=False,
+                              help="make an entry unmanaged (default for new element)",
+                              action="store_true")
         parser.add_option("-v", "--version-new", dest="version", default=None,
                           help="point SCM to this version",
                           action="store")
@@ -729,6 +738,10 @@ $ rosws set robot_model --detached
 
         # create spec object
         if element is None:
+            if scmtype is None and not self.allow_other_element:
+                # for modification, not re-stating the scm type is
+                # okay, for new elements not
+                parser.error("You have to provide one scm provider option")
             # asssume is insert, choose localname
             localname = os.path.normpath(args[0])
             rel_path = os.path.relpath(os.path.realpath(localname),
@@ -782,7 +795,8 @@ $ rosws set robot_model --detached
             show_verbosity=False,
             show_advanced=False,
             config_filename=self.config_filename,
-            config=config)
+            config=config,
+            allow_other_element=self.allow_other_element)
 
         if newconfig is not None:
             print("Overwriting %s" % os.path.join(newconfig.get_base_path(), self.config_filename))
