@@ -103,7 +103,10 @@ def get_config(basepath,
     return config
 
 
-def add_uris(config, additional_uris, merge_strategy="KillAppend"):
+def add_uris(config,
+             additional_uris,
+             merge_strategy="KillAppend",
+             allow_other_element=True):
     """
     changes the given config by merging with the additional_uris
 
@@ -111,6 +114,7 @@ def add_uris(config, additional_uris, merge_strategy="KillAppend"):
     :param additional_uris: the location of config specifications or folders
     :param config_filename: name of files which may be looked at for config information
     :param merge_strategy: One of 'KillAppend, 'MergeKeep', 'MergeReplace'
+    :param allow_other_element: if False, discards elements to be added with no SCM information
     :returns: a dict {<local-name>: (<action>, <path-spec>), <local-name>: ...} determined by the merge_strategy
     :raises MultiProjectException: on plenty of errors
     """
@@ -146,7 +150,8 @@ def add_uris(config, additional_uris, merge_strategy="KillAppend"):
     actions = {}
     if len(added_uris) > 0:
         path_specs = aggregate_from_uris(added_uris,
-                                         config.get_config_filename())
+                                         config.get_config_filename(),
+                                         allow_other_element)
         for path_spec in path_specs:
             action = config.add_path_spec(path_spec, merge_strategy)
             actions[path_spec.get_local_name()] = (action, path_spec)

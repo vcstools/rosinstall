@@ -81,6 +81,7 @@ class RoswsCLI(MultiprojectCLI):
         MultiprojectCLI.__init__(self,
                                  progname=progname,
                                  config_filename=config_filename,
+                                 allow_other_element=True,
                                  config_generator=rosinstall_cmd.cmd_persist_config)
 
     def cmd_init(self, argv):

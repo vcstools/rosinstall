@@ -576,11 +576,25 @@ class MultiprojectCLITest(AbstractFakeRosBasedTest):
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'gitrepo')))
         self.assertTrue(os.path.exists(os.path.join(self.local_path, 'hgrepo')))
 
+    def test_cmd_set(self):
+        self.local_path = os.path.join(self.test_root_path, "ws31b")
+        cli = MultiprojectCLI(progname='multi_cli', config_filename='.rosinstall')
+        self.assertEqual(0, cli.cmd_init([self.local_path, self.simple_rosinstall, "--parallel=5"]))
+        self.assertTrue(os.path.exists(os.path.join(self.local_path, '.rosinstall')))
+        self.assertTrue(os.path.exists(os.path.join(self.local_path, 'gitrepo')))
+        self.assertFalse(os.path.exists(os.path.join(self.local_path, 'hgrepo')))
+        self.assertRaises(SystemExit, cli.cmd_set, os.path.join(self.local_path, 'hgrepo'), ["--detached"])
+        cli = MultiprojectCLI(progname='multi_cli', config_filename='.rosinstall', allow_other_element=True)
+        # self.assertEqual(0, cli.cmd_set(os.path.join(self.local_path, 'hgrepo'), ["--detached"]))
+
     def test_cmd_remove(self):
         # rosinstall to create dir
         self.local_path = os.path.join(self.test_root_path, "ws32")
-        cli = MultiprojectCLI(progname='multi_cli', config_filename='.rosinstall')
+        cli = MultiprojectCLI(progname='multi_cli', config_filename='.rosinstall', allow_other_element=False)
         self.assertEqual(0, cli.cmd_init([self.local_path]))
+        self.assertRaises(MultiProjectException, cli.cmd_merge, self.local_path, [self.git_path, "-y"])
+        self.assertRaises(MultiProjectException, cli.cmd_merge, self.local_path, [self.hg_path, "-y"])
+        cli = MultiprojectCLI(progname='multi_cli', config_filename='.rosinstall', allow_other_element=True)
         self.assertEqual(0, cli.cmd_merge(self.local_path, [self.git_path, "-y"]))
         self.assertEqual(0, cli.cmd_merge(self.local_path, [self.hg_path, "-y"]))
         config = rosinstall.multiproject_cmd.get_config(basepath=self.local_path,
@@ -591,7 +605,7 @@ class MultiprojectCLITest(AbstractFakeRosBasedTest):
                                                         config_filename='.rosinstall')
         self.assertEqual(len(config.get_config_elements()), 1)
 
-    def test_cmd_add(self):
+    def test_cmd_add_uris(self):
         # rosinstall to create dir
         self.local_path = os.path.join(self.test_root_path, "ws33")
         cli = MultiprojectCLI(progname='multi_cli', config_filename='.rosinstall')

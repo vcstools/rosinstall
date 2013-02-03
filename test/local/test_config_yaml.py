@@ -149,6 +149,11 @@ class UriAggregationTest(unittest.TestCase):
         rosinstall.config_yaml.generate_config_yaml(config, 'foo', "# Hello\n")
         ryaml = aggregate_from_uris([self.directory], config.get_config_filename())
         self.assertEqual(ryaml[0].get_legacy_yaml(), {'other': {'local-name': self.directory}})
+        self.assertRaises(MultiProjectException,
+                          aggregate_from_uris,
+                          [self.directory],
+                          config.get_config_filename(),
+                          allow_other_element=False)
 
     def tearDown(self):
         if os.path.exists(self.directory):
