@@ -107,6 +107,31 @@ class GenerateTest(AbstractFakeRosBasedTest):
         result = rosinstall.setupfiles.generate_setup_sh_text(config.get_base_path())
         self.assertTrue(result.count("#!/usr/bin/env sh") == 1, result)
 
+    def test_source_setup_sh(self):
+        test_folder = os.path.join(self.test_root_path, 'workspacetest')
+        os.makedirs(test_folder)
+        othersetupfile = os.path.join(test_folder, 'othersetup.sh')
+        testsetupfile = os.path.join(test_folder, 'testsetup.sh')
+        with open (othersetupfile, 'w') as fhand:
+            fhand.write('unset ROS_WORKSPACE')
+        config = Config([PathSpec(self.ros_path),
+                         PathSpec(othersetupfile,
+                                  scmtype='setup-file',
+                                  tags=['setup-file'])],
+                        test_folder,
+                        None)
+        result = rosinstall.setupfiles.generate_setup_sh_text(config.get_base_path())
+        with open (testsetupfile, 'w') as fhand:
+            fhand.write(result)
+        # check that sourcing setup.sh raises error when .rosinstall is missing
+        raised = False
+        try:
+            subprocess.check_call(". %s" % testsetupfile , shell=True, env=self.new_environ)
+        except:
+            raised = True
+        self.assertTrue(raised, 'sourcing setup.sh with missing .rosinstall should fail')
+
+
     def test_gen_setup_bash(self):
         config = Config([PathSpec(self.ros_path),
                          PathSpec(os.path.join("test", "example_dirs", "ros_comm")),

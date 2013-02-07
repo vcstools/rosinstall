@@ -147,9 +147,12 @@ def generate_setup_sh_text(workspacepath):
 """
 
     # Sadly we cannot infer the workspacepath from within the sourced file
-    text += """\nexport ROS_WORKSPACE=%s
+    text += """
+export ROS_WORKSPACE=%s
 if [ ! "$ROS_MASTER_URI" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
 unset ROS_ROOT
+
+unset _SETUP_SH_ERROR
 """ % workspacepath
 
     # use python script to read ros_package_path and setup-file elements
@@ -165,6 +168,11 @@ export _PARSED_CONFIG=`/usr/bin/env python << EOPYTHON
 
 %s
 EOPYTHON`
+
+if [ -z "${_PARSED_CONFIG}" ]; then
+  echo 'Could not parse .rosinstall file'
+  _SETUP_SH_ERROR=1
+fi
 
 #whitespace separates ros_package_path and setupfile results, using sed to split them up
 export _ROS_PACKAGE_PATH_ROSINSTALL=`echo "$_PARSED_CONFIG" | sed 's,\(.*\)ROSINSTALL_PATH_SETUPFILE_SEPARATOR\(.*\),\\1,'`
@@ -227,6 +235,11 @@ EOPYTHON`
     export PYTHONPATH=$ROS_ROOT/core/roslib/src:$PYTHONPATH
   fi
 unset _ROS_ROOT_ROSINSTALL
+fi
+
+if [ ! -z "$_SETUP_SH_ERROR" ]; then
+  # return failure code when sourcing file
+  false
 fi
 """ % pycode
 
