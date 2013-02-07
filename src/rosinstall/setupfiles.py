@@ -157,9 +157,9 @@ def generate_setup_sh_text(workspacepath):
 
     # overlay or standard
     text = """#!/usr/bin/env sh
-%s
+%(header)s
 
-export ROS_WORKSPACE=%s
+export ROS_WORKSPACE=%(wspath)s
 if [ ! "$ROS_MASTER_URI" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
 unset ROS_ROOT
 
@@ -174,7 +174,7 @@ unset _SETUP_SH_ERROR
 # Using python here to benefit of the pyyaml library
 export _PARSED_CONFIG=`/usr/bin/env python << EOPYTHON
 
-%s
+%(pycode)s
 EOPYTHON`
 
 if [ -z "${_PARSED_CONFIG}" ]; then
@@ -249,7 +249,7 @@ if [ ! -z "$_SETUP_SH_ERROR" ]; then
   # return failure code when sourcing file
   false
 fi
-""" % (SHELL_HEADER, workspacepath, pycode)
+""" % {'header': SHELL_HEADER, 'wspath': workspacepath, 'pycode': pycode}
 
     return text
 
