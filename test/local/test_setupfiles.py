@@ -42,9 +42,9 @@ import shutil
 import rosinstall.setupfiles
 import rosinstall.helpers
 from rosinstall.config import Config
-from rosinstall.config_yaml import PathSpec
+from rosinstall.config_yaml import PathSpec, generate_config_yaml
 from rosinstall.common import MultiProjectException
-from rosinstall.helpers import ROSInstallException
+from rosinstall.helpers import ROSInstallException, ROSINSTALL_FILENAME
 
 from test.scm_test_base import AbstractFakeRosBasedTest, AbstractRosinstallBaseDirTest, _add_to_file
 
@@ -53,6 +53,7 @@ def has_python3():
     cmd = "python3 --version"
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, err = p.communicate()
+    p.stdout.close()
     if not p.returncode == 0:
         return True
     return False
@@ -118,9 +119,10 @@ class GenerateTest(AbstractFakeRosBasedTest):
                          PathSpec(othersetupfile,
                                   scmtype='setup-file',
                                   tags=['setup-file'])],
-                        test_folder,
-                        None)
+                        install_path=test_folder,
+                        config_filename=ROSINSTALL_FILENAME)
         result = rosinstall.setupfiles.generate_setup_sh_text(config.get_base_path())
+        self.assertTrue('export ROS_WORKSPACE=%s' % test_folder in result)
         with open (testsetupfile, 'w') as fhand:
             fhand.write(result)
         # check that sourcing setup.sh raises error when .rosinstall is missing
@@ -130,7 +132,25 @@ class GenerateTest(AbstractFakeRosBasedTest):
         except:
             raised = True
         self.assertTrue(raised, 'sourcing setup.sh with missing .rosinstall should fail')
-
+        # test that our otherscript really unsets ROS_WORKSPACE, else nexttest would be invalid
+        # using basename to check var is not set
+        raised = False
+        try:
+            subprocess.check_call("export ROS_WORKSPACE=foo && . %s && basename $ROS_WORKSPACE" % othersetupfile , shell=True, env=self.new_environ)
+        except:
+            raised = True
+        self.assertTrue(raised, 'unsetting-sh-file did not unset var')
+        # now test that when sourcing setup.sh that contains a
+        # setup-file to other sh file which unsets ROS_WORKSPACE,
+        # ROS_WORKSPACE is still set in the end
+        generate_config_yaml(config, ROSINSTALL_FILENAME, '')
+        self.assertTrue(os.path.isfile(os.path.join(test_folder, ROSINSTALL_FILENAME)))
+        # using basename to check var is set
+        cmd = "export ROS_WORKSPACE=foo && . %s && echo $ROS_WORKSPACE" % testsetupfile
+        po = subprocess.Popen(cmd, shell=True, cwd=test_folder, stdout=subprocess.PIPE)
+        workspace = po.stdout.read().decode('UTF-8').rstrip('"').lstrip('"').strip()
+        po.stdout.close()
+        self.assertEqual(test_folder, workspace)
 
     def test_gen_setup_bash(self):
         config = Config([PathSpec(self.ros_path),

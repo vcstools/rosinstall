@@ -205,6 +205,8 @@ done
 
 unset _LOOP_SETUP_FILE
 unset _SETUPFILES_ROSINSTALL
+# restore ROS_WORKSPACE in case other setup.sh changed/unset it
+export ROS_WORKSPACE=%(wspath)s
 
 # prepend elements from .rosinstall file to ROS_PACKAGE_PATH
 # removing existing duplicates entries from value set by setup files
