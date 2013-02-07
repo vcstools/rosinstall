@@ -134,6 +134,16 @@ if y is not None:
 
 
 def generate_setup_sh_text(workspacepath):
+    '''
+    generates the string that goes into setup.sh.
+
+    Sadly we cannot infer the workspacepath from within the sourced
+    file, previous hacks trying to determine it from the shell context
+    all failed in corner cases.
+
+    :param workspacepath: The path to the workspace
+    '''
+
 
     pycode = generate_embedded_python()
 
@@ -144,19 +154,13 @@ def generate_setup_sh_text(workspacepath):
 # IF YOU WANT TO CHANGE THE ROS ENVIRONMENT VARIABLES
 # USE THE rosinstall OR rosws TOOL INSTEAD.
 # see: http://www.ros.org/wiki/rosinstall
-"""
 
-    # Sadly we cannot infer the workspacepath from within the sourced file
-    text += """
 export ROS_WORKSPACE=%s
 if [ ! "$ROS_MASTER_URI" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
 unset ROS_ROOT
 
 unset _SETUP_SH_ERROR
-""" % workspacepath
 
-    # use python script to read ros_package_path and setup-file elements
-    text += """
 # python script to read .rosinstall even when rosinstall is not installed
 # this files parses the .rosinstall and sets environment variables accordingly
 # The ROS_PACKAGE_PATH contains all elements in reversed order (for historic reasons)
@@ -241,7 +245,7 @@ if [ ! -z "$_SETUP_SH_ERROR" ]; then
   # return failure code when sourcing file
   false
 fi
-""" % pycode
+""" % (workspacepath, pycode)
 
     return text
 
