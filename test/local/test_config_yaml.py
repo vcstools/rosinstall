@@ -171,7 +171,20 @@ class ConfigFile_Test(unittest.TestCase):
         with open(filepath, 'r') as f:
             read_data = f.read()
         lines = read_data.splitlines()
+        self.assertEqual(1, len(lines), lines)
         self.assertEqual("# Hello", lines[0])
+
+    def test_generate_with_other(self):
+        self.directory = tempfile.mkdtemp()
+        config = rosinstall.config.Config([PathSpec('ros')], self.directory)
+        rosinstall.config_yaml.generate_config_yaml(config, 'foo', "# Hello\n")
+        filepath = os.path.join(self.directory, 'foo')
+        self.assertTrue(os.path.exists(filepath))
+        with open(filepath, 'r') as f:
+            read_data = f.read()
+        lines = read_data.splitlines()
+        self.assertEqual("# Hello", lines[0])
+        self.assertEqual("- other: {local-name: ros}", lines[1])
 
     def test_generate_with_stack(self):
         self.directory = tempfile.mkdtemp()

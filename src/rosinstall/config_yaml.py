@@ -365,5 +365,7 @@ def generate_config_yaml(config, filename, header):
     with open(os.path.join(config.get_base_path(), filename), 'w+b') as f:
         if header is not None:
             f.write(header.encode('UTF-8'))
-        content = yaml.safe_dump([x.get_legacy_yaml() for x in config.get_source()])
-        f.write(content.encode('UTF-8'))
+        items = [x.get_legacy_yaml() for x in config.get_source()]
+        if items:
+            content = yaml.safe_dump(items)
+            f.write(content.encode('UTF-8'))
