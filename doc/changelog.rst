@@ -8,6 +8,7 @@ Changelog
 ------
 
 - fix #55 None split when chaining workspaces via setup-file
+- now setup.sh returns error code when parsin .rosinstall fails
 
 0.6.23
 ------
