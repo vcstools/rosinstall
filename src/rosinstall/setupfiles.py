@@ -91,17 +91,20 @@ workspace_path = os.environ.get('ROS_WORKSPACE', os.path.abspath('.'))
 filename = os.path.join(workspace_path, '.rosinstall')
 
 if not os.path.isfile(filename):
-    sys.exit("There is no file at %s" % filename)
+  print('ERROR')
+  sys.exit("There is no file at %s" % filename)
 
 with open(filename, "r") as fhand:
   try:
     v = fhand.read();
   except Exception as e:
+    print('ERROR')
     sys.exit("Failed to read file: %s %s " % (filename, str(e)))
 
 try:
   y = yaml.load(v);
 except Exception as e:
+  print('ERROR')
   sys.exit("Invalid yaml in %s: %s " % (filename, str(e)))
 
 if y is not None:
@@ -116,7 +119,8 @@ if y is not None:
           # add absolute path from workspace to relative paths
           paths.append(os.path.normpath(path))
         else:
-          sys.stderr.write("ERROR: referenced path is a file, not a folder: %s" % path)
+          print('ERROR')
+          sys.exit("ERROR: referenced path is a file, not a folder: %s" % path)
   output = ''
   # add paths in reverse order
   if len(paths) > 0:
@@ -130,11 +134,13 @@ if y is not None:
       if v is not None and k == "setup-file":
         path = os.path.join(workspace_path, v['local-name'])
         if not os.path.exists(path):
-          sys.stderr.write("WARNING: referenced setupfile does not exist: %s" % path)
+          print('ERROR')
+          sys.exit("WARNING: referenced setupfile does not exist: %s" % path)
         elif os.path.isfile(path):
           setupfile_paths.append(path)
         else:
-          sys.stderr.write("ERROR: referenced setupfile is a folder: %s" % path)
+          print('ERROR')
+          sys.exit("ERROR: referenced setupfile is a folder: %s" % path)
   output += ':'.join(setupfile_paths)
 
   # printing will store the result in the variable
@@ -177,7 +183,7 @@ export _PARSED_CONFIG=`/usr/bin/env python << EOPYTHON
 %(pycode)s
 EOPYTHON`
 
-if [ -z "${_PARSED_CONFIG}" ]; then
+if [ x"$_PARSED_CONFIG" = x"ERROR" ]; then
   echo 'Could not parse .rosinstall file'
   _SETUP_SH_ERROR=1
 fi
