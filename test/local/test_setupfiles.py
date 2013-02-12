@@ -136,7 +136,11 @@ class GenerateTest(AbstractFakeRosBasedTest):
         # using basename to check var is not set
         raised = False
         try:
-            subprocess.check_call("export ROS_WORKSPACE=foo && . %s && basename $ROS_WORKSPACE" % othersetupfile , shell=True, env=self.new_environ)
+            cmd = "export ROS_WORKSPACE=foo && . %s && basename $ROS_WORKSPACE" % othersetupfile
+            subprocess.check_call(
+                cmd,
+                shell=True,
+                env=self.new_environ)
         except:
             raised = True
         self.assertTrue(raised, 'unsetting-sh-file did not unset var')
