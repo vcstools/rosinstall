@@ -117,7 +117,7 @@ class GenerateTest(AbstractFakeRosBasedTest):
             fhand.write('unset ROS_WORKSPACE')
         config = Config([PathSpec(self.ros_path),
                          PathSpec(othersetupfile,
-                                  scmtype='setup-file',
+                                  scmtype=None,
                                   tags=['setup-file'])],
                         install_path=test_folder,
                         config_filename=ROSINSTALL_FILENAME)
