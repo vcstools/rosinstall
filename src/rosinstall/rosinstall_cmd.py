@@ -51,7 +51,12 @@ def cmd_persist_config(config, config_filename=ROSINSTALL_FILENAME, header=''):
 
 
 def _ros_requires_boostrap(config):
-    """Whether we might need to bootstrap ros"""
+    """
+    Tests whether workspace contains a core ros stack, to decide
+    whether to rosmake
+
+    :param config: workspace config object
+    """
     for entry in config.get_source():
         if is_path_ros(os.path.join(config.get_base_path(), entry.get_local_name())):
             # we assume that if any of the elements we installed came
@@ -64,6 +69,8 @@ def _ros_requires_boostrap(config):
 def cmd_maybe_refresh_ros_files(config):
     """
     Regenerates setup.* files if they exist already
+
+    :param config: workspace config object
     """
     if (os.path.isfile(os.path.join(config.get_base_path(), 'setup.sh'))):
         print("Overwriting setup.sh, setup.bash, and setup.zsh in %s" % config.get_base_path())
@@ -73,6 +80,12 @@ def cmd_maybe_refresh_ros_files(config):
 def cmd_generate_ros_files(config, path, nobuild=False, rosdep_yes=False, catkin=False, catkinpp=None, no_ros_allowed=False):
     """
     Generates ROS specific setup files
+
+    :param nobuild: Unless True, invokes rosmake to build all packages if core ROS stack is detected
+    :param rosdep_yes: If True, adds --rosdep-yes to rosmake command
+    :param catkin: if true, generates catkin(fuerte) CMakeLists.txt instead of invoking rosmake
+    :param catkinpp: Prefix path for catkin if generating for catkin
+    :param no_ros_allowed: if true, does not look for a core ros stack
     """
 
     # Catkin must be enabled if catkinpp is set
