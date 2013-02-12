@@ -184,7 +184,7 @@ export _PARSED_CONFIG=`/usr/bin/env python << EOPYTHON
 EOPYTHON`
 
 if [ x"$_PARSED_CONFIG" = x"ERROR" ]; then
-  echo 'Could not parse .rosinstall file'
+  echo 'Could not parse .rosinstall file' 1<&2
   _SETUP_SH_ERROR=1
 fi
 
