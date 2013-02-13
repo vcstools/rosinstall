@@ -645,9 +645,11 @@ $ roslocate info robot_model | %(prog)s merge -
         :param target_path: where to look for config
         :param config: config to use instead of parsing file anew
         """
-        parser = OptionParser(usage="usage: rosws set [localname] [SCM-URI]?  [--(detached|svn|hg|git|bzr)] [--version=VERSION]]",
-                              formatter=IndentedHelpFormatterWithNL(),
-                              description=__MULTIPRO_CMD_DICT__["set"] + """
+        usage = "usage: rosws set [localname] [SCM-URI]?  [--(%ssvn|hg|git|bzr)] [--version=VERSION]]" % ('detached|' if self.allow_other_element else '')
+        parser = OptionParser(
+            usage=usage,
+            formatter=IndentedHelpFormatterWithNL(),
+            description=__MULTIPRO_CMD_DICT__["set"] + """
 The command will infer whether you want to add or modify an entry. If
 you modify, it will only change the details you provide, keeping
 those you did not provide. if you only provide a uri, will use the
@@ -659,8 +661,10 @@ the element, run rosws update afterwards.
 Examples:
 $ rosws set robot_model --hg https://kforge.ros.org/robotmodel/robot_model
 $ rosws set robot_model --version robot_model-1.7.1
-$ rosws set robot_model --detached
-""",
+%s
+""" % ('$ rosws set robot_model --detached)'
+       if self.allow_other_element
+       else ''),
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         if self.allow_other_element:
             parser.add_option("--detached", dest="detach", default=False,
