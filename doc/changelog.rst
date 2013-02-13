@@ -8,6 +8,7 @@ Changelog
 ------
 
 - fix regression breaking wstool set command
+- fix rosws regenrate missing -t option
 
 0.6.24
 ------

@@ -192,6 +192,10 @@ accidentally.
         parser.add_option("--cmake-prefix-path", dest="catkinpp", default=None,
                           help="Where to set the CMAKE_PREFIX_PATH",
                           action="store")
+        # -t option required here for help but used one layer above, see cli_common
+        parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
+                          help="which workspace to use",
+                          action="store")
         (options, args) = parser.parse_args(argv)
         if len(args) > 0:
             print("Error: Too many arguments.")
