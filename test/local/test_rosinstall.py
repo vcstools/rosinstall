@@ -35,7 +35,6 @@ import copy
 import yaml
 import subprocess
 import tempfile
-import unittest
 
 import rosinstall
 import rosinstall.helpers

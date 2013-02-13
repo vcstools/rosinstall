@@ -35,9 +35,7 @@ from __future__ import unicode_literals
 import os
 import sys
 from test.io_wrapper import StringIO
-import unittest
 import subprocess
-import tempfile
 
 import rosinstall
 import rosinstall.helpers

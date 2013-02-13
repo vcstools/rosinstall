@@ -35,9 +35,6 @@ from __future__ import unicode_literals
 import os
 import sys
 from test.io_wrapper import StringIO
-import unittest
-import subprocess
-import tempfile
 
 import rosinstall
 import rosinstall.helpers
@@ -46,7 +43,7 @@ from rosinstall.rosws_cli import RoswsCLI
 from rosinstall.rosinstall_cli import rosinstall_main
 from rosinstall.rosws_cli import rosws_main
 
-from test.scm_test_base import AbstractSCMTest, _add_to_file, _nth_line_split
+from test.scm_test_base import AbstractSCMTest, _add_to_file
 
 from test.local.test_diff_functions_svn import create_svn_repo, modify_svn_repo
 from test.local.test_diff_functions_git import create_git_repo, modify_git_repo

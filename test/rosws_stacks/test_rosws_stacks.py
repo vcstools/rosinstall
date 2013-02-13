@@ -1,8 +1,5 @@
 import os
 import io
-import stat
-import struct
-import sys
 import unittest
 import tempfile
 import shutil

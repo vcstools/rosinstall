@@ -31,12 +31,10 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import sys
 import unittest
 import subprocess
 
 import rosinstall.helpers
-from rosinstall.helpers import ROSInstallException
 from rosinstall.config import Config
 from rosinstall.config_yaml import PathSpec
 

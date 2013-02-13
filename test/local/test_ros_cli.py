@@ -32,9 +32,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import copy
-import tempfile
-import unittest
 import subprocess
 import shutil
 import rosinstall.rosws_cli

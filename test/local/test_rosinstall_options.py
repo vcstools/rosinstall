@@ -36,7 +36,6 @@ import tempfile
 
 import rosinstall
 from rosinstall.rosinstall_cli import rosinstall_main
-from rosinstall.helpers import ROSInstallException
 from rosinstall.common import MultiProjectException
 
 from test.scm_test_base import AbstractFakeRosBasedTest, _create_yaml_file, _create_config_elt_dict, _create_git_repo

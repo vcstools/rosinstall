@@ -34,16 +34,10 @@ from __future__ import unicode_literals
 
 import os
 import copy
-import stat
-import struct
-import sys
 import unittest
 import subprocess
 import tempfile
 import shutil
-
-import rosinstall
-import rosinstall.helpers
 
 
 def _add_to_file(path, content):

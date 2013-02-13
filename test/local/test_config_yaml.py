@@ -32,8 +32,6 @@
 
 import os
 import unittest
-import copy
-import yaml
 import tempfile
 import shutil
 

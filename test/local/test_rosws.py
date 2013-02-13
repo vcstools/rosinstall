@@ -32,11 +32,7 @@
 
 import os
 import sys
-import copy
-import yaml
 import subprocess
-import tempfile
-import shutil
 import rosinstall
 import rosinstall.helpers
 from test.io_wrapper import StringIO

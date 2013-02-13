@@ -31,9 +31,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import stat
-import struct
-import sys
 import tempfile
 import shutil
 import unittest

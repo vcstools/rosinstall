@@ -33,8 +33,6 @@
 import os
 import sys
 import subprocess
-import tempfile
-import copy
 
 from test.io_wrapper import StringIO
 
@@ -253,7 +251,7 @@ class RosinstallInfoGitTest(AbstractSCMTest):
         output = output.getvalue()
         sys.stdout = sys.__stdout__
 
-    def test_rosinstall_detailed_locapath_info(self):
+    def test_rosinstall_detailed_localpath_info(self):
         cmd = ["rosws", "info", "-t", "ws"]
         os.chdir(self.test_root_path)
         sys.stdout = output = StringIO()

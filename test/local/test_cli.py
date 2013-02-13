@@ -33,10 +33,7 @@
 
 import os
 import sys
-import io
 import copy
-import yaml
-import subprocess
 import tempfile
 import unittest
 import shutil
@@ -52,7 +49,8 @@ from rosinstall.common import MultiProjectException
 from rosinstall.config import MultiProjectException, Config
 from rosinstall.config_yaml import PathSpec
 
-from test.scm_test_base import AbstractSCMTest, AbstractFakeRosBasedTest, _add_to_file, _nth_line_split, _create_yaml_file, _create_config_elt_dict
+from test.scm_test_base import AbstractFakeRosBasedTest, _add_to_file, \
+    _nth_line_split, _create_yaml_file, _create_config_elt_dict
 from . import mock_client
 
 

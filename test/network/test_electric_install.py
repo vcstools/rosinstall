@@ -33,7 +33,6 @@
 import os
 import copy
 import subprocess
-import tempfile
 
 import rosinstall
 import rosinstall.helpers
@@ -41,7 +40,7 @@ import rosinstall.config
 from rosinstall.rosinstall_cli import rosinstall_main
 from rosinstall.common import MultiProjectException
 from rosinstall.config_yaml import get_yaml_from_uri, get_path_specs_from_uri
-from test.scm_test_base import AbstractRosinstallBaseDirTest, _create_yaml_file, _create_config_elt_dict
+from test.scm_test_base import AbstractRosinstallBaseDirTest
 from test.network.distro_test_util import ros_found_in_yaml, ros_found_in_path_spec
 
 

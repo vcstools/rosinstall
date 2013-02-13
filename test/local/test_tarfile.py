@@ -1,8 +1,6 @@
 import os
 import copy
 import yaml
-import subprocess
-import tempfile
 
 import rosinstall
 import rosinstall.helpers

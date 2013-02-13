@@ -31,13 +31,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import io
-import copy
-import yaml
 import subprocess
 import tempfile
-import unittest
-import shutil
 
 import rosinstall.setupfiles
 import rosinstall.helpers
