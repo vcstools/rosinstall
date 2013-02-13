@@ -113,7 +113,7 @@ class GenerateTest(AbstractFakeRosBasedTest):
         os.makedirs(test_folder)
         othersetupfile = os.path.join(test_folder, 'othersetup.sh')
         testsetupfile = os.path.join(test_folder, 'testsetup.sh')
-        with open (othersetupfile, 'w') as fhand:
+        with open(othersetupfile, 'w') as fhand:
             fhand.write('unset ROS_WORKSPACE')
         config = Config([PathSpec(self.ros_path),
                          PathSpec(othersetupfile,
@@ -123,7 +123,7 @@ class GenerateTest(AbstractFakeRosBasedTest):
                         config_filename=ROSINSTALL_FILENAME)
         result = rosinstall.setupfiles.generate_setup_sh_text(config.get_base_path())
         self.assertTrue('export ROS_WORKSPACE=%s' % test_folder in result)
-        with open (testsetupfile, 'w') as fhand:
+        with open(testsetupfile, 'w') as fhand:
             fhand.write(result)
         # check that sourcing setup.sh raises error when .rosinstall is missing
         raised = False
@@ -175,11 +175,12 @@ class GenerateTest(AbstractFakeRosBasedTest):
 class Genfiletest(AbstractRosinstallBaseDirTest):
 
     def test_gen_python_code(self):
-        config = Config([PathSpec(os.path.join("test", "example_dirs", "ros_comm")),
-                         PathSpec("bar.sh", tags=['setup-file']),
-                         PathSpec("baz")],
-                        self.directory,
-                        None)
+        config = Config(
+            [PathSpec(os.path.join("test", "example_dirs", "ros_comm")),
+             PathSpec("bar.sh", tags=['setup-file']),
+             PathSpec("baz")],
+            self.directory,
+            None)
         rosinstall.config_yaml.generate_config_yaml(config, '.rosinstall', '')
         filename = os.path.join(self.directory, "test_gen.py")
         _add_to_file(filename, rosinstall.setupfiles.generate_embedded_python())

@@ -88,9 +88,10 @@ class RoswsCLI(MultiprojectCLI):
         if self.config_filename is None:
             print('Error: Bug: config filename required for init')
             return 1
-        parser = OptionParser(usage="""usage: %s init [TARGET_PATH [SOURCE_PATH]]?""" % _PROGNAME,
-                              formatter=IndentedHelpFormatterWithNL(),
-                              description=__MULTIPRO_CMD_DICT__["init"] + """
+        parser = OptionParser(
+            usage="""usage: %s init [TARGET_PATH [SOURCE_PATH]]?""" % _PROGNAME,
+            formatter=IndentedHelpFormatterWithNL(),
+            description=__MULTIPRO_CMD_DICT__["init"] + """
 
 %(prog)s init does the following:
   1. Reads folder/file/web-uri SOURCE_PATH looking for a rosinstall yaml
@@ -103,7 +104,7 @@ If PATH is not given, uses current dir.
 Examples:
 $ %(prog)s init ~/fuerte /opt/ros/fuerte
 """ % {'cfg_file': self.config_filename, 'prog': _PROGNAME},
-                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+            epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("-c", "--catkin", dest="catkin", default=False,
                           help="Declare this is a catkin build.",
                           action="store_true")
@@ -129,7 +130,8 @@ $ %(prog)s init ~/fuerte /opt/ros/fuerte
                 print('Error: Cannot create in target path %s ' % target_path)
 
         if os.path.exists(os.path.join(target_path, self.config_filename)):
-            print('Error: There already is a workspace config file %s at "%s". Use %s install/modify.' % (self.config_filename, target_path, _PROGNAME))
+            print('Error: There already is a workspace config file %s at "%s". Use %s install/modify.' %
+                  (self.config_filename, target_path, _PROGNAME))
             return 1
         if len(args) > 2:
             parser.error('Too many arguments')
@@ -145,7 +147,8 @@ $ %(prog)s init ~/fuerte /opt/ros/fuerte
 
         # includes ROS specific files
 
-        print("Writing %s" % os.path.join(config.get_base_path(), self.config_filename))
+        print("Writing %s" % os.path.join(config.get_base_path(),
+              self.config_filename))
         rosinstall_cmd.cmd_persist_config(config)
 
         ## install or update each element
@@ -169,7 +172,6 @@ $ %(prog)s init ~/fuerte /opt/ros/fuerte
             and options.catkinpp is None):
             print("\nType 'source %s/setup.bash' to change into this environment. Add that source command to the bottom of your ~/.bashrc to set it up every time you log in.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % os.path.abspath(target_path))
         return 0
-
 
     def cmd_regenerate(self, target_path, argv, config=None):
         parser = OptionParser(usage="usage: %s regenerate" % _PROGNAME,
@@ -204,7 +206,7 @@ accidentally.
         elif config.get_base_path() != target_path:
             raise MultiProjectException(
                 "Config path does not match %s %s " % (config.get_base_path(),
-                                                     target_path))
+                                                       target_path))
         rosinstall_cmd.cmd_generate_ros_files(config,
                                               target_path,
                                               nobuild=True,
@@ -215,10 +217,12 @@ accidentally.
         return 0
 
     def cmd_info(self, target_path, argv, reverse=True, config=None):
-        only_option_valid_attrs = ['path', 'localname', 'version', 'revision', 'cur_revision', 'uri', 'cur_uri', 'scmtype']
-        parser = OptionParser(usage="usage: %s info [localname]* [OPTIONS]" % _PROGNAME,
-                              formatter=IndentedHelpFormatterWithNL(),
-                              description=__MULTIPRO_CMD_DICT__["info"] + """
+        only_option_valid_attrs = ['path', 'localname', 'version',
+                                   'revision', 'cur_revision', 'uri', 'cur_uri', 'scmtype']
+        parser = OptionParser(
+            usage="usage: %s info [localname]* [OPTIONS]" % _PROGNAME,
+            formatter=IndentedHelpFormatterWithNL(),
+            description=__MULTIPRO_CMD_DICT__["info"] + """
 
 The Status (S) column shows
  x  for missing
@@ -247,16 +251,17 @@ $ %(prog)s info robot_model
 $ %(prog)s info --yaml
 $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
 """ % {'prog': _PROGNAME, 'opts': only_option_valid_attrs},
-                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+            epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("--data-only", dest="data_only", default=False,
                           help="Does not provide explanations",
                           action="store_true")
         parser.add_option("--no-pkg-path", dest="no_pkg_path", default=False,
                           help="Suppress ROS_PACKAGE_PATH.",
                           action="store_true")
-        parser.add_option("--pkg-path-only", dest="pkg_path_only", default=False,
-                          help="Shows only ROS_PACKAGE_PATH separated by ':'. Supercedes all other options.",
-                          action="store_true")
+        parser.add_option(
+            "--pkg-path-only", dest="pkg_path_only", default=False,
+            help="Shows only ROS_PACKAGE_PATH separated by ':'. Supercedes all other options.",
+            action="store_true")
         parser.add_option("--only", dest="only", default=False,
                           help="Shows comma-separated lists of only given comma-separated attribute(s).",
                           action="store")
@@ -265,9 +270,10 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
                           action="store_true")
 
         # -t option required here for help but used one layer above, see cli_common
-        parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
-                          help="which workspace to use",
-                          action="store")
+        parser.add_option(
+            "-t", "--target-workspace", dest="workspace", default=None,
+            help="which workspace to use",
+            action="store")
         (options, args) = parser.parse_args(argv)
 
         if config is None:
@@ -276,7 +282,8 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
                 additional_uris=[],
                 config_filename=self.config_filename)
         elif config.get_base_path() != target_path:
-            raise MultiProjectException("Config path does not match %s %s " % (config.get_base_path(), target_path))
+            raise MultiProjectException("Config path does not match %s %s " %
+                                        (config.get_base_path(), target_path))
         if args == []:
             args = None
         # relevant for code completion, so these should yield quick response:
@@ -291,7 +298,8 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
             lookup_required = False
             for attr in only_options:
                 if not attr in only_option_valid_attrs:
-                    parser.error("Invalid --only option '%s', valids are %s" % (attr, only_option_valid_attrs))
+                    parser.error("Invalid --only option '%s', valids are %s" %
+                                 (attr, only_option_valid_attrs))
                 if attr in ['cur_revision', 'cur_uri', 'revision']:
                     lookup_required = True
             elements = select_elements(config, args)
@@ -334,7 +342,7 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
             return 0
 
         header = 'workspace: %s\nROS_ROOT: %s' % (target_path,
-                                                get_ros_stack_path(config))
+                                                  get_ros_stack_path(config))
         print(header)
         if not options.no_pkg_path:
             table = get_info_table(config.get_base_path(),
@@ -345,6 +353,8 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
                 print("\n%s" % table)
 
         return 0
+
+
 def rosws_main(argv=None, usage=None):
     """
     Calls the function corresponding to the first argument.
@@ -357,7 +367,8 @@ def rosws_main(argv=None, usage=None):
     if (sys.argv[0] == '-c'):
         sys.argv = [_PROGNAME] + sys.argv[1:]
     if '--version' in argv:
-        print("%s: \t%s\n%s" % (_PROGNAME, rosinstall.__version__.version, cmd_version()))
+        print("%s: \t%s\n%s" %
+              (_PROGNAME, rosinstall.__version__.version, cmd_version()))
         sys.exit(0)
 
     if not usage:
@@ -415,8 +426,9 @@ def rosws_main(argv=None, usage=None):
             'status': cli.cmd_status,
             'update': cli.cmd_update}
         for label in list(ws_commands.keys()):
-            if label in __MULTIPRO_CMD_ALIASES__:
-                ws_commands[__MULTIPRO_CMD_ALIASES__[label]] = ws_commands[label]
+            alias = __MULTIPRO_CMD_ALIASES__.get(label, None)
+            if alias:
+                ws_commands[alias] = ws_commands[label]
 
         if command not in commands and command not in ws_commands:
             if os.path.exists(command):
@@ -424,7 +436,8 @@ def rosws_main(argv=None, usage=None):
                 command = 'info'
             else:
                 if command.startswith('-'):
-                    print("First argument must be name of a command: %s" % command)
+                    print("First argument must be name of a command: %s" %
+                          command)
                 else:
                     print("Error: unknown command: %s" % command)
                 usage()

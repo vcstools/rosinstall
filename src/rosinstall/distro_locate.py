@@ -51,10 +51,11 @@ def build_rosinstall(repo_name, uri, vcs_type, version, prefix):
     repo_name = repo_name if not prefix else '/'.join([prefix, repo_name])
 
     if version:
-        rosinstall.append({vcs_type: {'local-name': repo_name, 'uri': uri, 'version': version}})
+        rosinstall.append({vcs_type: {'local-name': repo_name,
+                          'uri': uri, 'version': version}})
     else:
         rosinstall.append({vcs_type: {'local-name': repo_name, 'uri': uri}})
-    #return yaml.dump(rosinstall, default_flow_style=False)
+    # return yaml.dump(rosinstall, default_flow_style=False)
     return rosinstall
 
 
@@ -77,9 +78,12 @@ def get_dry_info(dry_distro, name):
     if name in dry_stacks:
         stack = dry_stacks[name]
         if stack.vcs_config.type == 'svn':
-            return (name, stack.vcs_config.release_tag, stack.vcs_config.type, None)
+            return (name,
+                    stack.vcs_config.release_tag, stack.vcs_config.type, None)
         else:
-            return (name, stack.vcs_config.anon_repo_uri, stack.vcs_config.type, stack.vcs_config.release_tag)
+            return (name,
+                    stack.vcs_config.anon_repo_uri, stack.vcs_config.type,
+                    stack.vcs_config.release_tag)
 
 
 def get_release_rosinstall(name, wet_distro, dry_distro, prefix):
@@ -93,12 +97,18 @@ def get_release_rosinstall(name, wet_distro, dry_distro, prefix):
             rosinstall = []
             pkg_prefix = '/'.join([prefix, repo_name]) if prefix else repo_name
             for pkg in repo_info['packages'].keys():
-                rosinstall.extend(build_rosinstall(pkg, repo_info['url'], 'git', '/'.join(['release', pkg, repo_info['version'].split('-')[0]]), pkg_prefix))
+                rosinstall.extend(build_rosinstall(pkg, repo_info['url'], 'git', '/'.join(
+                    ['release', pkg, repo_info['version'].split('-')[0]]), pkg_prefix))
             return rosinstall
         else:
-            return build_rosinstall(name, repo_info['url'], 'git', '/'.join(['release', name, repo_info['version'].split('-')[0]]), prefix)
+            return build_rosinstall(
+                name,
+                repo_info['url'],
+                'git',
+                '/'.join(['release', name, repo_info['version'].split('-')[0]]),
+                prefix)
 
-    #Check if the name is in the dry distro
+    # Check if the name is in the dry distro
     info = get_dry_info(dry_distro, name)
     if info:
         name, uri, vcs_type, version = info
@@ -108,7 +118,7 @@ def get_release_rosinstall(name, wet_distro, dry_distro, prefix):
 
 
 def get_manifest_yaml(name, distro):
-    #If we didn't find the name, we need to try to find a stack for it
+    # If we didn't find the name, we need to try to find a stack for it
     url = 'http://ros.org/doc/%s/api/%s/manifest.yaml' % (distro, name)
     try:
         return yaml.load(urllib2.urlopen(url))
@@ -137,17 +147,18 @@ I'm looking for the following file %s" % (distro, url))
 
     dry_distro = rospkg_distro.load_distro(rospkg_distro.distro_uri(distro))
 
-    #Check to see if the name just exists in one of our rosdistro files
+    # Check to see if the name just exists in one of our rosdistro files
     rosinstall = get_release_rosinstall(name, wet_distro, dry_distro, prefix)
     if rosinstall:
         return rosinstall
 
-    #If we didn't find the name, we need to try to find a stack for it
+    # If we didn't find the name, we need to try to find a stack for it
     doc_yaml = get_manifest_yaml(name, distro)
     for metapackage in doc_yaml.get('metapackages', []):
         meta_yaml = get_manifest_yaml(metapackage, distro)
         if meta_yaml['package_type'] == 'stack':
-            rosinstall = get_release_rosinstall(metapackage, wet_distro, dry_distro, prefix)
+            rosinstall = get_release_rosinstall(
+                metapackage, wet_distro, dry_distro, prefix)
             if rosinstall:
                 return rosinstall
 
@@ -156,8 +167,9 @@ I'm looking for the following file %s" % (distro, url))
 
 def get_doc_info(name, distro, prefix=None):
     doc_yaml = get_manifest_yaml(name, distro)
-    return build_rosinstall(doc_yaml['repo_name'], doc_yaml['vcs_uri'], doc_yaml['vcs'],
-                            doc_yaml.get('vcs_version', ''), prefix)
+    return build_rosinstall(
+        doc_yaml['repo_name'], doc_yaml['vcs_uri'], doc_yaml['vcs'],
+        doc_yaml.get('vcs_version', ''), prefix)
 
 
 def get_doc_type(name, distro):

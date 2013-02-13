@@ -58,7 +58,8 @@ class YamlIO_Test(unittest.TestCase):
         self.assertTrue(y["number"] == 2)
         # invalid
         try:
-            yaml = get_yaml_from_uri(os.path.join("test", "example-broken.yaml"))
+            yaml = get_yaml_from_uri(
+                os.path.join("test", "example-broken.yaml"))
         except MultiProjectException:
             pass
         try:
@@ -95,6 +96,7 @@ class YamlIO_Test(unittest.TestCase):
             self.fail("Expected exception")
         except MultiProjectException:
             pass
+
 
 class ConfigElementYamlFunctions_Test(unittest.TestCase):
 
@@ -145,10 +147,13 @@ class UriAggregationTest(unittest.TestCase):
 
     def test_aggregate_from_uris(self):
         self.directory = tempfile.mkdtemp()
-        config = rosinstall.config.Config([PathSpec('ros', 'svn', 'some/uri')], self.directory)
+        config = rosinstall.config.Config(
+            [PathSpec('ros', 'svn', 'some/uri')], self.directory)
         rosinstall.config_yaml.generate_config_yaml(config, 'foo', "# Hello\n")
-        ryaml = aggregate_from_uris([self.directory], config.get_config_filename())
-        self.assertEqual(ryaml[0].get_legacy_yaml(), {'other': {'local-name': self.directory}})
+        ryaml = aggregate_from_uris(
+            [self.directory], config.get_config_filename())
+        self.assertEqual(ryaml[0].get_legacy_yaml(),
+                         {'other': {'local-name': self.directory}})
         self.assertRaises(MultiProjectException,
                           aggregate_from_uris,
                           [self.directory],
@@ -298,52 +303,62 @@ class ConfigElementYamlWrapper_Test(unittest.TestCase):
             struct = {}
             get_path_spec_from_yaml(struct)
             self.fail("expected exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
         try:
             struct = {"hello world": None}
             get_path_spec_from_yaml(struct)
             self.fail("expected exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
         try:
             struct = {"git": None}
             get_path_spec_from_yaml(struct)
             self.fail("expected exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
         try:
             struct = {"git": {}}
             get_path_spec_from_yaml(struct)
             self.fail("expected exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
         try:
             struct = {"git": {"uri": uri}}
             get_path_spec_from_yaml(struct)
             self.fail("expected exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
         try:
             struct = {"git": {"local-name": local_name}}
             get_path_spec_from_yaml(struct)
             self.fail("expected exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
         try:
             struct = {"foo": {"foo": None}}
             get_path_spec_from_yaml(struct)
             self.fail("expected exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
         try:
             struct = {"other": {"foo": None}}
             get_path_spec_from_yaml(struct)
             self.fail("expected exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
         try:
             struct = {"other": {"uri": uri}}
             get_path_spec_from_yaml(struct)
             self.fail("expected exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
         try:
             struct = {"other": {"version": version}}
             get_path_spec_from_yaml(struct)
             self.fail("expected exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
 
     def test_original_syntax_setupfile(self):
         local_name = '/opt/ros/fuerte/setup.sh'
@@ -362,9 +377,11 @@ class ConfigElementYamlWrapper_Test(unittest.TestCase):
             struct = {"setup-file": {"uri": uri}}
             get_path_spec_from_yaml(struct)
             self.fail("expected exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
         try:
             struct = {"setup-file": {"version": version}}
             get_path_spec_from_yaml(struct)
             self.fail("expected exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass

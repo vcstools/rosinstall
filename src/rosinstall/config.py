@@ -92,8 +92,9 @@ class Config:
         :param path_specs: PathSpec objects
         :returns: merge action taken, see insert_element
         """
-        #compute the local_path for the config element
-        local_path = normabspath(path_spec.get_local_name(), self.get_base_path())
+        # compute the local_path for the config element
+        local_path = normabspath(
+            path_spec.get_local_name(), self.get_base_path())
         if os.path.isfile(local_path):
             if path_spec.get_tags() is not None and 'setup-file' in path_spec.get_tags():
                 elem = SetupConfigElement(local_path,
@@ -115,7 +116,8 @@ class Config:
             if path_spec.get_scmtype() != None:
                 return self._insert_vcs_path_spec(path_spec, local_path, merge_strategy)
             else:
-                # keep the given local name (e.g. relative path) for other elements, but normalize
+                # keep the given local name (e.g. relative path) for other
+                # elements, but normalize
                 local_name = os.path.normpath(path_spec.get_local_name())
                 elem = OtherConfigElement(local_path,
                                           local_name,
@@ -124,8 +126,6 @@ class Config:
                                           properties=path_spec.get_tags())
                 return self.insert_element(elem, merge_strategy)
 
-
-
     def _insert_vcs_path_spec(self, path_spec, local_path, merge_strategy='KillAppend'):
         # Get the version and source_uri elements
         source_uri = normalize_uri(path_spec.get_uri(), self.get_base_path())
@@ -133,15 +133,17 @@ class Config:
         version = path_spec.get_version()
         try:
             local_name = os.path.normpath(path_spec.get_local_name())
-            elem = self._create_vcs_config_element(path_spec.get_scmtype(),
-                                                   local_path,
-                                                   local_name,
-                                                   source_uri,
-                                                   version,
-                                                   properties=path_spec.get_tags())
+            elem = self._create_vcs_config_element(
+                path_spec.get_scmtype(),
+                local_path,
+                local_name,
+                source_uri,
+                version,
+                properties=path_spec.get_tags())
             return self.insert_element(elem, merge_strategy)
         except LookupError as ex:
-            raise MultiProjectException("Abstracted VCS Config failed. Exception: %s" % ex)
+            raise MultiProjectException(
+                "Abstracted VCS Config failed. Exception: %s" % ex)
 
     def insert_element(self, new_config_elt, merge_strategy='KillAppend'):
         """
@@ -150,12 +152,14 @@ class Config:
         given strategy
 
         - KillAppend (default): remove old element, append new at the end
-        - MergeReplace: remove first such old element, insert new at that position.
+        - MergeReplace: remove first hit, insert new at that position.
         - MergeKeep: Discard new element
 
         In case local path matches but local name does not, raise Exception
 
-        :returns: the action performed None, 'Append', 'KillAppend', 'MergeReplace', 'MergeKeep'"""
+        :returns: the action performed None, 'Append', 'KillAppend',
+        'MergeReplace', 'MergeKeep'
+        """
         removals = []
         replaced = False
         for index, loop_elt in enumerate(self.trees):
@@ -172,7 +176,8 @@ class Config:
                         (merge_strategy == 'KillAppend' and
                          index == len(self.trees) - 1)):
                         self.trees[index] = new_config_elt
-                        # keep looping to check for overlap when replacing non-scm with scm entry
+                        # keep looping to check for overlap when replacing non-
+                        # scm with scm entry
                         replaced = True
                         if (loop_elt.is_vcs_element or not new_config_elt.is_vcs_element):
                             return 'MergeReplace'
@@ -191,7 +196,7 @@ class Config:
                 # deleted with their parents
                 raise MultiProjectException(
                     "Managed Element paths overlap: %s, %s" % (loop_elt,
-                                                             new_config_elt))
+                                                               new_config_elt))
         if replaced:
             return 'MergeReplace'
         for loop_elt in removals:
@@ -238,7 +243,8 @@ class Config:
 
     def get_source(self):
         """
-        :returns: all elements that got added by user keystrokes (CLI and changed .rosinstall)
+        :returns: all elements that got added by user keystrokes
+        (CLI and changed .rosinstall)
         """
         source_aggregate = []
         for tree_el in self.trees:

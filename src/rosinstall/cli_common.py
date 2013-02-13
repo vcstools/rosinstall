@@ -52,15 +52,17 @@ def get_workspace(argv, shell_path, config_filename=None, varname=None):
     :returns: abspath if a .rosinstall was found, error and exist else.
     """
     parser = OptionParser()
-    parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
-                      help="which workspace to use",
-                      action="store")
+    parser.add_option(
+        "-t", "--target-workspace",
+        dest="workspace", default=None,
+        help="which workspace to use",
+        action="store")
     # suppress errors based on any other options this parser is agnostic about
     argv2 = [x for x in argv if ((not x.startswith('-')) or
-                              x.startswith('--target-workspace=') or
-                              x.startswith('-t') or
-                              x == '--target-workspace')]
-    (options, args) = parser.parse_args(argv2)
+                                 x.startswith('--target-workspace=') or
+                                 x.startswith('-t') or
+                                 x == '--target-workspace')]
+    (options, _) = parser.parse_args(argv2)
     if options.workspace is not None:
         if (config_filename is not None and
             not os.path.isfile(os.path.join(options.workspace, config_filename))):
@@ -70,7 +72,8 @@ def get_workspace(argv, shell_path, config_filename=None, varname=None):
 
     varname_path = None
     if varname is not None and varname in os.environ:
-        # workspace could be relative, maybe confusing, but that's the users fault
+        # workspace could be relative, maybe confusing,
+        # but that's the users fault
         varname_path = os.environ[varname]
         if varname_path.strip() == '' or not os.path.isdir(varname_path):
             varname_path = None
@@ -163,7 +166,8 @@ def get_info_table_elements(basepath, entries, headers):
         if line['scm'] is not None:
 
             if line['scm'] == 'svn':
-                # in case of SVN, we can use the final part of standard uri as version
+                # in case of SVN, we can use the final part of
+                # standard uri as version
                 uri = line['uri']
                 version = line['version']
                 match = re.match('(.*/)((tags|branches|trunk)(/.*)*)', uri)
@@ -217,7 +221,8 @@ def get_info_table_elements(basepath, entries, headers):
                         break
 
             if (not _uris_match(basepath, line['uri'], line['curr_uri'])):
-                output_dict['uri'] = "%s    (%s)" % (line['curr_uri'], line['uri'])
+                output_dict['uri'] = "%s    (%s)" % (line[
+                                                     'curr_uri'], line['uri'])
 
         else:
             output_dict['matching'] = " "
@@ -231,15 +236,16 @@ def get_info_table_elements(basepath, entries, headers):
 def get_info_table(basepath, entries, data_only=False, reverse=False):
     """return a refined textual representation of the entries"""
     headers = {
-      'uri': "URI  (Spec) [http(s)://...]",
-      'scm': "SCM ",
-      'localname': "Localname",
-      'version': "Version-Spec",
-      'matching': "UID  (Spec)",
-      'status': "S"}
+        'uri': "URI  (Spec) [http(s)://...]",
+        'scm': "SCM ",
+        'localname': "Localname",
+        'version': "Version-Spec",
+        'matching': "UID  (Spec)",
+        'status': "S"}
 
     # table design
-    selected_headers = ['localname', 'status', 'scm', 'version', 'matching', 'uri']
+    selected_headers = ['localname', 'status', 'scm', 'version',
+                        'matching', 'uri']
 
     outputs = get_info_table_elements(
         basepath=basepath,
@@ -298,16 +304,16 @@ def get_info_list(basepath, line, data_only=False):
     assert line is not None, "Bug Warning, an element is missing"
 
     headers = {
-      'uri': "URI:",
-      'curr_uri': "Current URI:",
-      'scm': "SCM:",
-      'localname': "Localname:",
-      'path': "Path",
-      'version': "Version-Spec:",
-      'status': "Status:",
-      'specversion': "Spec-Revision:",
-      'actualversion': "Current-Revision:",
-      'properties': "Other Properties:"}
+        'uri': "URI:",
+        'curr_uri': "Current URI:",
+        'scm': "SCM:",
+        'localname': "Localname:",
+        'path': "Path",
+        'version': "Version-Spec:",
+        'status': "Status:",
+        'specversion': "Spec-Revision:",
+        'actualversion': "Current-Revision:",
+        'properties': "Other Properties:"}
 
     # table design
     selected_headers = ['localname', 'path', 'status',

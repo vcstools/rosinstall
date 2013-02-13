@@ -13,6 +13,7 @@ from rosinstall.helpers import ROSInstallException
 from rosinstall.config import Config
 from rosinstall.config_yaml import PathSpec
 
+
 class RosWsStacksTest(unittest.TestCase):
     def test_get_distro(self):
         self.assertEqual('diamondback', rosinstall.rosws_stacks_cli.rosversion_to_distro_name([1, 4, 0]))
@@ -30,8 +31,6 @@ class RosWsStacksTest(unittest.TestCase):
         except ROSInstallException:
             pass
 
-
-        
     def test_get_stack_element_in_config(self):
         self.test_root_path = tempfile.mkdtemp()
         self.install_path = os.path.join(self.test_root_path, "install")

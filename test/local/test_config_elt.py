@@ -172,4 +172,5 @@ class ConfigElements_Test(unittest.TestCase):
             vcsc = rosinstall.config_elements.AVCSConfigElement("mock", path, localname, uri, None, vcsc=mockclient)
             vcsc.install()
             self.fail("should have raised Exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass

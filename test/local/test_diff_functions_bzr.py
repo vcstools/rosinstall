@@ -88,7 +88,8 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
         create_bzr_repo(remote_path)
 
         # rosinstall the remote repo and fake ros
-        _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- bzr: {local-name: clone, uri: %s}" % remote_path)
+        _add_to_file(os.path.join(self.local_path, ".rosinstall"),
+                     "- other: {local-name: ../ros}\n- bzr: {local-name: clone, uri: %s}" % remote_path)
 
         cmd = ["rosinstall", "ws", "-n"]
         os.chdir(self.test_root_path)
@@ -113,7 +114,7 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
         """Test diff output for bzr when run outside workspace"""
         cmd = ["rosinstall", "ws", "--diff"]
         os.chdir(self.test_root_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosinstall_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
@@ -121,7 +122,7 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
 
         cmd = ["rosws", "diff", "-t", "ws"]
         os.chdir(self.test_root_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosws_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
@@ -136,14 +137,14 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
         directory = self.test_root_path + "/ws"
         cmd = ["rosinstall", ".", "--diff"]
         os.chdir(directory)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosinstall_main(cmd)
         output = output.getvalue()
         self.check_diff_output(output)
 
         cmd = ["rosws", "diff"]
         os.chdir(directory)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosws_main(cmd)
         output = output.getvalue()
         sys.stdout = sys.__stdout__
@@ -152,20 +153,19 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_diff(directory, []))
 
-
     def test_Rosinstall_status_bzr_inside(self):
         """Test status output for bzr when run inside workspace"""
         directory = self.test_root_path + "/ws"
         cmd = ["rosinstall", ".", "--status"]
         os.chdir(directory)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosinstall_main(cmd)
         output = output.getvalue()
         self.assertEqual('+N      clone/added.txt\n D      clone/deleted-fs.txt\n-D      clone/deleted.txt\n M      clone/modified-fs.txt\n M      clone/modified.txt\n', output)
 
         cmd = ["rosws", "status"]
         os.chdir(directory)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosws_main(cmd)
         output = output.getvalue()
         sys.stdout = sys.__stdout__
@@ -178,9 +178,9 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
         """Test status output for bzr when run outside workspace"""
         cmd = ["rosinstall", "ws", "--status"]
         os.chdir(self.test_root_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosinstall_main(cmd)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosinstall_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
@@ -188,7 +188,7 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
 
         cmd = ["rosws", "status", "-t", "ws"]
         os.chdir(self.test_root_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosws_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
@@ -201,7 +201,7 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
         """Test status output for bzr when run outside workspace"""
         cmd = ["rosinstall", "ws", "--status-untracked"]
         os.chdir(self.test_root_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosinstall_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
@@ -209,7 +209,7 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
 
         cmd = ["rosws", "status", "-t", "ws", "--untracked"]
         os.chdir(self.test_root_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosws_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
@@ -221,7 +221,7 @@ class RosinstallDiffBzrTest(AbstractSCMTest):
     def test_rosws_info_bzr(self):
         cmd = ["rosws", "info", "-t", "ws"]
         os.chdir(self.test_root_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosws_main(cmd)
         output = output.getvalue()
         tokens = _nth_line_split(-2, output)
@@ -255,7 +255,7 @@ class RosinstallInfoBzrTest(AbstractSCMTest):
 
         cmd = ["rosws", "update"]
         os.chdir(self.local_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosws_main(cmd)
         output = output.getvalue()
         sys.stdout = sys.__stdout__
@@ -263,7 +263,7 @@ class RosinstallInfoBzrTest(AbstractSCMTest):
     def test_rosinstall_detailed_locapath_info(self):
         cmd = ["rosws", "info", "-t", "ws"]
         os.chdir(self.test_root_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosws_main(cmd)
         output = output.getvalue()
 
@@ -273,7 +273,7 @@ class RosinstallInfoBzrTest(AbstractSCMTest):
         clone_path = os.path.join(self.local_path, "clone")
         # make local modifications check
         subprocess.check_call(["rm", "test2.txt"], cwd=clone_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosws_main(cmd)
         output = output.getvalue()
         tokens = _nth_line_split(-2, output)
@@ -282,7 +282,7 @@ class RosinstallInfoBzrTest(AbstractSCMTest):
         subprocess.check_call(["rm", ".rosinstall"], cwd=self.local_path)
         _add_to_file(os.path.join(self.local_path, ".rosinstall"), "- other: {local-name: ../ros}\n- bzr: {local-name: clone, uri: ../remote, version: \"footag\"}")
         os.chdir(self.test_root_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosws_main(cmd)
         output = output.getvalue()
         tokens = _nth_line_split(-2, output)
@@ -290,7 +290,7 @@ class RosinstallInfoBzrTest(AbstractSCMTest):
 
         subprocess.check_call(["rm", "-rf", "clone"], cwd=self.local_path)
         os.chdir(self.test_root_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosws_main(cmd)
         output = output.getvalue()
         tokens = _nth_line_split(-2, output)

@@ -124,7 +124,8 @@ class ConfigElement(object):
 
     def get_versioned_path_spec(self):
         """PathSpec where VCS elements have the version looked up"""
-        raise NotImplementedError("ConfigElement get_versioned_path_spec unimplemented")
+        raise NotImplementedError(
+            "ConfigElement get_versioned_path_spec unimplemented")
 
     def is_vcs_element(self):
         # subclasses to override when appropriate
@@ -140,14 +141,14 @@ class ConfigElement(object):
         if not backup_path:
             raise MultiProjectException(
                 "[%s] Cannot install %s.  backup disabled." % (self.get_local_name(),
-                                                             self.get_path()))
+                                                               self.get_path()))
         backup_path = os.path.join(
             backup_path,
             "%s_%s" % (os.path.basename(self.path),
-                     datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")))
+                       datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")))
         print("[%s] Backing up %s to %s" % (self.get_local_name(),
-                                          self.get_path(),
-                                          backup_path))
+                                            self.get_path(),
+                                            backup_path))
         shutil.move(self.path, backup_path)
 
     def __str__(self):
@@ -290,12 +291,12 @@ class VCSConfigElement(ConfigElement):
                 # If robust ala continue-on-error, just error now and
                 # it will be continued at a higher level
                 if robust:
-                    raise MultiProjectException("Update Failed of %s: %s" % (
-                            self.path, error_message))
+                    raise MultiProjectException("Update Failed of %s: %s" %
+                                                (self.path, error_message))
                 # prompt the user based on the error code
                 if arg_mode == 'prompt':
-                    print("Prepare updating %s (version %s) to %s" % (
-                            self.uri, self.version, self.path))
+                    print("Prepare updating %s (version %s) to %s" %
+                          (self.uri, self.version, self.path))
                     mode = Ui.get_ui().prompt_del_abort_retry(
                         error_message,
                         allow_skip=True,
@@ -305,9 +306,10 @@ class VCSConfigElement(ConfigElement):
                 if mode == 'backup':
                     preparation_report.backup = True
                     if backup_path is None:
-                        print("Prepare updating %s (version %s) to %s" % (
-                                self.uri, self.version, self.path))
-                        preparation_report.backup_path = Ui.get_ui().get_backup_path()
+                        print("Prepare updating %s (version %s) to %s" %
+                              (self.uri, self.version, self.path))
+                        preparation_report.backup_path = \
+                            Ui.get_ui().get_backup_path()
                     else:
                         preparation_report.backup_path = backup_path
                 elif mode == 'abort':
@@ -321,7 +323,8 @@ class VCSConfigElement(ConfigElement):
                 elif mode == 'inplace':
                     preparation_report.inplace = True
                 else:
-                    raise RuntimeError('Bug: Unknown option "%s" selected' % mode)
+                    raise RuntimeError(
+                        'Bug: Unknown option "%s" selected' % mode)
         return preparation_report
 
     def install(self,
@@ -345,7 +348,7 @@ class VCSConfigElement(ConfigElement):
         """
         if checkout is True:
             print("[%s] Fetching %s (version %s) to %s" % (
-                    self.get_local_name(), self.uri, self.version, self.get_path()))
+                self.get_local_name(), self.uri, self.version, self.get_path()))
             if self.path_exists():
                 if os.path.islink(self.path):
                     if inplace is False:
@@ -368,11 +371,12 @@ class VCSConfigElement(ConfigElement):
                         self.version,
                         self.get_path()))
         else:
-            print("[%s] Updating %s" % (self.get_local_name(), self.get_path()))
+            print("[%s] Updating %s" %
+                  (self.get_local_name(), self.get_path()))
             if not self._get_vcsc().update(self.version, verbose=verbose):
                 raise MultiProjectException(
                     "[%s] Update Failed of %s" % (self.get_local_name(),
-                                                self.get_path()))
+                                                  self.get_path()))
         print("[%s] Done." % self.get_local_name())
 
     def get_path_spec(self):

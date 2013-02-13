@@ -88,12 +88,16 @@ def get_yaml_from_uri(uri):
 
 def get_path_specs_from_uri(uri, config_filename=None, as_is=False):
     """
-    Builds a list of PathSpec elements from several types of input locations, "uris".
-    The function treats other workspace folders/files as special uris to prevent mutual conflicts.
+    Builds a list of PathSpec elements from several types of input
+    locations, "uris".
+    The function treats other workspace folders/files as special uris
+    to prevent mutual conflicts.
 
     :param uri: a folder, a file, or a web url
-    :param config_filename: name for files to be treated special as other workspaces
-    :param as_is: do not rewrite, used for loading the current workspace config without rewriting
+    :param config_filename: name for files to be treated special
+    as other workspaces
+    :param as_is: do not rewrite, used for loading the current
+    workspace config without rewriting
     """
     if os.path.isdir(uri):
         if (config_filename is not None and
@@ -132,7 +136,8 @@ def rewrite_included_source(source_path_specs, source_dir):
                                                    pathspec.get_local_name()))
         pathspec.set_local_name(local_name)
         if pathspec.get_path() is not None:
-            path = os.path.normpath(os.path.join(source_dir, pathspec.get_path()))
+            path = os.path.normpath(
+                os.path.join(source_dir, pathspec.get_path()))
             pathspec.set_path(path)
         pathspec.detach_vcs_info()
         source_path_specs[index] = pathspec
@@ -142,14 +147,16 @@ def rewrite_included_source(source_path_specs, source_dir):
 def aggregate_from_uris(config_uris, config_filename=None, allow_other_element=True):
     """
     Builds a List of PathSpec from a list of location strings (uri,
-    paths). If locations is a folder, attempts to find config_filename in it,
-    and use "folder/config_filename" instead(rewriting element path and
-    stripping scm nature), else add folder as PathSpec.    Anything else,
-    parse yaml at location, and add a PathSpec for each element.
+    paths). If locations is a folder, attempts to find config_filename
+    in it, and use "folder/config_filename" instead(rewriting element
+    path and stripping scm nature), else add folder as PathSpec.
+    Anything else, parse yaml at location, and add a PathSpec for each
+    element.
 
     :param config_uris: source of yaml
     :param config_filename: file to use when given a folder
-    :param allow_other_element: if False, discards elements to be added without SCM information
+    :param allow_other_element: if False, discards elements
+    to be added without SCM information
     """
     aggregate_source_yaml = []
     # build up a merged list of config elements from all given config_uris

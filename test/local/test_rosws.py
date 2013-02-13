@@ -253,28 +253,28 @@ class RosWsTest(AbstractFakeRosBasedTest):
         workspace = os.path.join(self.test_root_path, 'ws7')
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_init([workspace, self.simple_rosinstall]))
-        #pkg_path
-        sys.stdout = output = StringIO();
+        # pkg_path
+        sys.stdout = output = StringIO()
         self.assertEqual(0, cli.cmd_info(workspace, ['--pkg-path-only']))
         output = output.getvalue()
         self.assertEqual(os.path.join(workspace, 'gitrepo'), output.strip())
 
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         self.assertEqual(0, cli.cmd_info(workspace, ['--only=localname']))
         output = output.getvalue()
         self.assertEqual('ros\ngitrepo', output.strip())
 
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         self.assertEqual(0, cli.cmd_info(workspace, ['--only=version']))
         output = output.getvalue()
         self.assertEqual('', output.strip())
 
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         self.assertEqual(0, cli.cmd_info(workspace, ['--only=uri']))
         output = output.getvalue()
         self.assertEqual('%s\n%s\n' % (os.path.join(self.test_root_path, 'ros'), os.path.join(self.test_root_path, 'gitrepo')), output)
 
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         self.assertEqual(0, cli.cmd_info(workspace, ['--only=cur_revision']))
         output = output.getvalue()
         self.assertEqual(82, len(output))

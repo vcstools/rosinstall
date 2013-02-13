@@ -89,11 +89,13 @@ class ConfigSimple_Test(unittest.TestCase):
         try:
             Config(None, "path", None)
             self.fail("expected Exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
         try:
             Config([PathSpec('foo', 'bar')], "path", None)
             self.fail("expected Exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
 
     def test_init(self):
         yaml = []
@@ -179,25 +181,29 @@ class ConfigSimple_Test(unittest.TestCase):
                 p2 = PathSpec('share/ros', 'hg', 'hg/uri', 'hg.version')
                 config = self._get_mock_config([p1, p2])
                 self.fail("expected overlap Exception")
-            except MultiProjectException: pass
+            except MultiProjectException:
+                pass
             try:
                 p1 = PathSpec('share', 'git', 'git/uri', 'git.version')
                 p2 = PathSpec('share/ros', 'hg', 'hg/uri', 'hg.version')
                 config = self._get_mock_config([p2, p1])
                 self.fail("expected overlap Exception")
-            except MultiProjectException: pass
+            except MultiProjectException:
+                pass
             try:
                 p1 = PathSpec('share', 'git', 'git/uri', 'git.version')
                 p2 = PathSpec('share/ros')
                 config = self._get_mock_config([p2, p1])
                 self.fail("expected overlap Exception")
-            except MultiProjectException: pass
+            except MultiProjectException:
+                pass
             try:
                 p1 = PathSpec('share', 'git', 'git/uri', 'git.version')
                 p2 = PathSpec('share/ros')
                 config = self._get_mock_config([p1, p2])
                 self.fail("expected overlap Exception")
-            except MultiProjectException: pass
+            except MultiProjectException:
+                pass
         finally:
             shutil.rmtree(root_path)
 

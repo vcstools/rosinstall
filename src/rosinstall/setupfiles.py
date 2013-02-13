@@ -73,6 +73,7 @@ SHELL_HEADER = """# THIS IS AN AUTO-GENERATED FILE
 # see: http://www.ros.org/wiki/rosinstall
 """
 
+
 def generate_catkin_cmake(path, catkinpp):
     with open(os.path.join(path, "CMakeLists.txt"), 'w') as cmake_file:
         cmake_file.write(CATKIN_CMAKE_TOPLEVEL)
@@ -157,7 +158,6 @@ def generate_setup_sh_text(workspacepath):
 
     :param workspacepath: The path to the workspace
     '''
-
 
     pycode = generate_embedded_python()
 

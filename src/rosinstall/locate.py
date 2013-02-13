@@ -62,7 +62,8 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
         if 'rosinstalls' in data:
             ri_entry = data['rosinstalls'].get(branch, None)
         else:
-            sys.stderr.write('Warning: No specific branch data for branch "%s" found, falling back on default checkout\n' % branch)
+            sys.stderr.write(
+                'Warning: No specific branch data for branch "%s" found, falling back on default checkout\n' % branch)
 
     # if we were unable to compute the rosinstall info based on a
     # desired branch, use the default info instead
@@ -73,7 +74,8 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
             if 'vcs' in data and 'vcs_uri' in data:
                 # fancy logic to enable package-specific checkout and also
                 # fix a bug in the indexer.
-                ri_entry = {data['vcs']: {'local-name': name, 'uri': data['vcs_uri']}}
+                ri_entry = {data['vcs']: {'local-name':
+                                          name, 'uri': data['vcs_uri']}}
                 if 'vcs_version' in data:
                     ri_entry['version'] = data['vcs_version']
             else:
@@ -163,7 +165,6 @@ def get_rosdoc_manifest(stackage_name, distro_name=None):
     errors = []
     # ! loop vars used after loop as well
     for type_, url in zip(['stack', 'package'], [url_stack, url_pack]):
-        loop_error = None
         try:
             streamdata = urlopen(url)
             data = yaml.load(streamdata)
@@ -174,7 +175,6 @@ def get_rosdoc_manifest(stackage_name, distro_name=None):
                                                                  url))
             break
         except Exception as loope:
-            loop_error = loope
             errors.append((url, loope))
 
     # 1 error is expected when we query package

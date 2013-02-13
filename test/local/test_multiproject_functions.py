@@ -47,11 +47,14 @@ class FooThing:
         self.element = el
         self.done = False
         self.result = result
+
     def do_work(self):
         self.done = True
         return self.result
+
     def get_path_spec(self):
         return self.element
+
     def get_local_name(self):
         return 'bar'
 
@@ -60,8 +63,10 @@ class MockElement:
     def __init__(self, localname, path):
         self.localname = localname
         self.path = path
+
     def get_local_name(self):
         return self.localname
+
     def get_path(self):
         return self.path
 
@@ -102,10 +107,22 @@ class FunctionsTest(unittest.TestCase):
         self.assertEqual('', string_diff(None, None))
         self.assertEqual('foo', string_diff('foo', 'foo'))
         self.assertEqual('foo3', string_diff('foo', 'foo3'))
-        self.assertEqual('...7890foo3', string_diff('12345678901234567890foo', '12345678901234567890foo3'))
-        self.assertEqual('...7890foo3', string_diff('12345678901234567890foo4', '12345678901234567890foo3'))
-        self.assertEqual('...7890foo3', string_diff('12345678901234567890foo45', '12345678901234567890foo3'))
-        self.assertEqual('...4567890foo123456789123456789', string_diff('12345678901234567890', '12345678901234567890foo123456789123456789'))
+        self.assertEqual(
+            '...7890foo3',
+            string_diff('12345678901234567890foo',
+                        '12345678901234567890foo3'))
+        self.assertEqual(
+            '...7890foo3',
+            string_diff('12345678901234567890foo4',
+                        '12345678901234567890foo3'))
+        self.assertEqual(
+            '...7890foo3',
+            string_diff('12345678901234567890foo45',
+                        '12345678901234567890foo3'))
+        self.assertEqual(
+            '...4567890foo123456789123456789',
+            string_diff('12345678901234567890',
+                        '12345678901234567890foo123456789123456789'))
 
         self.assertEqual("['foo']", string_diff(['foo'], ['foo']))
         self.assertEqual("['bar']", string_diff(['foo'], ['bar']))
@@ -149,11 +166,13 @@ class FunctionsTest(unittest.TestCase):
         try:
             w = WorkerThread(None, None, None)
             self.fail("expected Exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
         try:
             w = WorkerThread(FooThing(el=None), 2, 3)
             self.fail("expected Exception")
-        except MultiProjectException: pass
+        except MultiProjectException:
+            pass
         thing = FooThing(FooThing(None))
         result = [None]
         w = WorkerThread(thing, result, 0)
@@ -196,9 +215,11 @@ class FunctionsTest(unittest.TestCase):
         mock1 = MockElement('foo', '/test/path1')
         mock2 = MockElement('bar', '/test/path2')
         mock3 = MockElement('baz', '/test/path3')
+
         class FakeConfig():
             def get_config_elements(self):
                 return [mock1, mock2, mock3]
+
             def get_base_path(self):
                 return '/foo/bar'
         self.assertEqual([mock1, mock2, mock3],

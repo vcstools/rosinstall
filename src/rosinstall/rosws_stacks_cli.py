@@ -76,7 +76,8 @@ def roslocate_info(stack, distro, dev):
     try:
         proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
     except OSError as exc:
-        raise ROSInstallException('%s\nfailed to execute roslocate; is your ROS environment configured?' % (exc))
+        raise ROSInstallException(
+            '%s\nfailed to execute roslocate; is your ROS environment configured?' % (exc))
 
     stdout, stderr = proc.communicate()
     if proc.returncode != 0:
@@ -89,7 +90,8 @@ def roslocate_info(stack, distro, dev):
         try:
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
         except OSError as exc:
-            raise ROSInstallException('%s\nfailed to execute roslocate; is your ROS environment configured?' % (exc))
+            raise ROSInstallException(
+                '%s\nfailed to execute roslocate; is your ROS environment configured?' % (exc))
 
         stdout, stderr = proc.communicate()
         if proc.returncode != 0:
@@ -107,7 +109,8 @@ def get_ros_stack_version():
     try:
         proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
     except OSError as exc:
-        raise ROSInstallException('%s\nfailed to execute rosversion; is your ROS environment configured?' % (exc))
+        raise ROSInstallException(
+            '%s\nfailed to execute rosversion; is your ROS environment configured?' % (exc))
 
     stdout, stderr = proc.communicate()
     if proc.returncode != 0:
@@ -151,7 +154,8 @@ def get_dependent_stacks(stack):
     try:
         proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
     except OSError as exc:
-        raise ROSInstallException('%s\nfailed to execute rosstack; is your ROS environment configured?' % (exc))
+        raise ROSInstallException(
+            '%s\nfailed to execute rosstack; is your ROS environment configured?' % (exc))
     stdout, stderr = proc.communicate()
     if proc.returncode != 0:
         raise ROSInstallException('rosstack failed: %s' % (stderr))
@@ -176,7 +180,8 @@ def cmd_add_stack(config, stackname, released=False, recurse=False):
     def _add_stack(config, stackname, distro, released=False):
         stack_element = get_stack_element_in_config(config, stackname)
         if stack_element is not None:
-            print("stack %stackname already in config at %s" % (stackname, stack_element.get_path()))
+            print("stack %stackname already in config at %s" %
+                  (stackname, stack_element.get_path()))
             return False
         yaml_dict = roslocate_info(stackname, distro, not released)
         if yaml_dict is not None and len(yaml_dict) > 0:
@@ -242,7 +247,7 @@ class RosWsStacksCLI():
 
     def cmd_add_stack(self, target_path, argv):
         parser = OptionParser(usage="usage: rosws add-stack [PATH] localname",
-                        epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("-N", "--non-recursive", dest="norecurse",
                           default=False,
                           help="don't change configuration for dependent stacks",
@@ -273,13 +278,16 @@ class RosWsStacksCLI():
             mode = 'delete'
         if options.abort_changed:
             if mode == 'delete':
-                parser.error("delete-changed-uris is mutually exclusive with abort-changed-uris")
+                parser.error(
+                    "delete-changed-uris is mutually exclusive with abort-changed-uris")
             mode = 'abort'
         if options.backup_changed != '':
             if mode == 'delete':
-                parser.error("delete-changed-uris is mutually exclusive with backup-changed-uris")
+                parser.error(
+                    "delete-changed-uris is mutually exclusive with backup-changed-uris")
             if mode == 'abort':
-                parser.error("abort-changed-uris is mutually exclusive with backup-changed-uris")
+                parser.error(
+                    "abort-changed-uris is mutually exclusive with backup-changed-uris")
             mode = 'backup'
         if len(args) < 1:
             print("Error: Too few arguments.")
@@ -290,7 +298,8 @@ class RosWsStacksCLI():
             print(parser.usage)
             return -1
         stack = args[0]
-        config = get_config(target_path, [], config_filename=self.config_filename)
+        config = get_config(
+            target_path, [], config_filename=self.config_filename)
         if cmd_add_stack(config,
                          stack,
                          released=options.released,
@@ -307,8 +316,9 @@ class RosWsStacksCLI():
         return 1
 
     def cmd_delete_stack(self, target_path, argv):
-        parser = OptionParser(usage="usage: rosws delete-stack [PATH] localname",
-                        epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+        parser = OptionParser(
+            usage="usage: rosws delete-stack [PATH] localname",
+            epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("-N", "--non-recursive", dest="norecurse",
                           default=False,
                           help="don't change configuration for dependent stacks",
@@ -328,7 +338,8 @@ class RosWsStacksCLI():
             print(parser.usage)
             return -1
         uri = args[0]
-        config = get_config(target_path, [], config_filename=self.config_filename)
+        config = get_config(
+            target_path, [], config_filename=self.config_filename)
         if cmd_delete_stack(config,
                             uri,
                             delete=options.delete,
@@ -385,10 +396,8 @@ def rosws_stacks_main(argv=None):
                 args.insert(0, "-h")
 
         cli = RosWsStacksCLI()
-        commands = {
-            'add': cli.cmd_add_stack,
-            'delete': cli.cmd_delete_stack,
-            }
+        commands = {'add': cli.cmd_add_stack,
+                    'delete': cli.cmd_delete_stack}
         if command not in commands:
             if os.path.exists(command):
                 args = ['-t', command] + args

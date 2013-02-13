@@ -35,7 +35,8 @@ import sys
 import traceback
 import os
 import copy
-# choosing multiprocessing over threading for clean Control-C interrupts (provides terminate())
+# choosing multiprocessing over threading for clean Control-C
+# interrupts (provides terminate())
 try:
     from urlparse import urlparse
 except ImportError:
@@ -115,7 +116,8 @@ def normalize_uri(source_uri, base_path):
             source_uri = os.path.normpath(source_uri)
         else:
             source_uri2 = os.path.normpath(os.path.join(base_path, source_uri))
-            print("Warning: Converted relative uri path %s to abspath %s" % (source_uri, source_uri2))
+            print("Warning: Converted relative uri path %s to abspath %s" %
+                  (source_uri, source_uri2))
             source_uri = source_uri2
     return source_uri
 
@@ -261,7 +263,8 @@ class WorkerThread(Process):
             if result_dict is not None:
                 result.update(result_dict)
             else:
-                result.update({'error': MultiProjectException("worker returned None")})
+                result.update(
+                    {'error': MultiProjectException("worker returned None")})
         except MultiProjectException as mpe:
             result.update({'error': mpe})
         except VcsError as vcse:
@@ -293,7 +296,7 @@ class DistributedWork():
         if self.index >= len(self.outputs):
             raise MultiProjectException(
                 "Bug: Declared capacity exceeded %s >= %s" % (self.index,
-                                                            len(self.outputs)))
+                                                              len(self.outputs)))
         self.index += 1
         self.threads.append(thread)
 
@@ -350,7 +353,8 @@ class DistributedWork():
         for output in self.outputs:
             if "error" in output:
                 if 'entry' in output:
-                    message += "Error processing '%s' : %s\n" % (output['entry'].get_local_name(), output["error"])
+                    message += "Error processing '%s' : %s\n" % (
+                        output['entry'].get_local_name(), output["error"])
                 else:
                     message += "%s\n" % output["error"]
         if message != '':

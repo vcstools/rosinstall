@@ -117,7 +117,7 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         In particular asserts that there are newlines between diffs, and no overlaps'''
         cmd = ["rosinstall", "ws", "--diff"]
         os.chdir(self.test_root_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosinstall_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
@@ -128,7 +128,7 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         In particular asserts that there are newlines between diffs, and no overlaps'''
         cmd = ["rosws", "diff", "-t", "ws"]
         os.chdir(self.test_root_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosws_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
@@ -143,7 +143,7 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         directory = self.test_root_path + "/ws"
         cmd = ["rosinstall", ".", "--diff"]
         os.chdir(directory)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosinstall_main(cmd)
         output = output.getvalue()
         self.check_diff_output(output)
@@ -154,7 +154,7 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         directory = self.test_root_path + "/ws"
         cmd = ["rosws", "diff"]
         os.chdir(directory)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosws_main(cmd)
         output = output.getvalue()
         sys.stdout = sys.__stdout__
@@ -163,14 +163,13 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         cli = RoswsCLI()
         self.assertEqual(0, cli.cmd_diff(directory, []))
 
-
     def test_multi_status_rosinstall_inside(self):
         """Test rosinstall status output when run inside workspace.
         In particular asserts that there are newlines between statuses, and no overlaps"""
         directory = self.test_root_path + "/ws"
         cmd = ["rosinstall", ".", "--status"]
         os.chdir(directory)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosinstall_main(cmd)
         output = output.getvalue()
 
@@ -182,7 +181,7 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         directory = self.test_root_path + "/ws"
         cmd = ["rosws", "status"]
         os.chdir(directory)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosws_main(cmd)
         output = output.getvalue()
         sys.stdout = sys.__stdout__
@@ -196,9 +195,9 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         In particular asserts that there are newlines between statuses, and no overlaps"""
         cmd = ["rosinstall", "ws", "--status"]
         os.chdir(self.test_root_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosinstall_main(cmd)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosinstall_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
@@ -209,7 +208,7 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         In particular asserts that there are newlines between statuses, and no overlaps"""
         cmd = ["rosws", "status", "-t", "ws"]
         os.chdir(self.test_root_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosws_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
@@ -223,7 +222,7 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
         In particular asserts that there are newlines between statuses, and no overlaps'''
         cmd = ["rosinstall", "ws", "--status-untracked"]
         os.chdir(self.test_root_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosinstall_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()
@@ -231,7 +230,7 @@ class RosinstallDiffMultiTest(AbstractSCMTest):
 
         cmd = ["rosws", "status", "-t", "ws", "--untracked"]
         os.chdir(self.test_root_path)
-        sys.stdout = output = StringIO();
+        sys.stdout = output = StringIO()
         rosws_main(cmd)
         sys.stdout = sys.__stdout__
         output = output.getvalue()

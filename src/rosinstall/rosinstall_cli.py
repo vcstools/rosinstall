@@ -130,13 +130,11 @@ Later URIs will shadow packages of earlier URIs.\n",
                       default=1,
                       help="How many parallel threads to use for installing",
                       action="store")
-    parser.add_option("--generate-versioned-rosinstall", dest="generate_versioned",
-                      default=None,
-                      help="generate a versioned rosinstall file", action="store")
+    parser.add_option(
+        "--generate-versioned-rosinstall", dest="generate_versioned",
+        default=None,
+        help="generate a versioned rosinstall file", action="store")
     (options, args) = parser.parse_args(args)
-
-    #if options.rosdep_yes:
-    #  parser.error("rosinstall no longer bootstraps the build, it will not call rosmake or pass it rosdep options")
 
     if options.version:
         print("rosinstall %s\n%s" % (rosinstall.__version__.version, multiproject_cmd.cmd_version()))
@@ -150,13 +148,16 @@ Later URIs will shadow packages of earlier URIs.\n",
         mode = 'delete'
     if options.abort_changed:
         if mode == 'delete':
-            parser.error("delete-changed-uris is mutually exclusive with abort-changed-uris")
+            parser.error(
+                "delete-changed-uris is mutually exclusive with abort-changed-uris")
         mode = 'abort'
     if options.backup_changed != '':
         if mode == 'delete':
-            parser.error("delete-changed-uris is mutually exclusive with backup-changed-uris")
+            parser.error(
+                "delete-changed-uris is mutually exclusive with backup-changed-uris")
         if mode == 'abort':
-            parser.error("abort-changed-uris is mutually exclusive with backup-changed-uris")
+            parser.error(
+                "abort-changed-uris is mutually exclusive with backup-changed-uris")
         mode = 'backup'
 
     # Catkin must be enabled if catkinpp is set
@@ -177,7 +178,8 @@ Later URIs will shadow packages of earlier URIs.\n",
         source_aggregate = multiproject_cmd.cmd_snapshot(config)
         with open(filename, 'w') as fhand:
             fhand.write(yaml.safe_dump(source_aggregate))
-        print("Saved versioned rosinstall of current directory %s to %s" % (options.path, filename))
+        print("Saved versioned rosinstall of current directory %s to %s" %
+              (options.path, filename))
         return True
 
     if options.vcs_diff:
@@ -201,11 +203,12 @@ Later URIs will shadow packages of earlier URIs.\n",
         return True
 
     print("rosinstall operating on", options.path,
-                "from specifications in rosinstall files ",
-                ", ".join(config_uris))
+          "from specifications in rosinstall files ",
+          ", ".join(config_uris))
 
     # includes ROS specific files
-    print("(Over-)Writing %s" % os.path.join(options.path, ROSINSTALL_FILENAME))
+    print("(Over-)Writing %s" %
+          os.path.join(options.path, ROSINSTALL_FILENAME))
     if(os.path.isfile(os.path.join(options.path, ROSINSTALL_FILENAME))):
         shutil.move(os.path.join(options.path, ROSINSTALL_FILENAME),
                     "%s.bak" % os.path.join(options.path, ROSINSTALL_FILENAME))

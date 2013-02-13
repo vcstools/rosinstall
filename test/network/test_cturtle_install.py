@@ -44,6 +44,7 @@ from rosinstall.config_yaml import get_yaml_from_uri, get_path_specs_from_uri
 from test.scm_test_base import AbstractRosinstallBaseDirTest, _create_yaml_file, _create_config_elt_dict
 from test.network.distro_test_util import ros_found_in_yaml, ros_found_in_path_spec
 
+
 class RosinstallCturtleTest(AbstractRosinstallBaseDirTest):
 
     @classmethod

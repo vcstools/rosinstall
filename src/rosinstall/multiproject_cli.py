@@ -45,7 +45,8 @@ from rosinstall.config_yaml import PathSpec, get_path_spec_from_yaml
 import rosinstall.multiproject_cmd as multiproject_cmd
 from rosinstall.ui import Ui
 
-# implementation of single CLI commands (extracted for use in several overlapping scripts)
+# implementation of single CLI commands (extracted for use in several
+# overlapping scripts)
 
 # usage help
 __MULTIPRO_CMD_DICT__ = {
@@ -129,9 +130,10 @@ def _get_element_diff(new_path_spec, config_old, extra_verbose=False):
 
         if old_element is None:
             if new_path_spec.get_scmtype() is not None:
-                output.append("   \t%s  %s   %s" % (new_path_spec.get_scmtype(),
-                                                  new_path_spec.get_uri(),
-                                                  new_path_spec.get_version() or ''))
+                output.append(
+                    "   \t%s  %s   %s" % (new_path_spec.get_scmtype(),
+                                          new_path_spec.get_uri(),
+                                          new_path_spec.get_version() or ''))
         else:
             old_path_spec = old_element.get_path_spec()
             accessor_map = {PathSpec.get_scmtype: 'scmtype',
@@ -152,7 +154,7 @@ def _get_element_diff(new_path_spec, config_old, extra_verbose=False):
                         new_val != "" and\
                         new_val != []:
                     output.append("  %s = %s" % (label,
-                                               new_val))
+                                                 new_val))
     return ''.join(output)
 
 
@@ -193,7 +195,7 @@ def prompt_merge(target_path,
             config_filename=config_filename)
     elif config.get_base_path() != target_path:
         msg = "Config path does not match %s %s " % (config.get_base_path(),
-                                                   target_path)
+                                                     target_path)
         raise MultiProjectException(msg)
     local_names_old = [x.get_local_name() for x in config.get_config_elements()]
 
@@ -245,17 +247,17 @@ def prompt_merge(target_path,
             if action == 'Append':
                 path_changed = True
                 new_elements.append(_get_element_diff(new_path_spec,
-                                                           config,
-                                                           extra_verbose))
+                                                      config,
+                                                      extra_verbose))
             elif action == 'MergeReplace':
                 changed_elements.append(_get_element_diff(new_path_spec,
-                                                               config,
-                                                               extra_verbose))
+                                                          config,
+                                                          extra_verbose))
                 ask_user = True
             elif action == 'MergeKeep':
                 discard_elements.append(_get_element_diff(new_path_spec,
-                                                               config,
-                                                               extra_verbose))
+                                                          config,
+                                                          extra_verbose))
                 ask_user = True
         if len(changed_elements) > 0:
             output += "\n     Change details of element (Use --merge-keep or --merge-replace to change):\n"
@@ -273,7 +275,9 @@ def prompt_merge(target_path,
         if local_names_old != local_names_new[:len(local_names_old)]:
             old_order = ' '.join(reversed(local_names_old))
             new_order = ' '.join(reversed(local_names_new))
-            output += "\n     %s (Use --merge-keep or --merge-replace to prevent) from\n %s\n     to\n %s\n\n" % (path_change_message or "Element order change", old_order, new_order)
+            output += "\n     %s " % path_change_message or "Element order change"
+            output += "(Use --merge-keep or --merge-replace to prevent) "
+            output += "from\n %s\n     to\n %s\n\n" % (old_order, new_order)
             ask_user = True
 
         if output == "":
@@ -302,7 +306,9 @@ def prompt_merge(target_path,
                     strategies = {'MergeKeep': "(k)eep",
                                   'MergeReplace': "(s)witch in",
                                   'KillAppend': "(a)ppending"}
-                    unselected = [v for k, v in list(strategies.items()) if k != merge_strategy]
+                    unselected = [v for k, v in
+                                  list(strategies.items())
+                                  if k != merge_strategy]
                     print("""New entries will just be appended to the config and
 appear at the beginning of your ROS_PACKAGE_PATH. The merge strategy
 decides how to deal with entries having a duplicate localname or path.
@@ -320,7 +326,7 @@ of elements in the order they were given.
 
 Switch append is the default.
 """)
-                    prompt = """Change Strategy %s: """ % (", ".join(unselected))
+                    prompt = "Change Strategy %s: " % (", ".join(unselected))
                     mode_input = Ui.get_ui().get_input(prompt)
                     if mode_input == 's':
                         merge_strategy = 'MergeReplace'
@@ -386,15 +392,16 @@ class MultiprojectCLI:
         self.config_filename = config_filename
         self.config_generator = config_generator or multiproject_cmd.cmd_persist_config
         self.progname = progname
-        self.allow_other_element=allow_other_element
+        self.allow_other_element = allow_other_element
 
     def cmd_init(self, argv):
         if self.config_filename is None:
             print('Error: Bug: config filename required for init')
             return 1
-        parser = OptionParser(usage="""usage: %s init [TARGET_PATH [SOURCE_PATH]]?""" % self.progname,
-                              formatter=IndentedHelpFormatterWithNL(),
-                              description=__MULTIPRO_CMD_DICT__["init"] + """
+        parser = OptionParser(
+            usage="""usage: %s init [TARGET_PATH [SOURCE_PATH]]?""" % self.progname,
+            formatter=IndentedHelpFormatterWithNL(),
+            description=__MULTIPRO_CMD_DICT__["init"] + """
 
 %(prog)s init does the following:
   1. Reads folder/file/web-uri SOURCE_PATH looking for a rosinstall yaml
@@ -407,7 +414,7 @@ If PATH is not given, uses current dir.
 Examples:
 $ %(prog)s init ~/fuerte /opt/ros/fuerte
 """ % {'cfg_file': self.config_filename, 'prog': self.progname},
-                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+            epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("--continue-on-error", dest="robust", default=False,
                           help="Continue despite checkout errors",
                           action="store_true")
@@ -427,11 +434,11 @@ $ %(prog)s init ~/fuerte /opt/ros/fuerte
                 print('Error: Cannot create in target path %s ' % target_path)
 
         if os.path.exists(os.path.join(target_path, self.config_filename)):
-            print('Error: There already is a workspace config file %s at "%s". Use %s install/modify.' % (self.config_filename, target_path, self.progname))
+            print('Error: There already is a workspace config file %s at "%s". Use %s install/modify.' %
+                  (self.config_filename, target_path, self.progname))
             return 1
         if len(args) > 2:
             parser.error('Too many arguments')
-
         if len(args) == 2:
             print('Using initial elements from: %s' % args[1])
             config_uris = [args[1]]
@@ -448,7 +455,8 @@ $ %(prog)s init ~/fuerte /opt/ros/fuerte
         # includes ROS specific files
 
         print("Writing %s" % os.path.join(config.get_base_path(), self.config_filename))
-        self.config_generator(config, self.config_filename, get_header(self.progname))
+        self.config_generator(
+            config, self.config_filename, get_header(self.progname))
 
         ## install or update each element
         install_success = multiproject_cmd.cmd_install_or_update(
@@ -462,9 +470,10 @@ $ %(prog)s init ~/fuerte /opt/ros/fuerte
         return 0
 
     def cmd_merge(self, target_path, argv, config=None):
-        parser = OptionParser(usage="usage: %s merge [URI] [OPTIONS]" % self.progname,
-                              formatter=IndentedHelpFormatterWithNL(),
-                              description=__MULTIPRO_CMD_DICT__["merge"] + """.
+        parser = OptionParser(
+            usage="usage: %s merge [URI] [OPTIONS]" % self.progname,
+            formatter=IndentedHelpFormatterWithNL(),
+            description=__MULTIPRO_CMD_DICT__["merge"] + """.
 
 The command merges config with given other rosinstall element sets, from files or web uris.
 
@@ -481,12 +490,13 @@ $ %(prog)s merge someother.rosinstall
 You can use '-' to pipe in input, as an example:
 $ roslocate info robot_model | %(prog)s merge -
 """ % {'prog': self.progname},
-                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+            epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         # same options as for multiproject
-        parser.add_option("-a", "--merge-kill-append", dest="merge_kill_append",
-                          default=False,
-                          help="merge by deleting given entry and appending new one",
-                          action="store_true")
+        parser.add_option(
+            "-a", "--merge-kill-append", dest="merge_kill_append",
+            default=False,
+            help="merge by deleting given entry and appending new one",
+            action="store_true")
         parser.add_option("-k", "--merge-keep", dest="merge_keep",
                           default=False,
                           help="merge by keeping existing entry and discarding new one",
@@ -500,9 +510,10 @@ $ roslocate info robot_model | %(prog)s merge -
                           help="do not ask for confirmation unless strictly necessary",
                           action="store_true")
         # required here but used one layer above
-        parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
-                          help="which workspace to use",
-                          action="store")
+        parser.add_option(
+            "-t", "--target-workspace", dest="workspace", default=None,
+            help="which workspace to use",
+            action="store")
         (options, args) = parser.parse_args(argv)
 
         if len(args) > 1:
@@ -586,7 +597,7 @@ $ roslocate info robot_model | %(prog)s merge -
         elif config.get_base_path() != target_path:
             raise MultiProjectException(
                 "Config path does not match %s %s " % (config.get_base_path(),
-                                                     target_path))
+                                                       target_path))
 
         if len(args) > 0:
             difflist = multiproject_cmd.cmd_diff(config, localnames=args)
@@ -602,7 +613,8 @@ $ roslocate info robot_model | %(prog)s merge -
 
     def cmd_status(self, target_path, argv, config=None):
         parser = OptionParser(usage="usage: rosws status [localname]* ",
-                              description=__MULTIPRO_CMD_DICT__["status"] + ". The status columns meanings are as the respective SCM defines them.",
+                              description=__MULTIPRO_CMD_DICT__["status"] +
+                              ". The status columns meanings are as the respective SCM defines them.",
                               epilog="""See: http://www.ros.org/wiki/rosinstall for details""")
         parser.add_option("--untracked", dest="untracked",
                           default=False,
@@ -623,7 +635,7 @@ $ roslocate info robot_model | %(prog)s merge -
         elif config.get_base_path() != target_path:
             raise MultiProjectException(
                 "Config path does not match %s %s " % (config.get_base_path(),
-                                                     target_path))
+                                                       target_path))
 
         if len(args) > 0:
             statuslist = multiproject_cmd.cmd_status(config,
@@ -665,7 +677,7 @@ $ rosws set robot_model --version robot_model-1.7.1
 """ % ('$ rosws set robot_model --detached)'
        if self.allow_other_element
        else ''),
-                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+            epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         if self.allow_other_element:
             parser.add_option("--detached", dest="detach", default=False,
                               help="make an entry unmanaged (default for new element)",
@@ -689,9 +701,10 @@ $ rosws set robot_model --version robot_model-1.7.1
                           help="Do not ask for confirmation",
                           action="store_true")
         # -t option required here for help but used one layer above, see cli_common
-        parser.add_option("-t", "--target-workspace", dest="workspace", default=None,
-                          help="which workspace to use",
-                          action="store")
+        parser.add_option(
+            "-t", "--target-workspace", dest="workspace", default=None,
+            help="which workspace to use",
+            action="store")
         (options, args) = parser.parse_args(argv)
         if not self.allow_other_element:
             options.detach = False
@@ -709,7 +722,7 @@ $ rosws set robot_model --version robot_model-1.7.1
         elif config.get_base_path() != target_path:
             raise MultiProjectException(
                 "Config path does not match %s %s " % (config.get_base_path(),
-                                                     target_path))
+                                                       target_path))
 
         scmtype = None
         count_scms = 0
@@ -728,7 +741,8 @@ $ rosws set robot_model --version robot_model-1.7.1
         if options.detach:
             count_scms += 1
         if count_scms > 1:
-            parser.error("You cannot provide more than one scm provider option")
+            parser.error(
+                "You cannot provide more than one scm provider option")
 
         if len(args) == 0:
             parser.error("Must provide a localname")
@@ -757,7 +771,8 @@ $ rosws set robot_model --version robot_model-1.7.1
                 if not rel_path.startswith('..'):
                     localname = rel_path
             else:
-                # got a relative path as localname, could point to a dir or be meant relative to workspace
+                # got a relative path as localname, could point to a dir or be
+                # meant relative to workspace
                 if not samefile(os.getcwd(), config.get_base_path()):
                     if os.path.isdir(localname):
                         parser.error(
@@ -788,7 +803,8 @@ $ rosws set robot_model --version robot_model-1.7.1
                                 path=old_spec.get_path())
             if spec.get_legacy_yaml() == old_spec.get_legacy_yaml():
                 if not options.detach and spec.get_scmtype() is not None:
-                    parser.error("Element %s already exists, did you mean --detached ?" % spec)
+                    parser.error(
+                        "Element %s already exists, did you mean --detached ?" % spec)
                 parser.error("Element %s already exists" % spec)
 
         (newconfig, path_changed) = prompt_merge(
@@ -805,13 +821,17 @@ $ rosws set robot_model --version robot_model-1.7.1
             allow_other_element=self.allow_other_element)
 
         if newconfig is not None:
-            print("Overwriting %s" % os.path.join(newconfig.get_base_path(), self.config_filename))
-            shutil.move(os.path.join(newconfig.get_base_path(), self.config_filename), "%s.bak" % os.path.join(newconfig.get_base_path(), self.config_filename))
+            print("Overwriting %s" % os.path.join(
+                newconfig.get_base_path(), self.config_filename))
+            shutil.move(
+                os.path.join(newconfig.get_base_path(), self.config_filename),
+                "%s.bak" % os.path.join(newconfig.get_base_path(), self.config_filename))
             self.config_generator(newconfig, self.config_filename)
             if path_changed:
                 print("\nDo not forget to do ...\n$ source %s/setup.sh\n... in every open terminal." % target_path)
             if (spec.get_scmtype() is not None):
-                print("Config changed, remember to run 'rosws update %s' to update the folder from %s" % (spec.get_local_name(), spec.get_scmtype()))
+                print("Config changed, remember to run 'rosws update %s' to update the folder from %s" %
+                      (spec.get_local_name(), spec.get_scmtype()))
         else:
             print("New element %s could not be added, " % spec)
             return 1
@@ -875,8 +895,8 @@ $ rosws update robot_model geometry
                 config_filename=self.config_filename)
         elif config.get_base_path() != target_path:
             raise MultiProjectException("Config path does not match %s %s " % (
-                    config.get_base_path(),
-                    target_path))
+                config.get_base_path(),
+                target_path))
         success = True
         mode = _get_mode_from_options(parser, options)
         if args == []:
@@ -916,21 +936,22 @@ The command removes entries from your configuration file, it does not affect you
         elif config.get_base_path() != target_path:
             raise MultiProjectException(
                 "Config path does not match %s %s " % (config.get_base_path(),
-                                                     target_path))
+                                                       target_path))
         success = True
         elements = select_elements(config, args)
         for element in elements:
             if not config.remove_element(element.get_local_name()):
                 success = False
-                print("Bug: No such element %s in config, aborting without changes" % (element.get_local_name()))
+                print("Bug: No such element %s in config, aborting without changes" %
+                      (element.get_local_name()))
                 break
         if success:
             print("Overwriting %s" % os.path.join(config.get_base_path(),
-                                                self.config_filename))
+                                                  self.config_filename))
             shutil.move(os.path.join(config.get_base_path(),
                                      self.config_filename),
                         "%s.bak" % os.path.join(config.get_base_path(),
-                                              self.config_filename))
+                                                self.config_filename))
             self.config_generator(config, self.config_filename)
             print("Removed entries %s" % args)
 

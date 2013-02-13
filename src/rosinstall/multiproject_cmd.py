@@ -81,7 +81,7 @@ def get_config(basepath,
     if basepath is None:
         raise MultiProjectException("Need to provide a basepath for Config.")
 
-    #print("source...........................", path_specs)
+    # print("source...........................", path_specs)
 
     ## Generate the config class with the uri and path
     if (config_filename is not None
@@ -112,10 +112,13 @@ def add_uris(config,
 
     :param config: a Config objects
     :param additional_uris: the location of config specifications or folders
-    :param config_filename: name of files which may be looked at for config information
+    :param config_filename: name of files which may be looked at for config
+    information
     :param merge_strategy: One of 'KillAppend, 'MergeKeep', 'MergeReplace'
-    :param allow_other_element: if False, discards elements to be added with no SCM information
-    :returns: a dict {<local-name>: (<action>, <path-spec>), <local-name>: ...} determined by the merge_strategy
+    :param allow_other_element: if False, discards elements to be added with
+    no SCM information
+    :returns: a dict {<local-name>: (<action>, <path-spec>), <local-name>: ...}
+    determined by the merge_strategy
     :raises MultiProjectException: on plenty of errors
     """
     if config is None:
@@ -128,7 +131,8 @@ def add_uris(config,
         added_uris = additional_uris
     else:
         added_uris = []
-        # reject if the additional uri points to the same file as our config is based on
+        # reject if the additional uri points to the same file as our
+        # config is based on
         for uri in additional_uris:
             # check whether we try to merge with other workspace
             comp_uri = None
@@ -176,11 +180,11 @@ Git:       %s
 Tar:       %s
 Bzr:       %s
 """ % (vcstools.__version__.version,
-     prettyversion(vcstools.SvnClient.get_environment_metadata()),
-     prettyversion(vcstools.HgClient.get_environment_metadata()),
-     prettyversion(vcstools.GitClient.get_environment_metadata()),
-     prettyversion(vcstools.TarClient.get_environment_metadata()),
-     prettyversion(vcstools.BzrClient.get_environment_metadata()))
+       prettyversion(vcstools.SvnClient.get_environment_metadata()),
+       prettyversion(vcstools.HgClient.get_environment_metadata()),
+       prettyversion(vcstools.GitClient.get_environment_metadata()),
+       prettyversion(vcstools.TarClient.get_environment_metadata()),
+       prettyversion(vcstools.BzrClient.get_environment_metadata()))
 
 
 def cmd_status(config, localnames=None, untracked=False):
@@ -214,8 +218,8 @@ def cmd_status(config, localnames=None, untracked=False):
                 status_aligned = ''
                 for line in status.splitlines():
                     status_aligned = "%s%s%s\n" % (status_aligned,
-                                                 line[:columns].ljust(8),
-                                                 line[columns:])
+                                                   line[:columns].ljust(8),
+                                                   line[columns:])
                 status = status_aligned
             return {'status': status}
 
@@ -289,20 +293,24 @@ def cmd_install_or_update(
         if backup_path is not None:
             abs_backup_path = os.path.join(config.get_base_path(), backup_path)
         try:
-            preparation_report = tree_el.prepare_install(backup_path=abs_backup_path,
-                                                   arg_mode=mode,
-                                                   robust=robust)
+            preparation_report = tree_el.prepare_install(
+                backup_path=abs_backup_path,
+                arg_mode=mode,
+                robust=robust)
             if preparation_report is not None:
                 if preparation_report.abort:
-                    raise MultiProjectException("Aborting install because of %s" % preparation_report.error)
+                    raise MultiProjectException(
+                        "Aborting install because of %s" % preparation_report.error)
                 if not preparation_report.skip:
                     preparation_reports.append(preparation_report)
                 else:
                     if preparation_report.error is not None:
-                        print("Skipping install of %s because: %s" % (preparation_report.config_element.get_local_name(),
-                                                                    preparation_report.error))
+                        print("Skipping install of %s because: %s" %
+                              (preparation_report.config_element.get_local_name(),
+                               preparation_report.error))
         except MultiProjectException as exc:
-            fail_str = "Failed to install tree '%s'\n %s" % (tree_el.get_path(), exc)
+            fail_str = ("Failed to install tree '%s'\n %s" %
+                        (tree_el.get_path(), exc))
             if robust:
                 success = False
                 print("Continuing despite %s" % fail_str)
@@ -337,8 +345,9 @@ def cmd_install_or_update(
         if not robust:
             raise
     return success
-    # TODO go back and make sure that everything in options.path is described
-    # in the yaml, and offer to delete otherwise? not sure, but it could go here
+    # TODO go back and make sure that everything in options.path is
+    # described in the yaml, and offer to delete otherwise? not sure,
+    # but it could go here
 
 
 def cmd_snapshot(config, localnames=None):
@@ -356,11 +365,13 @@ def cmd_snapshot(config, localnames=None):
                          spec.get_version()),
                 path=spec.get_path())
             if not export_spec.get_version():
-                sys.stderr.write('Warning, discarding non-vcs element %s\n' % element.get_local_name())
+                sys.stderr.write(
+                    'Warning, discarding non-vcs element %s\n' % element.get_local_name())
             source = export_spec.get_legacy_yaml()
             source_aggregate.append(source)
         else:
-            sys.stderr.write('Warning, discarding non-vcs element %s\n' % element.get_local_name())
+            sys.stderr.write('Warning, discarding non-vcs element %s\n' %
+                             element.get_local_name())
     return source_aggregate
 
 
@@ -390,7 +401,8 @@ def cmd_info(config, localnames=None):
             path = self.element.get_path() or localname
 
             if localname is None or localname == "":
-                raise MultiProjectException("Missing local-name in element: %s" % self.element)
+                raise MultiProjectException(
+                    "Missing local-name in element: %s" % self.element)
             if (os.path.exists(normabspath(path, self.path))):
                 exists = True
             if self.element.is_vcs_element():

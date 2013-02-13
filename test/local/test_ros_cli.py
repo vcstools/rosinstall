@@ -51,10 +51,13 @@ class FakeConfig():
         self.elts = elts
         self.celts = celts
         self.basepath = basepath
+
     def get_config_elements(self):
         return self.celts
+
     def get_source(self):
         return self.elts
+
     def get_base_path(self):
         return self.basepath
 
@@ -66,12 +69,16 @@ class MockConfigElement():
         self.uri = uri
         self.local_name = local_name
         self.spec = spec
+
     def get_path(self):
         return self.path
+
     def get_local_name(self):
         return self.local_name
+
     def get_path_spec(self):
         return self.spec
+
     def is_vcs_element(self):
         return True if self.scmtype else False
 
@@ -215,7 +222,6 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
     def test_cmd_init_no_ros(self):
         self.local_path = os.path.join(self.test_root_path, "ws10")
 
-
         ros_root_existed = False
         if 'ROS_ROOT' in os.environ:
             ros_root_existed = True
@@ -257,7 +263,6 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
             os.environ['ROS_ROOT'] = oldros
         else:
             os.environ.pop('ROS_ROOT')
-
 
     def test_cmd_remove(self):
         # rosinstall to create dir
