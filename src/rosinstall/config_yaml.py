@@ -63,23 +63,23 @@ def get_yaml_from_uri(uri):
                 stream = urlopen(uri)
         except IOError as ioe:
             raise MultiProjectException(
-                "Is not a local file, nor able to download as a URL [%s]: %s\n" % (uri, ioe))
+                "Is not a local file, nor able to download as a URL [%s]: %s" % (uri, ioe))
         except ValueError as vae:
             raise MultiProjectException(
-                "Is not a local file, nor a valid URL [%s] : %s\n" % (uri, vae))
+                "Is not a local file, nor a valid URL [%s] : %s" % (uri, vae))
 
         if not stream:
-            raise MultiProjectException("couldn't load config uri %s\n" % uri)
+            raise MultiProjectException("couldn't load config uri %s" % uri)
         try:
             yamldata = yaml.load(stream)
         except yaml.YAMLError as yame:
             raise MultiProjectException(
-                "Invalid multiproject yaml format in [%s]: %s\n" % (uri, yame))
+                "Invalid multiproject yaml format in [%s]: %s" % (uri, yame))
 
         # we want a list or a dict, but pyyaml parses xml as string
         if type(yamldata) == 'str':
             raise MultiProjectException(
-                "Invalid multiproject yaml format in [%s]: %s\n" % (uri, yamldata))
+                "Invalid multiproject yaml format in [%s]: %s" % (uri, yamldata))
     finally:
         if stream is not None:
             stream.close()
