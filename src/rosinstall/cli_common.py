@@ -132,7 +132,7 @@ def _get_status_flags(basepath, line):
     return mflag
 
 
-def get_info_table_elements(basepath, entries, headers):
+def get_info_table_elements(basepath, entries):
     """returns a list of dict with refined information from entries"""
 
     outputs = []
@@ -249,8 +249,7 @@ def get_info_table(basepath, entries, data_only=False, reverse=False):
 
     outputs = get_info_table_elements(
         basepath=basepath,
-        entries=entries,
-        headers=headers)
+        entries=entries)
 
     # adjust column width
     column_length = {}
