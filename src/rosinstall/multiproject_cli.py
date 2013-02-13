@@ -672,7 +672,7 @@ the element, run rosws update afterwards.
 
 Examples:
 $ rosws set robot_model --hg https://kforge.ros.org/robotmodel/robot_model
-$ rosws set robot_model --version robot_model-1.7.1
+$ rosws set robot_model --version-new robot_model-1.7.1
 %s
 """ % ('$ rosws set robot_model --detached)'
        if self.allow_other_element
