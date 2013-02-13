@@ -178,10 +178,10 @@ def get_rosdoc_manifest(stackage_name, distro_name=None):
             errors.append((url, loope))
 
     # 1 error is expected when we query package
-    if len(errors) > 1:
-        for (err_url, error) in errors:
-            if error is not None:
-                sys.stderr.write(
-                    'error contacting %s:\n%s\n' % (err_url, error))
+    error = None
+    for (err_url, error) in errors:
+        if error is not None:
+            sys.stderr.write('error contacting %s:\n%s\n' % (err_url, error))
+    if error:
         raise error
     return (data, type_, url)
