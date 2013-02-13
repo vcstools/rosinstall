@@ -580,12 +580,23 @@ class MultiprojectCLITest(AbstractFakeRosBasedTest):
         self.local_path = os.path.join(self.test_root_path, "ws31b")
         cli = MultiprojectCLI(progname='multi_cli', config_filename='.rosinstall')
         self.assertEqual(0, cli.cmd_init([self.local_path, self.simple_rosinstall, "--parallel=5"]))
-        self.assertTrue(os.path.exists(os.path.join(self.local_path, '.rosinstall')))
-        self.assertTrue(os.path.exists(os.path.join(self.local_path, 'gitrepo')))
-        self.assertFalse(os.path.exists(os.path.join(self.local_path, 'hgrepo')))
-        self.assertRaises(SystemExit, cli.cmd_set, os.path.join(self.local_path, 'hgrepo'), ["--detached"])
-        cli = MultiprojectCLI(progname='multi_cli', config_filename='.rosinstall', allow_other_element=True)
-        # self.assertEqual(0, cli.cmd_set(os.path.join(self.local_path, 'hgrepo'), ["--detached"]))
+        self.assertEqual(0, cli.cmd_set(self.local_path,
+                                        [os.path.join(self.local_path, 'hgrepo'),
+                                         "--hg",
+                                         'http://some_uri',
+                                         '-y']))
+        self.assertRaises(SystemExit, cli.cmd_set, self.local_path,
+                          [os.path.join(self.local_path, 'hgrepo'),
+                           "--detached",
+                           '-y'])
+        cli = MultiprojectCLI(progname='multi_cli',
+                              config_filename='.rosinstall',
+                              allow_other_element=True)
+        self.assertEqual(0, cli.cmd_set(self.local_path,
+                                        [os.path.join(self.local_path, 'hgrepo'),
+                                         "--detached",
+                                         '-y']))
+
 
     def test_cmd_remove(self):
         # rosinstall to create dir

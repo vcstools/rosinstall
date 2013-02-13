@@ -4,6 +4,11 @@ Changelog
 0.6
 ---
 
+0.6.25
+------
+
+- fix regression breaking wstool set command
+
 0.6.24
 ------
 

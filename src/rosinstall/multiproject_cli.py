@@ -693,6 +693,8 @@ $ rosws set robot_model --version robot_model-1.7.1
                           help="which workspace to use",
                           action="store")
         (options, args) = parser.parse_args(argv)
+        if not self.allow_other_element:
+            options.detach = False
 
         if len(args) > 2:
             print("Error: Too many arguments.")
