@@ -47,7 +47,8 @@ import yaml
 
 from optparse import OptionParser
 
-from rosinstall.cli_common import get_info_list, get_info_table, get_workspace
+from rosinstall.cli_common import get_info_list, get_info_table, \
+    get_info_table_raw_csv, get_workspace, ONLY_OPTION_VALID_ATTRS
 import rosinstall.rosinstall_cmd as rosinstall_cmd
 from rosinstall.multiproject_cmd import get_config, cmd_install_or_update, \
     cmd_snapshot, cmd_version, cmd_info
@@ -221,8 +222,8 @@ accidentally.
         return 0
 
     def cmd_info(self, target_path, argv, reverse=True, config=None):
-        only_option_valid_attrs = ['path', 'localname', 'version',
-                                   'revision', 'cur_revision', 'uri', 'cur_uri', 'scmtype']
+        # similar to multiproject_cli except shows ros-pkg-path
+        # options
         parser = OptionParser(
             usage="usage: %s info [localname]* [OPTIONS]" % self.progname,
             formatter=IndentedHelpFormatterWithNL(),
@@ -254,35 +255,38 @@ $ %(prog)s info -t ~/ros/fuerte
 $ %(prog)s info robot_model
 $ %(prog)s info --yaml
 $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
-""" % {'prog': self.progname, 'opts': only_option_valid_attrs},
+""" % {'prog': self.progname, 'opts': ONLY_OPTION_VALID_ATTRS},
             epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
-        parser.add_option("--data-only", dest="data_only", default=False,
-                          help="Does not provide explanations",
-                          action="store_true")
-        parser.add_option("--no-pkg-path", dest="no_pkg_path", default=False,
-                          help="Suppress ROS_PACKAGE_PATH.",
-                          action="store_true")
+        parser.add_option(
+            "--data-only", dest="data_only", default=False,
+            help="Does not provide explanations",
+            action="store_true")
+        parser.add_option(
+            "--no-pkg-path", dest="no_pkg_path", default=False,
+            help="Suppress ROS_PACKAGE_PATH.",
+            action="store_true")
         parser.add_option(
             "--pkg-path-only", dest="pkg_path_only", default=False,
             help="Shows only ROS_PACKAGE_PATH separated by ':'. Supercedes all other options.",
             action="store_true")
-        parser.add_option("--only", dest="only", default=False,
-                          help="Shows comma-separated lists of only given comma-separated attribute(s).",
-                          action="store")
-        parser.add_option("--yaml", dest="yaml", default=False,
-                          help="Shows only version of single entry. Intended for scripting.",
-                          action="store_true")
-
+        parser.add_option(
+            "--only", dest="only", default=False,
+            help="Shows comma-separated lists of only given comma-separated attribute(s).",
+            action="store")
+        parser.add_option(
+            "--yaml", dest="yaml", default=False,
+            help="Shows only version of single entry. Intended for scripting.",
+            action="store_true")
+        parser.add_option(
+            "-u", "--untracked", dest="untracked",
+            default=False,
+            help="Also show untracked files as modifications",
+            action="store_true")
         # -t option required here for help but used one layer above, see cli_common
         parser.add_option(
             "-t", "--target-workspace", dest="workspace", default=None,
             help="which workspace to use",
             action="store")
-        parser.add_option("-u", "--untracked", dest="untracked",
-                          default=False,
-                          help="Also show untracked files as modifications",
-                          action="store_true")
-
         (options, args) = parser.parse_args(argv)
 
         if config is None:
@@ -293,58 +297,36 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
         elif config.get_base_path() != target_path:
             raise MultiProjectException("Config path does not match %s %s " %
                                         (config.get_base_path(), target_path))
+
         if args == []:
             args = None
-        # relevant for code completion, so these should yield quick response:
+
         if options.pkg_path_only:
             print(":".join(get_ros_package_path(config)))
+            return 0
+        if options.no_pkg_path:
+            header = 'workspace: %s\nROS_ROOT: %s' % (target_path,
+                                                      get_ros_stack_path(config))
+            print(header)
             return 0
         elif options.only:
             only_options = options.only.split(",")
             if only_options == '':
                 parser.error('No valid options given')
-
-            lookup_required = False
-            for attr in only_options:
-                if not attr in only_option_valid_attrs:
-                    parser.error("Invalid --only option '%s', valids are %s" %
-                                 (attr, only_option_valid_attrs))
-                if attr in ['cur_revision', 'cur_uri', 'revision']:
-                    lookup_required = True
-            elements = select_elements(config, args)
-            for element in elements:
-                if lookup_required and element.is_vcs_element():
-                    spec = element.get_versioned_path_spec()
-                else:
-                    spec = element.get_path_spec()
-                output = []
-                for attr in only_options:
-                    if 'localname' == attr:
-                        output.append(spec.get_local_name() or '')
-                    if 'path' == attr:
-                        output.append(spec.get_path() or '')
-                    if 'scmtype' == attr:
-                        output.append(spec.get_scmtype() or '')
-                    if 'uri' == attr:
-                        output.append(spec.get_uri() or '')
-                    if 'version' == attr:
-                        output.append(spec.get_version() or '')
-                    if 'revision' == attr:
-                        output.append(spec.get_revision() or '')
-                    if 'cur_uri' == attr:
-                        output.append(spec.get_curr_uri() or '')
-                    if 'cur_revision' == attr:
-                        output.append(spec.get_current_revision() or '')
-                print(','.join(output))
+            lines = get_info_table_raw_csv(config,
+                                           properties=only_options,
+                                           localnames=args)
+            print('\n'.join(lines))
             return 0
-        if options.yaml:
+        elif options.yaml:
             source_aggregate = cmd_snapshot(config, localnames=args)
-            print(yaml.safe_dump(source_aggregate))
+            print(yaml.safe_dump(source_aggregate), end='')
             return 0
 
         # this call takes long, as it invokes scms.
         outputs = cmd_info(config, localnames=args, untracked=options.untracked)
-        if args is not None and len(outputs) == 1:
+        if args and len(args) == 1:
+            # if only one element selected, print just one line
             print(get_info_list(config.get_base_path(),
                                 outputs[0],
                                 options.data_only))
@@ -353,13 +335,12 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
         header = 'workspace: %s\nROS_ROOT: %s' % (target_path,
                                                   get_ros_stack_path(config))
         print(header)
-        if not options.no_pkg_path:
-            table = get_info_table(config.get_base_path(),
-                                   outputs,
-                                   options.data_only,
-                                   reverse=reverse)
-            if table is not None and table != '':
-                print("\n%s" % table)
+        table = get_info_table(config.get_base_path(),
+                               outputs,
+                               options.data_only,
+                               reverse=reverse)
+        if table is not None and table != '':
+            print("\n%s" % table)
 
         return 0
 
