@@ -39,6 +39,8 @@ import time
 import yaml
 from optparse import OptionParser, IndentedHelpFormatter
 
+from rosinstall.cli_common import get_info_list, get_info_table, \
+    get_info_table_raw_csv, ONLY_OPTION_VALID_ATTRS
 from rosinstall.common import samefile, select_element, select_elements, \
     MultiProjectException, normalize_uri, string_diff
 from rosinstall.config_yaml import PathSpec, get_path_spec_from_yaml
@@ -957,11 +959,108 @@ The command removes entries from your configuration file, it does not affect you
 
         return 0
 
-    # def cmd_info(self, target_path, argv, reverse=False, config=None):
-    #     """
-    #     :param target_path: where to look for config
-    #     :param config: config to use instead of parsing file anew
-    #     """
-    #     __pychecker__ = 'unusednames=reverse'
-    #     raise Exception("Not implemented yet")
-    # TODO enable when making multiproject an independent CLI
+
+    def cmd_info(self, target_path, argv, reverse=True, config=None):
+        parser = OptionParser(
+            usage="usage: %s info [localname]* [OPTIONS]" % self.progname,
+            formatter=IndentedHelpFormatterWithNL(),
+            description=__MULTIPRO_CMD_DICT__["info"] + """
+
+The Status (S) column shows
+ x  for missing
+ L  for uncommited (local) changes
+ V  for difference in version and/or remote URI
+
+The 'Version-Spec' column shows what tag, branch or revision was given
+in the .rosinstall file. The 'UID' column shows the unique ID of the
+current (and specified) version. The 'URI' column shows the configured
+URL of the repo.
+
+If status is V, the difference between what was specified and what is
+real is shown in the respective column. For SVN entries, the url is
+split up according to standard layout (trunk/tags/branches).
+
+When given one localname, just show the data of one element in list form.
+This also has the generic properties element which is usually empty.
+
+The --only option accepts keywords: %(opts)s
+
+Examples:
+$ %(prog)s info -t ~/ros/fuerte
+$ %(prog)s info robot_model
+$ %(prog)s info --yaml
+$ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
+""" % {'prog': self.progname, 'opts': ONLY_OPTION_VALID_ATTRS},
+            epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+        parser.add_option(
+            "--data-only", dest="data_only", default=False,
+            help="Does not provide explanations",
+            action="store_true")
+        parser.add_option(
+            "--only", dest="only", default=False,
+            help="Shows comma-separated lists of only given comma-separated attribute(s).",
+            action="store")
+        parser.add_option(
+            "--yaml", dest="yaml", default=False,
+            help="Shows only version of single entry. Intended for scripting.",
+            action="store_true")
+        parser.add_option(
+            "-u", "--untracked", dest="untracked",
+            default=False,
+            help="Also show untracked files as modifications",
+            action="store_true")
+        # -t option required here for help but used one layer above, see cli_common
+        parser.add_option(
+            "-t", "--target-workspace", dest="workspace", default=None,
+            help="which workspace to use",
+            action="store")
+        (options, args) = parser.parse_args(argv)
+
+        if config is None:
+            config = multiproject_cmd.get_config(
+                target_path,
+                additional_uris=[],
+                config_filename=self.config_filename)
+        elif config.get_base_path() != target_path:
+            raise MultiProjectException("Config path does not match %s %s " %
+                                        (config.get_base_path(), target_path))
+
+        if args == []:
+            args = None
+
+        if options.only:
+            only_options = options.only.split(",")
+            if only_options == '':
+                parser.error('No valid options given')
+            lines = get_info_table_raw_csv(config,
+                                           properties=only_options,
+                                           localnames=args)
+            print('\n'.join(lines))
+            return 0
+        elif options.yaml:
+            source_aggregate = multiproject_cmd.cmd_snapshot(config,
+                                                             localnames=args)
+            print(yaml.safe_dump(source_aggregate), end='')
+            return 0
+
+        # this call takes long, as it invokes scms.
+        outputs = multiproject_cmd.cmd_info(config,
+                                            localnames=args,
+                                            untracked=options.untracked)
+        if args and len(args) == 1:
+            # if only one element selected, print just one line
+            print(get_info_list(config.get_base_path(),
+                                outputs[0],
+                                options.data_only))
+            return 0
+
+        header = 'workspace: %s' % (target_path)
+        print(header)
+        table = get_info_table(config.get_base_path(),
+                               outputs,
+                               options.data_only,
+                               reverse=reverse)
+        if table is not None and table != '':
+           print("\n%s" % table)
+
+        return 0

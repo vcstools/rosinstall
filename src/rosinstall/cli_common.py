@@ -30,12 +30,15 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+"Support for any command line interface (CLI) for rosinstall"
+
 import os
 import re
 from optparse import OptionParser
-from rosinstall.common import samefile, MultiProjectException
+from rosinstall.common import samefile, MultiProjectException, select_elements
 
-# Support for any command line interface (CLI) for rosinstall
+ONLY_OPTION_VALID_ATTRS = ['path', 'localname', 'version',
+                           'revision', 'cur_revision', 'uri', 'cur_uri', 'scmtype']
 
 
 def get_workspace(argv, shell_path, config_filename=None, varname=None):
@@ -242,7 +245,10 @@ def get_info_table_elements(basepath, entries):
 
 
 def get_info_table(basepath, entries, data_only=False, reverse=False):
-    """return a refined textual representation of the entries"""
+    """
+    return a refined textual representation of the entries. Provides
+    column headers and processes data.
+    """
     headers = {
         'uri': "URI  (Spec) [http(s)://...]",
         'scm': "SCM ",
@@ -344,4 +350,51 @@ def get_info_list(basepath, line, data_only=False):
         if output is None:
             output = ''
         result += "%s%s\n" % (title, output)
+    return result
+
+
+def get_info_table_raw_csv(config, properties, localnames):
+    """
+    returns raw data without decorations in comma-separated value format.
+    allows to select properties.
+    Given a config, collects all elements, and prints a line of each,
+    with selected properties in the output
+
+    :param properties: list of property ids to display
+    :param localnames: which config elements to show
+    .return: list of str, each a csv line
+    """
+    lookup_required = False
+    for attr in properties:
+        if not attr in ONLY_OPTION_VALID_ATTRS:
+            parser.error("Invalid --only option '%s', valids are %s" %
+                         (attr, ONLY_OPTION_VALID_ATTRS))
+        if attr in ['cur_revision', 'cur_uri', 'revision']:
+            lookup_required = True
+    elements = select_elements(config, localnames)
+    result=[]
+    for element in elements:
+        if lookup_required and element.is_vcs_element():
+            spec = element.get_versioned_path_spec()
+        else:
+            spec = element.get_path_spec()
+        output = []
+        for attr in properties:
+            if 'localname' == attr:
+                output.append(spec.get_local_name() or '')
+            if 'path' == attr:
+                output.append(spec.get_path() or '')
+            if 'scmtype' == attr:
+                output.append(spec.get_scmtype() or '')
+            if 'uri' == attr:
+                output.append(spec.get_uri() or '')
+            if 'version' == attr:
+                output.append(spec.get_version() or '')
+            if 'revision' == attr:
+                output.append(spec.get_revision() or '')
+            if 'cur_uri' == attr:
+                output.append(spec.get_curr_uri() or '')
+            if 'cur_revision' == attr:
+                output.append(spec.get_current_revision() or '')
+        result.append(','.join(output))
     return result
