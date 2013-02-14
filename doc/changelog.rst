@@ -9,6 +9,7 @@ Changelog
 
 - fix regression breaking wstool set command
 - fix rosws regenrate missing -t option
+- add --untracked option to rosws info
 
 0.6.24
 ------

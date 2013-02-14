@@ -375,7 +375,7 @@ def cmd_snapshot(config, localnames=None):
     return source_aggregate
 
 
-def cmd_info(config, localnames=None):
+def cmd_info(config, localnames=None, untracked=False):
     """This function compares what should be (config_file) with what is
     (directories) and returns a list of dictionary giving each local
     path and all the state information about it available.
@@ -383,9 +383,10 @@ def cmd_info(config, localnames=None):
 
     class InfoRetriever():
 
-        def __init__(self, element, path):
+        def __init__(self, element, path, untracked):
             self.element = element
             self.path = path
+            self.untracked = untracked
 
         def do_work(self):
             localname = ""
@@ -413,7 +414,7 @@ def cmd_info(config, localnames=None):
                     path_spec = self.element.get_versioned_path_spec()
                     version = path_spec.get_version()
                     curr_uri = path_spec.get_curr_uri()
-                    status = self.element.get_status(self.path)
+                    status = self.element.get_status(self.path, self.untracked)
                     if (status is not None and
                         status.strip() != ''):
                         modified = True
@@ -444,6 +445,6 @@ def cmd_info(config, localnames=None):
     elements = select_elements(config, localnames)
     for element in elements:
         if element.get_properties() is None or not 'setup-file' in element.get_properties():
-            work.add_thread(InfoRetriever(element, path))
+            work.add_thread(InfoRetriever(element, path, untracked))
     outputs = work.run()
     return outputs

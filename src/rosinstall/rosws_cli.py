@@ -278,6 +278,11 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
             "-t", "--target-workspace", dest="workspace", default=None,
             help="which workspace to use",
             action="store")
+        parser.add_option("-u", "--untracked", dest="untracked",
+                          default=False,
+                          help="Also show untracked files as modifications",
+                          action="store_true")
+
         (options, args) = parser.parse_args(argv)
 
         if config is None:
@@ -338,7 +343,7 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
             return 0
 
         # this call takes long, as it invokes scms.
-        outputs = cmd_info(config, localnames=args)
+        outputs = cmd_info(config, localnames=args, untracked=options.untracked)
         if args is not None and len(outputs) == 1:
             print(get_info_list(config.get_base_path(),
                                 outputs[0],
