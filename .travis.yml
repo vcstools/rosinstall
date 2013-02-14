@@ -5,11 +5,13 @@ python:
   - "3.2"
 # command to install dependencies
 install:
-  - python setup.py build
-  - sudo apt-get update -qq
+# develop seems to be required by travis since 02/2013
+  - python setup.py build develop
+  - sudo gpg --keyserver hkp://subkeys.pgp.net --recv-keys 16126D3A3E5C1192
+  - sudo gpg --export --armor 16126D3A3E5C1192 | sudo apt-key add -
+  - sudo apt-get clean
   - sudo apt-get install -qq zsh
-  - sudo pip install pyyaml vcstools nose-cov
-  - sudo pip install coverage
+  - sudo pip install vcstools nose-cov coverage pyyaml
 # Set git config to silence some stuff in the tests
   - git config --global user.email "foo@example.com"
   - git config --global user.name "Foo Bar"
@@ -19,8 +21,9 @@ install:
   - bzr whoami "Your Name <name@example.com>"
 # command to run tests
 script:
-  - nosetests test/local --with-coverage --cover-package rosinstall
-# network tests are integration tests downloading ros distros
-  - nosetests test/network --with-coverage --cover-package rosinstall
+  - python -c 'import sys; print(sys.path)'
+# Local tests work even if ros.org is down
+#  - nosetests test/local
+  - nosetests test
 notifications:
   email: false
