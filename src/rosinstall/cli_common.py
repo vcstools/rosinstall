@@ -116,18 +116,26 @@ def _uris_match(basepath, uri1, uri2):
     return False
 
 
-def _get_status_flags(basepath, line):
-    if 'exists' in line and line['exists'] is False:
+def _get_status_flags(basepath, elt_dict):
+    """
+    returns a string where each char conveys status information about
+    a config element entry
+
+    :param basepath: path in which element lies
+    :param elt_dict: a dict representing one elt_dict in a table
+    :returns: str
+    """
+    if 'exists' in elt_dict and elt_dict['exists'] is False:
         return 'x'
     mflag = ''
-    if 'modified' in line and line['modified'] is True:
+    if 'modified' in elt_dict and elt_dict['modified'] is True:
         mflag = 'M'
-    if (('curr_uri' in line and
-         not _uris_match(basepath, line['uri'], line['curr_uri'])) or
-        ('specversion' in line and
-         line['specversion'] is not None and
-         line['actualversion'] is not None and
-         line['specversion'] != line['actualversion'])):
+    if (('curr_uri' in elt_dict and
+         not _uris_match(basepath, elt_dict['uri'], elt_dict['curr_uri'])) or
+        ('specversion' in elt_dict and
+         elt_dict['specversion'] is not None and
+         elt_dict['actualversion'] is not None and
+         elt_dict['specversion'] != elt_dict['actualversion'])):
         mflag += 'V'
     return mflag
 
