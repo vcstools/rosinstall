@@ -280,7 +280,7 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
             action="store")
         parser.add_option("-u", "--untracked", dest="untracked",
                           default=False,
-                          help="Also check for untracked files",
+                          help="Also show untracked files as modifications",
                           action="store_true")
 
         (options, args) = parser.parse_args(argv)
