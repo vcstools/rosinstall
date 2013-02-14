@@ -57,44 +57,22 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
     @raise InvalidData
     """
 
-    ri_entry = None
-    if branch:
-        if 'rosinstalls' in data:
-            ri_entry = data['rosinstalls'].get(branch, None)
-        else:
-            sys.stderr.write(
-                'Warning: No specific branch data for branch "%s" found, falling back on default checkout\n' % branch)
+    vcs = get_vcs(name, data, type_)
+    vcs_uri = get_vcs_uri(data)
+    if not vcs and vcs_uri:
+        raise InvalidData(
+            "Missing VCS control information for %s %s, requires vcs[%s] and vcs_uri[%s]" % (type_, name, vcs, vcs_uri))
+    vcs_version = get_vcs_version(data)
 
-    # if we were unable to compute the rosinstall info based on a
-    # desired branch, use the default info instead
-    if ri_entry is None:
-        if 'rosinstall' in data:
-            ri_entry = data['rosinstall']
-        else:
-            if 'vcs' in data and 'vcs_uri' in data:
-                # fancy logic to enable package-specific checkout and also
-                # fix a bug in the indexer.
-                ri_entry = {data['vcs']: {'local-name':
-                                          name, 'uri': data['vcs_uri']}}
-                if 'vcs_version' in data:
-                    ri_entry['version'] = data['vcs_version']
-            else:
-                raise InvalidData(
-                    "Missing VCS control information for %s %s, requires vcs and vcs_uri, or rosinstall entries" % (type_, name))
+    paths = [x for x in (prefix, name) if x]
+    path = '/'.join(paths)
 
-    if len(ri_entry) != 1:
-        raise InvalidData("rosinstall malformed for %s %s" % (type_, name))
 
-    prefix = prefix or ''
-    for _, v in ri_entry.items():
-        if 'local-name' in v:
-            local_name = v['local-name']
-            # 3513
-            # compute path: we can't use os.path.join because rosinstall paths
-            # are always Unix-style.
-            paths = [x for x in (prefix, local_name) if x]
-            path = '/'.join(paths)
-            v['local-name'] = path
+    ri_entry = {vcs: {'uri': vcs_uri, 'local-name': path } }
+
+    if vcs_version:
+        ri_entry[vcs]['version'] = vcs_version
+
 
     return yaml.dump([ri_entry], default_flow_style=False)
 
@@ -121,6 +99,11 @@ def get_vcs(name, data, type_):
     """
     return data.get('vcs', '')
 
+def get_vcs_version(data):
+    return data.get('vcs_version', '')
+
+def get_vcs_uri(data):
+    return data.get('vcs_uri', '')
 
 def get_repo(name, data, type_):
     """
@@ -130,6 +113,13 @@ def get_repo(name, data, type_):
     """
     return data.get('repository', '')
 
+
+def get_type(data):
+    """
+    @param data: rosdoc manifest data
+    @return 'stack' of 'package'
+    """
+    return data.get('package_type', 'package')
 
 def get_www(name, data, type_):
     """
@@ -160,22 +150,19 @@ def get_rosdoc_manifest(stackage_name, distro_name=None):
         prefix = ROSDOC_PREFIX
 
     data = None
-    url_stack = '%s/api/%s/stack.yaml' % (prefix, stackage_name)
-    url_pack = '%s/api/%s/manifest.yaml' % (prefix, stackage_name)
+
+    url = '%s/api/%s/manifest.yaml' % (prefix, stackage_name)
     errors = []
-    # ! loop vars used after loop as well
-    for type_, url in zip(['stack', 'package'], [url_stack, url_pack]):
-        try:
-            streamdata = urlopen(url)
-            data = yaml.load(streamdata)
-            if not data:
-                raise InvalidData(
-                    'No Information available on %s %s at %s' % (type_,
-                                                                 stackage_name,
-                                                                 url))
-            break
-        except Exception as loope:
-            errors.append((url, loope))
+
+    try:
+        streamdata = urlopen(url)
+        data = yaml.load(streamdata)
+        if not data:
+            raise InvalidData(
+                'No Information available on %s at %s' % (stackage_name,
+                                                          url))
+    except Exception as loope:
+        errors.append((url, loope))
 
     # 1 error is expected when we query package
     error = None
@@ -184,4 +171,5 @@ def get_rosdoc_manifest(stackage_name, distro_name=None):
             sys.stderr.write('error contacting %s:\n%s\n' % (err_url, error))
     if error:
         raise error
+    type_ = get_type(data)
     return (data, type_, url)
