@@ -89,7 +89,7 @@ class RoswsCLI(MultiprojectCLI):
             print('Error: Bug: config filename required for init')
             return 1
         parser = OptionParser(
-            usage="""usage: %s init [TARGET_PATH [SOURCE_PATH]]?""" % _PROGNAME,
+            usage="""usage: %s init [TARGET_PATH [SOURCE_PATH]]?""" % self.progname,
             formatter=IndentedHelpFormatterWithNL(),
             description=__MULTIPRO_CMD_DICT__["init"] + """
 
@@ -103,7 +103,7 @@ If PATH is not given, uses current dir.
 
 Examples:
 $ %(prog)s init ~/fuerte /opt/ros/fuerte
-""" % {'cfg_file': self.config_filename, 'prog': _PROGNAME},
+""" % {'cfg_file': self.config_filename, 'prog': self.progname},
             epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("-c", "--catkin", dest="catkin", default=False,
                           help="Declare this is a catkin build.",
@@ -131,7 +131,7 @@ $ %(prog)s init ~/fuerte /opt/ros/fuerte
 
         if os.path.exists(os.path.join(target_path, self.config_filename)):
             print('Error: There already is a workspace config file %s at "%s". Use %s install/modify.' %
-                  (self.config_filename, target_path, _PROGNAME))
+                  (self.config_filename, target_path, self.progname))
             return 1
         if len(args) > 2:
             parser.error('Too many arguments')
@@ -174,7 +174,7 @@ $ %(prog)s init ~/fuerte /opt/ros/fuerte
         return 0
 
     def cmd_regenerate(self, target_path, argv, config=None):
-        parser = OptionParser(usage="usage: %s regenerate" % _PROGNAME,
+        parser = OptionParser(usage="usage: %s regenerate" % self.progname,
                               formatter=IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["remove"] + """
 
@@ -224,7 +224,7 @@ accidentally.
         only_option_valid_attrs = ['path', 'localname', 'version',
                                    'revision', 'cur_revision', 'uri', 'cur_uri', 'scmtype']
         parser = OptionParser(
-            usage="usage: %s info [localname]* [OPTIONS]" % _PROGNAME,
+            usage="usage: %s info [localname]* [OPTIONS]" % self.progname,
             formatter=IndentedHelpFormatterWithNL(),
             description=__MULTIPRO_CMD_DICT__["info"] + """
 
@@ -254,7 +254,7 @@ $ %(prog)s info -t ~/ros/fuerte
 $ %(prog)s info robot_model
 $ %(prog)s info --yaml
 $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
-""" % {'prog': _PROGNAME, 'opts': only_option_valid_attrs},
+""" % {'prog': self.progname, 'opts': only_option_valid_attrs},
             epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("--data-only", dest="data_only", default=False,
                           help="Does not provide explanations",
