@@ -35,13 +35,12 @@ import sys
 import traceback
 import os
 import copy
-# choosing multiprocessing over threading for clean Control-C
-# interrupts (provides terminate())
 try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
-
+# choosing multiprocessing over threading for clean Control-C
+# interrupts (provides terminate())
 from multiprocessing import Process, Manager
 from vcstools.vcs_base import VcsError
 
@@ -104,7 +103,7 @@ def is_web_uri(source_uri):
 
 def normalize_uri(source_uri, base_path):
     """
-    If source_uri is none or a web uir, return it.
+    If source_uri is none or a web uri, return it.
     If source_uri is a relative path, make it an absolute path.
     Else return it normalized
     :param source_uri: some uri to a file, folder, or web resource
