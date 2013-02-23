@@ -46,14 +46,14 @@ from rosinstall.config_yaml import rewrite_included_source, \
 class YamlIO_Test(unittest.TestCase):
 
     def test_get_yaml_from_uri_from_file(self):
-        file = os.path.join("test", "example.yaml")
-        y = get_yaml_from_uri(file)
+        filename = os.path.join("test", "example.yaml")
+        yamlstr = get_yaml_from_uri(filename)
 
-        self.assertTrue("text" in y)
-        self.assertTrue(y["text"] == "foobar")
+        self.assertTrue("text" in yamlstr)
+        self.assertTrue(yamlstr["text"] == "foobar")
 
-        self.assertTrue("number" in y)
-        self.assertTrue(y["number"] == 2)
+        self.assertTrue("number" in yamlstr)
+        self.assertTrue(yamlstr["number"] == 2)
         # invalid
         try:
             yaml = get_yaml_from_uri(
@@ -61,20 +61,20 @@ class YamlIO_Test(unittest.TestCase):
         except MultiProjectException:
             pass
         try:
-            get_path_specs_from_uri(file)
+            get_path_specs_from_uri(filename)
             self.fail("Expected exception")
         except MultiProjectException:
             pass
 
     def test_get_yaml_from_uri_from_missing_file(self):
-        file = "/asdfasdfasdfasfasdf_does_not_exist"
+        filename = "/asdfasdfasdfasfasdf_does_not_exist"
         try:
-            get_yaml_from_uri(file)
+            get_yaml_from_uri(filename)
             self.fail("Expected exception")
         except MultiProjectException:
             pass
         try:
-            get_path_specs_from_uri(file)
+            get_path_specs_from_uri(filename)
             self.fail("Expected exception")
         except MultiProjectException:
             pass
