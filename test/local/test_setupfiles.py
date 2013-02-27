@@ -40,6 +40,8 @@ from rosinstall.config import Config
 from rosinstall.config_yaml import PathSpec, generate_config_yaml
 from rosinstall.common import MultiProjectException
 from rosinstall.helpers import ROSInstallException, ROSINSTALL_FILENAME
+from rosinstall.multiproject_cmd import cmd_persist_config
+from rosinstall.rosinstall_cmd import cmd_generate_ros_files
 
 from test.scm_test_base import AbstractFakeRosBasedTest, AbstractRosinstallBaseDirTest, _add_to_file
 
@@ -150,6 +152,80 @@ class GenerateTest(AbstractFakeRosBasedTest):
         workspace = po.stdout.read().decode('UTF-8').rstrip('"').lstrip('"').strip()
         po.stdout.close()
         self.assertEqual(test_folder, workspace)
+
+    def test_source_setup_sh_chain(self):
+        """
+        Tests chaining of workspaces, which is fragile because
+        sourcing very similar setup.sh files recursively
+        """
+        chain_root_path = os.path.join(self.test_root_path, 'chaintest')
+        os.makedirs(chain_root_path)
+        test_folder1 = os.path.join(chain_root_path, 'ws1')
+        os.makedirs(test_folder1)
+        test_folder2 = os.path.join(chain_root_path, 'ws2')
+        os.makedirs(test_folder2)
+        test_folder3 = os.path.join(chain_root_path, 'ws3')
+        os.makedirs(test_folder3)
+        test_folder4 = os.path.join(chain_root_path, 'ws4')
+        os.makedirs(test_folder4)
+        othersetupfile = os.path.join(chain_root_path, 'othersetup.sh')
+        with open(othersetupfile, 'w') as fhand:
+            fhand.write('export ROS_PACKAGE_PATH=/opt/ros/distro')
+        config1 = Config([PathSpec('ws1sub'),
+                          PathSpec(os.path.join(test_folder2, "setup.sh"),
+                                   scmtype=None,
+                                   tags=['setup-file']),
+                          PathSpec(os.path.join(test_folder4, "setup.sh"),
+                                   scmtype=None,
+                                   tags=['setup-file'])],
+                         install_path=test_folder1,
+                         config_filename=ROSINSTALL_FILENAME)
+        config2 = Config([PathSpec('ws2sub'),
+                          PathSpec(os.path.join(test_folder3, "setup.sh"),
+                                   scmtype=None,
+                                   tags=['setup-file'])],
+                         install_path=test_folder2,
+                         config_filename=ROSINSTALL_FILENAME)
+        config3 = Config([PathSpec('ws3sub'),
+                          PathSpec(othersetupfile,
+                                   scmtype=None,
+                                   tags=['setup-file'])],
+                         install_path=test_folder3,
+                         config_filename=ROSINSTALL_FILENAME)
+        config4 = Config([PathSpec('ws4sub')],
+                         install_path=test_folder4,
+                         config_filename=ROSINSTALL_FILENAME)
+        cmd_generate_ros_files(config1, test_folder1, no_ros_allowed=True)
+        cmd_persist_config(config1,
+                           os.path.join(test_folder1, ROSINSTALL_FILENAME))
+
+        cmd_generate_ros_files(config2, test_folder2, no_ros_allowed=True)
+        cmd_persist_config(config2,
+                           os.path.join(test_folder2, ROSINSTALL_FILENAME))
+        cmd_generate_ros_files(config3, test_folder3, no_ros_allowed=True)
+        cmd_persist_config(config3,
+                           os.path.join(test_folder3, ROSINSTALL_FILENAME))
+        cmd_generate_ros_files(config4, test_folder4, no_ros_allowed=True)
+        cmd_persist_config(config4,
+                           os.path.join(test_folder4, ROSINSTALL_FILENAME))
+        cmd = ". %s && echo $ROS_PACKAGE_PATH" % os.path.join(test_folder1, "setup.sh")
+        po = subprocess.Popen(cmd, shell=True, cwd=test_folder1, stdout=subprocess.PIPE)
+        ppath = po.stdout.read().decode('UTF-8').strip('"').strip()
+        po.stdout.close()
+        expected = ':'.join([os.path.join(test_folder1, "ws1sub"),
+                             os.path.join(test_folder2, "ws2sub"),
+                             os.path.join(test_folder3, "ws3sub"),
+                             os.path.join(test_folder4, "ws4sub"),
+                             '/opt/ros/distro'])
+        self.assertEqual(expected, ppath)
+        # test double sourcing
+        cmd = ". %s ; . %s && echo $ROS_PACKAGE_PATH" % (os.path.join(test_folder2, "setup.sh"),
+                                                         os.path.join(test_folder4, "setup.sh"))
+        po = subprocess.Popen(cmd, shell=True, cwd=test_folder1, stdout=subprocess.PIPE)
+        ppath = po.stdout.read().decode('UTF-8').strip('"').strip()
+        po.stdout.close()
+        expected = os.path.join(test_folder4, "ws4sub")
+        self.assertEqual(expected, ppath)
 
     def test_gen_setup_bash(self):
         config = Config([PathSpec(self.ros_path),

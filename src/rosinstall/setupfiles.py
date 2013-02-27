@@ -165,6 +165,22 @@ def generate_setup_sh_text(workspacepath):
     text = """#!/usr/bin/env sh
 %(header)s
 
+# This setup.sh file has to parse .rosinstall file, and source similar
+# setup.sh files recursively. In the course of recursion, shell
+# variables get overwritten. This means that when returning from
+# recursion, any variable may be in a different state
+
+# These variables accumulate data through recursion and must only be
+# reset and unset at the top level of recursion.
+
+if [ x"$_ROSINSTALL_IN_RECURSION" != x"recurse" ] ; then
+  # reset setupfile accumulator
+  _SETUPFILES_ROSINSTALL=
+  _ROS_PACKAGE_PATH_ROSINSTALL=
+  # reset RPP before sourcing other setup files
+  export ROS_PACKAGE_PATH=
+fi
+
 export ROS_WORKSPACE=%(wspath)s
 if [ ! "$ROS_MASTER_URI" ] ; then export ROS_MASTER_URI=http://localhost:11311 ; fi
 unset ROS_ROOT
@@ -188,41 +204,57 @@ if [ x"$_PARSED_CONFIG" = x"ERROR" ]; then
   _SETUP_SH_ERROR=1
 fi
 
-# whitespace separates ros_package_path and setupfile results, using sed to split them up
-export _ROS_PACKAGE_PATH_ROSINSTALL=`echo "$_PARSED_CONFIG" | sed 's,\(.*\)ROSINSTALL_PATH_SETUPFILE_SEPARATOR\(.*\),\\1,'`
-_SETUPFILES_ROSINSTALL=`echo "$_PARSED_CONFIG" | sed 's,\(.*\)'ROSINSTALL_PATH_SETUPFILE_SEPARATOR'\(.*\),\\2,'`
-unset _PARSED_CONFIG
+# using sed to split up ros_package_path and setupfile results
+_ROS_PACKAGE_PATH_ROSINSTALL_NEW=`echo "$_PARSED_CONFIG" | sed 's,\(.*\)ROSINSTALL_PATH_SETUPFILE_SEPARATOR\(.*\),\\1,'`
+if [ ! -z "$_ROS_PACKAGE_PATH_ROSINSTALL_NEW" ]; then
+  if [ ! -z "$_ROS_PACKAGE_PATH_ROSINSTALL" ]; then
+    export _ROS_PACKAGE_PATH_ROSINSTALL=$_ROS_PACKAGE_PATH_ROSINSTALL:$_ROS_PACKAGE_PATH_ROSINSTALL_NEW
+  else
+    export _ROS_PACKAGE_PATH_ROSINSTALL=$_ROS_PACKAGE_PATH_ROSINSTALL_NEW
+  fi
+fi
 
-# reset RPP before running setup files
-export ROS_PACKAGE_PATH=
+_SETUPFILES_ROSINSTALL_NEW=`echo "$_PARSED_CONFIG" | sed 's,\(.*\)'ROSINSTALL_PATH_SETUPFILE_SEPARATOR'\(.*\),\\2,'`
+if [ ! -z "$_SETUPFILES_ROSINSTALL_NEW" ]; then
+  if [ ! -z "$_SETUPFILES_ROSINSTALL" ]; then
+    _SETUPFILES_ROSINSTALL=$_SETUPFILES_ROSINSTALL_NEW:$_SETUPFILES_ROSINSTALL
+  else
+    _SETUPFILES_ROSINSTALL=$_SETUPFILES_ROSINSTALL_NEW
+  fi
+fi
+unset _PARSED_CONFIG
 
 # colon separates entries
 _LOOP_SETUP_FILE=`echo $_SETUPFILES_ROSINSTALL | sed 's,\([^:]*\)[:]\(.*\),\\1,'`
+# this loop does fake recursion, as the called setup.sh may work on
+# the remaining elements in the _SETUPFILES_ROSINSTALL stack
 while [ ! -z "$_LOOP_SETUP_FILE" ]
 do
+  # need to pop from stack before recursing, as chained setup.sh might rely on this
+  _SETUPFILES_ROSINSTALL=`echo $_SETUPFILES_ROSINSTALL | sed 's,\([^:]*[:]*\),,'`
   if [ -f "$_LOOP_SETUP_FILE" ]; then
+    _ROSINSTALL_IN_RECURSION=recurse
     . $_LOOP_SETUP_FILE
+    unset _ROSINSTALL_IN_RECURSION
   else
     echo warn: no such file : "$_LOOP_SETUP_FILE"
   fi
-  _SETUPFILES_ROSINSTALL=`echo $_SETUPFILES_ROSINSTALL | sed 's,\([^:]*[:]*\),,'`
   _LOOP_SETUP_FILE=`echo $_SETUPFILES_ROSINSTALL | sed 's,\([^:]*\)[:]\(.*\),\\1,'`
 done
 
 unset _LOOP_SETUP_FILE
 unset _SETUPFILES_ROSINSTALL
-# restore ROS_WORKSPACE in case other setup.sh changed/unset it
-export ROS_WORKSPACE=%(wspath)s
 
 # prepend elements from .rosinstall file to ROS_PACKAGE_PATH
-# removing existing duplicates entries from value set by setup files
+# ignoring duplicates entries from value set by setup files
 export ROS_PACKAGE_PATH=`/usr/bin/env python << EOPYTHON
 import os
-
-ros_package_path1 = os.environ.get('ROS_PACKAGE_PATH', '')
-original_elements = ros_package_path1.split(':')
+ros_package_path = os.environ.get('ROS_PACKAGE_PATH', '')
+original_elements = ros_package_path.split(':')
 ros_package_path2 = os.environ.get('_ROS_PACKAGE_PATH_ROSINSTALL', '')
 new_elements = ros_package_path2.split(':')
+new_elements = [path for path in new_elements if path]
+
 for original_path in original_elements:
   if original_path and original_path not in new_elements:
     new_elements.append(original_path)
@@ -230,6 +262,9 @@ print(':'.join(new_elements))
 EOPYTHON`
 
 unset _ROS_PACKAGE_PATH_ROSINSTALL
+
+# restore ROS_WORKSPACE in case other setup.sh changed/unset it
+export ROS_WORKSPACE=%(wspath)s
 
 # if setup.sh did not set ROS_ROOT (pre-fuerte)
 if [ -z "${ROS_ROOT}" ]; then

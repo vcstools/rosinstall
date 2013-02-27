@@ -7,6 +7,7 @@ Changelog
 0.6.25
 ------
 
+- fix #59: Invalid ROS_PACKAGE_PATH when chaining rosws generated workspaces via setup-file elements
 - fix regression breaking wstool set command
 - fix rosws regenrate missing -t option
 - add --untracked option to rosws info
