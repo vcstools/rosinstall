@@ -53,9 +53,11 @@ try:
     from rosinstall.helpers import ROSInstallException
     from rosinstall.common import MultiProjectException
 except ImportError as exc:
-    sys.exit("ERROR: Cannot find required rosinstall library version, \
+    if ('rosinstall' in str(exc) or 'vcstools' in str(exc)):
+        sys.exit("ERROR: Cannot find required rosinstall library version, \
 check your installation (also of vcstools) is up-to-date. One frequent cause \
 is that rosinstall 0.5 is still installed in /usr/local/lib.\n%s" % exc)
+    raise
 
 
 if __name__ == "__main__":
