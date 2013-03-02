@@ -31,6 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import rosinstall.__version__
 
 from rosinstall.helpers import ROSInstallException, get_ros_stack_path
 
@@ -70,8 +71,9 @@ SHELL_HEADER = """# THIS IS AN AUTO-GENERATED FILE
 # IT IS UNLIKELY YOU WANT TO EDIT THIS FILE BY HAND
 # IF YOU WANT TO CHANGE THE ROS ENVIRONMENT VARIABLES
 # USE THE rosinstall OR rosws TOOL INSTEAD.
+# Generator version: %s
 # see: http://www.ros.org/wiki/rosinstall
-"""
+""" % rosinstall.__version__.version
 
 
 def generate_catkin_cmake(path, catkinpp):
