@@ -581,7 +581,7 @@ $ roslocate info robot_model | %(prog)s merge -
         return 0
 
     def cmd_diff(self, target_path, argv, config=None):
-        parser = OptionParser(usage="usage: rosws diff [localname]* ",
+        parser = OptionParser(usage="usage: %s diff [localname]* " % self.progname,
                               description=__MULTIPRO_CMD_DICT__["diff"],
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         # required here but used one layer above
@@ -614,7 +614,7 @@ $ roslocate info robot_model | %(prog)s merge -
         return False
 
     def cmd_status(self, target_path, argv, config=None):
-        parser = OptionParser(usage="usage: rosws status [localname]* ",
+        parser = OptionParser(usage="usage: %s status [localname]* " % self.progname,
                               description=__MULTIPRO_CMD_DICT__["status"] +
                               ". The status columns meanings are as the respective SCM defines them.",
                               epilog="""See: http://www.ros.org/wiki/rosinstall for details""")
@@ -659,7 +659,8 @@ $ roslocate info robot_model | %(prog)s merge -
         :param target_path: where to look for config
         :param config: config to use instead of parsing file anew
         """
-        usage = "usage: rosws set [localname] [SCM-URI]?  [--(%ssvn|hg|git|bzr)] [--version=VERSION]]" % ('detached|' if self.allow_other_element else '')
+        usage = ("usage: %s set [localname] [SCM-URI]?  [--(%ssvn|hg|git|bzr)] [--version=VERSION]]" %
+                 (self.progname, 'detached|' if self.allow_other_element else ''))
         parser = OptionParser(
             usage=usage,
             formatter=IndentedHelpFormatterWithNL(),
@@ -670,15 +671,16 @@ those you did not provide. if you only provide a uri, will use the
 basename of it as localname unless such an element already exists.
 
 The command only changes the configuration, to checkout or update
-the element, run rosws update afterwards.
+the element, run %(progname)s update afterwards.
 
 Examples:
-$ rosws set robot_model --hg https://kforge.ros.org/robotmodel/robot_model
-$ rosws set robot_model --version-new robot_model-1.7.1
-%s
-""" % ('$ rosws set robot_model --detached)'
-       if self.allow_other_element
-       else ''),
+$ %(progname)s set robot_model --hg https://kforge.ros.org/robotmodel/robot_model
+$ %(progname)s set robot_model --version-new robot_model-1.7.1
+%(detached)s
+""" % { 'progname': self.progname,
+        'detached': '$ %s set robot_model --detached' % self.progname
+        if self.allow_other_element
+        else ''},
             epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         if self.allow_other_element:
             parser.add_option("--detached", dest="detach", default=False,
@@ -832,8 +834,8 @@ $ rosws set robot_model --version-new robot_model-1.7.1
             if path_changed:
                 print("\nDo not forget to do ...\n$ source %s/setup.sh\n... in every open terminal." % target_path)
             if (spec.get_scmtype() is not None):
-                print("Config changed, remember to run 'rosws update %s' to update the folder from %s" %
-                      (spec.get_local_name(), spec.get_scmtype()))
+                print("Config changed, remember to run '%s update %s' to update the folder from %s" %
+                      (self.progname, spec.get_local_name(), spec.get_scmtype()))
         else:
             print("New element %s could not be added, " % spec)
             return 1
@@ -846,7 +848,7 @@ $ rosws set robot_model --version-new robot_model-1.7.1
         return 0
 
     def cmd_update(self, target_path, argv, config=None):
-        parser = OptionParser(usage="usage: rosws update [localname]*",
+        parser = OptionParser(usage="usage: %s update [localname]*" % self.progname,
                               formatter=IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["update"] + """
 
@@ -855,9 +857,9 @@ your local filesystem. In case the url has changed, the command will
 ask whether to delete or backup the folder.
 
 Examples:
-$ rosws update -t ~/fuerte
-$ rosws update robot_model geometry
-""",
+$ %(progname)s update -t ~/fuerte
+$ %(progname)s update robot_model geometry
+""" % {'progname': self.progname},
                               epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option("--delete-changed-uris", dest="delete_changed",
                           default=False,
@@ -918,7 +920,7 @@ $ rosws update robot_model geometry
         return 1
 
     def cmd_remove(self, target_path, argv, config=None):
-        parser = OptionParser(usage="usage: rosws remove [localname]*",
+        parser = OptionParser(usage="usage: %s remove [localname]*" % self.progname,
                               formatter=IndentedHelpFormatterWithNL(),
                               description=__MULTIPRO_CMD_DICT__["remove"] + """
 The command removes entries from your configuration file, it does not affect your filesystem.

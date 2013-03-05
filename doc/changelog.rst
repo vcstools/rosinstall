@@ -4,6 +4,12 @@ Changelog
 0.6
 ---
 
+0.6.26
+------
+
+- improved error messages
+- fixed help text referring to rosws when using wstool
+
 0.6.25
 ------
 
