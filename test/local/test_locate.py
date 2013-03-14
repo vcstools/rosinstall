@@ -30,6 +30,14 @@ class LocateTest(unittest.TestCase):
         data = {'vcs': 'svn'}
         self.assertRaises(locate.InvalidData,
                           locate.get_rosinstall, 'myname', data, None)
+        data = {'rosinstalls': None}
+        self.assertRaises(locate.InvalidData,
+                          locate.get_rosinstall,
+                          'myname', data, 'mytype', 'devel')
+        data = {'rosinstall': None}
+        self.assertRaises(locate.InvalidData,
+                          locate.get_rosinstall,
+                          'myname', data, 'mytype', None)
 
     def test_getters_empty(self):
         data = {'vcs': 'svn',

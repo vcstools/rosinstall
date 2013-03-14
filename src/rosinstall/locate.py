@@ -56,8 +56,9 @@ def _get_rosinstall_dict(name, data, type_, branch=None, prefix=None):
     # it's a mess.
     ri_entry = None
     if branch:
-        if 'rosinstalls' in data:
-            ri_entry = data['rosinstalls'].get(branch, None)
+        branch_data = data.get('rosinstalls', None)
+        if branch_data:
+            ri_entry = branch_data.get(branch, None)
         else:
             sys.stderr.write(
                 'Warning: No specific branch data for branch "%s" found, falling back on default checkout\n' % branch)
@@ -65,8 +66,9 @@ def _get_rosinstall_dict(name, data, type_, branch=None, prefix=None):
     # if we were unable to compute the rosinstall info based on a
     # desired branch, use the default info instead
     if ri_entry is None:
-        if 'rosinstall' in data:
-            ri_entry = data['rosinstall']
+        prepared_rosinstall = data.get('rosinstall', None)
+        if prepared_rosinstall:
+            ri_entry = prepared_rosinstall
         else:
             vcs = get_vcs(name, data, type_)
             vcs_uri = get_vcs_uri(data)
@@ -114,12 +116,13 @@ def get_vcs_uri_for_branch(data, branch=None):
     @param branch: source branch type ('devel' or 'release')
     """
     ri_entry = None
-    if branch and 'rosinstalls' in data:
-        ri_entry = data['rosinstalls'].get(branch, None)
-        vcs_type = list(ri_entry.keys())[0]
-        return ri_entry[vcs_type]['uri']
-    else:
-        return data.get('vcs_uri', '')
+    if branch:
+        branch_data = data.get('rosinstalls', None)
+        if branch_data:
+            ri_entry = branch_data.get(branch, None)
+            vcs_type = list(ri_entry.keys())[0]
+            return ri_entry[vcs_type]['uri']
+    return data.get('vcs_uri', '')
 
 
 def get_vcs(name, data, type_):
@@ -199,8 +202,9 @@ def get_rosdoc_manifest(stackage_name, distro_name=None):
                                                                  stackage_name,
                                                                  url))
             # with fuerte, stacks also have manifest.yaml, but have a type flag
-            if 'package_type' in data:
-                type_ = data['package_type']
+            realtype = data.get('package_type')
+            if realtype:
+                type_ = realtype
             break
         except Exception as loope:
             errors.append((url, loope))
