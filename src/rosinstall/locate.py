@@ -68,30 +68,29 @@ def _get_rosinstall_dict(name, data, type_, branch=None, prefix=None):
         if 'rosinstall' in data:
             ri_entry = data['rosinstall']
         else:
-            if 'vcs' in data and 'vcs_uri' in data:
-                # fancy logic to enable package-specific checkout and also
-                # fix a bug in the indexer.
-                ri_entry = {data['vcs']: {'local-name':
-                                          name, 'uri': data['vcs_uri']}}
-                if 'vcs_version' in data:
-                    ri_entry[data['vcs']]['version'] = data['vcs_version']
-            else:
+            vcs = get_vcs(name, data, type_)
+            vcs_uri = get_vcs_uri(data)
+            if not vcs and vcs_uri:
                 raise InvalidData(
-                    "Missing VCS control information for %s %s, requires vcs and vcs_uri, or rosinstall entries" % (type_, name))
+                    "Missing VCS control information for %s %s, requires vcs[%s] and vcs_uri[%s]" % (type_, name, vcs, vcs_uri))
+            vcs_version = get_vcs_version(data)
 
-    if len(ri_entry) != 1:
-        raise InvalidData("rosinstall malformed for %s %s" % (type_, name))
+            ri_entry = {vcs: {'uri': vcs_uri, 'local-name': name } }
 
-    prefix = prefix or ''
-    for _, v in ri_entry.items():
-        if 'local-name' in v:
-            local_name = v['local-name']
-            # 3513
-            # compute path: we can't use os.path.join because rosinstall paths
-            # are always Unix-style.
-            paths = [x for x in (prefix, local_name) if x]
-            path = '/'.join(paths)
-            v['local-name'] = path
+            if vcs_version:
+                ri_entry[vcs]['version'] = vcs_version
+
+    if prefix:
+        prefix = prefix or ''
+        for _, v in ri_entry.items():
+            if 'local-name' in v:
+                local_name = v['local-name']
+                # 3513
+                # compute path: we can't use os.path.join because rosinstall paths
+                # are always Unix-style.
+                paths = [x for x in (prefix, local_name) if x]
+                path = '/'.join(paths)
+                v['local-name'] = path
     return ri_entry
 
 
@@ -132,6 +131,14 @@ def get_vcs(name, data, type_):
     return data.get('vcs', '')
 
 
+def get_vcs_version(data):
+    return data.get('vcs_version', '')
+
+
+def get_vcs_uri(data):
+    return data.get('vcs_uri', '')
+
+
 def get_repo(name, data, type_):
     """
     @param name: resource name
@@ -139,6 +146,14 @@ def get_repo(name, data, type_):
     @param type_: resource type ('stack' or 'package')
     """
     return data.get('repository', '')
+
+
+def get_type(data):
+    """
+    @param data: rosdoc manifest data
+    @return 'stack' of 'package'
+    """
+    return data.get('package_type', 'package')
 
 
 def get_www(name, data, type_):

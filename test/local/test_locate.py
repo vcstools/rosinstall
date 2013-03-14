@@ -5,6 +5,13 @@ import rosinstall.locate as locate
 
 class LocateTest(unittest.TestCase):
 
+    def test_getters_invalid(self):
+        data = {
+            'vcs': None,
+            'vcs_uri': 'https://code.ros.org/svn/ros-pkg'}
+        self.assertRaises(locate.InvalidData,
+                          locate.get_rosinstall, 'myname', data, None)
+
     def test_getters_empty(self):
         data = {'vcs': 'svn',
                 'vcs_uri': 'https://code.ros.org/svn/ros-pkg'}
@@ -60,6 +67,9 @@ class LocateTest(unittest.TestCase):
         self.assertEqual('https://kforge.ros.org/test/distro',
                          locate.get_vcs_uri_for_branch(data, 'distro'))
         self.assertEqual('svn', locate.get_vcs(None, data, None))
+        self.assertEqual('https://code.ros.org/svn/ros-pkg', locate.get_vcs_uri(data))
+        self.assertEqual('', locate.get_vcs_version(data))
+        self.assertEqual('package', locate.get_type(data))
         self.assertEqual(
             '- svn:\n    local-name: myname\n    uri: https://code.ros.org/svn/ros-pkg\n',
             locate.get_rosinstall('myname',
@@ -112,8 +122,9 @@ class LocateTest(unittest.TestCase):
             '- svn:\n    local-name: foo/myname\n    uri: https://code.ros.org/svn/ros-pkg\n    version: \'0.1\'\n',
             locate.get_rosinstall('myname',
                                   data, 'mytype', None, 'foo'))
-        # self.assertEqual('https://code.ros.org/svn/ros-pkg', locate.get_vcs_uri(data))
-        # self.assertEqual('0.1', locate.get_vcs_version(data))
+        self.assertEqual('https://code.ros.org/svn/ros-pkg', locate.get_vcs_uri(data))
+        self.assertEqual('0.1', locate.get_vcs_version(data))
+        self.assertEqual('package', locate.get_type(data))
 
     def test_get_manifest_diamondback(self):
         distro = 'diamondback'
