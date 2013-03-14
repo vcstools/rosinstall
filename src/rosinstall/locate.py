@@ -45,18 +45,15 @@ BRANCH_DEVEL = 'devel'
 class InvalidData(Exception):
     pass
 
-
-def get_rosinstall(name, data, type_, branch=None, prefix=None):
+def _get_rosinstall_dict(name, data, type_, branch=None, prefix=None):
     """
-    Compute a rosinstall fragment for checkout
-
-    @param name: resource name
-    @param data: manifest data for resource
-    @param branch: source branch type ('devel' or 'release')
-    @param prefix: checkout filepath prefix
-    @raise InvalidData
+    From the dict that was read from the online indexer, create a
+    single rosinstall dict.
     """
-
+    # This function takes into account that the way VCS
+    # information was colleted by the indexer has varied a lot
+    # historically (without documentation or announcement thereof), so
+    # it's a mess.
     ri_entry = None
     if branch:
         if 'rosinstalls' in data:
@@ -95,7 +92,20 @@ def get_rosinstall(name, data, type_, branch=None, prefix=None):
             paths = [x for x in (prefix, local_name) if x]
             path = '/'.join(paths)
             v['local-name'] = path
+    return ri_entry
 
+
+def get_rosinstall(name, data, type_, branch=None, prefix=None):
+    """
+    Compute a rosinstall fragment for checkout
+
+    @param name: resource name
+    @param data: manifest data for resource
+    @param branch: source branch type ('devel' or 'release')
+    @param prefix: checkout filepath prefix
+    @raise InvalidData
+    """
+    ri_entry = _get_rosinstall_dict(name, data, type_, branch, prefix)
     return yaml.dump([ri_entry], default_flow_style=False)
 
 
@@ -173,6 +183,9 @@ def get_rosdoc_manifest(stackage_name, distro_name=None):
                     'No Information available on %s %s at %s' % (type_,
                                                                  stackage_name,
                                                                  url))
+            # with fuerte, stacks also have manifest.yaml, but have a type flag
+            if 'package_type' in data:
+                type_ = data['package_type']
             break
         except Exception as loope:
             errors.append((url, loope))
