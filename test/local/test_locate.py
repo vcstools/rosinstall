@@ -8,7 +8,26 @@ class LocateTest(unittest.TestCase):
     def test_getters_invalid(self):
         data = {
             'vcs': None,
+            'vcs_uri': None}
+        self.assertRaises(locate.InvalidData,
+                          locate.get_rosinstall, 'myname', data, None)
+        data = {
+            'vcs': None,
             'vcs_uri': 'https://code.ros.org/svn/ros-pkg'}
+        self.assertRaises(locate.InvalidData,
+                          locate.get_rosinstall, 'myname', data, None)
+        data = {
+            'vcs': 'svn',
+            'vcs_uri': None}
+        self.assertRaises(locate.InvalidData,
+                          locate.get_rosinstall, 'myname', data, None)
+        data = {}
+        self.assertRaises(locate.InvalidData,
+                          locate.get_rosinstall, 'myname', data, None)
+        data = {'vcs_uri': 'https://code.ros.org/svn/ros-pkg'}
+        self.assertRaises(locate.InvalidData,
+                          locate.get_rosinstall, 'myname', data, None)
+        data = {'vcs': 'svn'}
         self.assertRaises(locate.InvalidData,
                           locate.get_rosinstall, 'myname', data, None)
 

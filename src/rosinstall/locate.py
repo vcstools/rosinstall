@@ -70,7 +70,7 @@ def _get_rosinstall_dict(name, data, type_, branch=None, prefix=None):
         else:
             vcs = get_vcs(name, data, type_)
             vcs_uri = get_vcs_uri(data)
-            if not vcs and vcs_uri:
+            if not vcs or not vcs_uri:
                 raise InvalidData(
                     "Missing VCS control information for %s %s, requires vcs[%s] and vcs_uri[%s]" % (type_, name, vcs, vcs_uri))
             vcs_version = get_vcs_version(data)
