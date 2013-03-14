@@ -609,7 +609,10 @@ $ roslocate info robot_model | %(prog)s merge -
         for entrydiff in difflist:
             if entrydiff['diff'] is not None and entrydiff['diff'] != '':
                 alldiff.append(entrydiff['diff'])
-        print('\n'.join(alldiff))
+        result = '\n'.join(alldiff)
+        # result has no newline at end
+        if result:
+            print(result)
 
         return False
 
