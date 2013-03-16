@@ -10,6 +10,7 @@ Changelog
 - improved error messages
 - fixed help text referring to rosws when using wstool
 - fix #73 roslocate and rosco regressions
+- enable urlopen using netrc #71
 
 0.6.25
 ------
