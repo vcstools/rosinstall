@@ -32,11 +32,7 @@
 
 import os
 import yaml
-try:
-    from urllib.request import urlopen
-except ImportError:
-    from urllib2 import urlopen
-
+from vcstools.common import urlopen_netrc
 from rosinstall.common import MultiProjectException
 
 __REPOTYPES__ = ['svn', 'bzr', 'hg', 'git', 'tar']
@@ -58,16 +54,20 @@ def get_yaml_from_uri(uri):
     try:
         try:
             if os.path.isfile(uri):
-                stream = open(uri, 'r')
+                try:
+                    stream = open(uri, 'r')
+                except IOError as ioe:
+                    raise MultiProjectException(
+                        "Unable open file [%s]: %s" % (uri, ioe))
             else:
-                stream = urlopen(uri)
-        except IOError as ioe:
-            raise MultiProjectException(
-                "Is not a local file, nor able to download as a URL [%s]: %s" % (uri, ioe))
+                try:
+                    stream = urlopen_netrc(uri)
+                except IOError as ioe2:
+                    raise MultiProjectException(
+                        "Unable to download URL [%s]: %s" % (uri, ioe2))
         except ValueError as vae:
             raise MultiProjectException(
                 "Is not a local file, nor a valid URL [%s] : %s" % (uri, vae))
-
         if not stream:
             raise MultiProjectException("couldn't load config uri %s" % uri)
         try:
