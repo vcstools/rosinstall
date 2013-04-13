@@ -41,14 +41,6 @@ try:
 except ImportError:
     from urllib2 import urlopen
 
-# 2 & 3 compatibility
-import sys
-_ii2 = 'iteritems'
-_ii3 = 'items'
-def myii(obj, **kw):
-    return iter(getattr(obj, _ii3 if sys.version_info[0] == 3 else _ii2)(**kw))
-
-
 BRANCH_RELEASE = 'release'
 BRANCH_DEVEL = 'devel'
 
@@ -78,7 +70,8 @@ def get_wet_info(wet_distro, name):
     Get information about wet packages or stacks
     """
     repos = wet_distro['repositories']
-    for repo, info in myii(repos):
+    for repo in repos:
+        info = repos[repo]
         if repo == name or name in info.get('packages', []):
             return (repo, info)
     return None
@@ -208,7 +201,8 @@ def _get_rosdistro_release(distro):
 
 
 def _find_repo(release_file, name):
-    for r, repo in myii(release_file.repositories):
+    for r in release_file.repositories:
+        repo = release_file.repositories[r]
         if name in repo.package_names:
             return repo
     return None
