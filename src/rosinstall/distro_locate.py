@@ -32,9 +32,15 @@
 
 # Author: kwc
 
+import rosdistro
+from rosdistro.manifest_provider import get_release_tag
 from rospkg import distro as rospkg_distro
 import yaml
-import urllib2
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
+
 BRANCH_RELEASE = 'release'
 BRANCH_DEVEL = 'devel'
 
@@ -64,7 +70,8 @@ def get_wet_info(wet_distro, name):
     Get information about wet packages or stacks
     """
     repos = wet_distro['repositories']
-    for repo, info in repos.iteritems():
+    for repo in repos:
+        info = repos[repo]
         if repo == name or name in info.get('packages', []):
             return (repo, info)
     return None
@@ -84,6 +91,7 @@ def get_dry_info(dry_distro, name):
             return (name,
                     stack.vcs_config.anon_repo_uri, stack.vcs_config.type,
                     stack.vcs_config.release_tag)
+    return None
 
 
 def get_release_rosinstall(name, wet_distro, dry_distro, prefix):
@@ -121,11 +129,106 @@ def get_manifest_yaml(name, distro):
     # If we didn't find the name, we need to try to find a stack for it
     url = 'http://ros.org/doc/%s/api/%s/manifest.yaml' % (distro, name)
     try:
-        return yaml.load(urllib2.urlopen(url))
+        return yaml.load(urlopen(url))
     except:
         raise IOError("Could not load a documentation manifest for %s-%s from ros.org\n\
 Have you selected a valid distro? Did you spell everything correctly? Is your package indexed on ros.org?\n\
 I'm looking here: %s for a yaml file." % (distro, name, url))
+
+
+def _get_fuerte_release():
+    """
+    Please delete me when fuerte is not supported anymore
+    See REP137 about rosdistro files
+    """
+    url = 'https://raw.github.com/ros/rosdistro/master/releases/fuerte.yaml'
+    try:
+        fuerte_distro = yaml.load(urlopen(url))
+    except:
+        raise IOError("Could not load the fuerte rosdistro file from github.\n"
+                      "Are you sure you've selected a valid distro?\n"
+                      "I'm looking for the following file %s" % url)
+    return fuerte_distro
+
+
+def _get_fuerte_rosinstall(name, prefix=None):
+    """
+    Please delete me when fuerte is not supported anymore
+    See REP137 about rosdistro files
+    """
+    dry_distro = rospkg_distro.load_distro(rospkg_distro.distro_uri('fuerte'))
+    wet_distro = _get_fuerte_release()
+    # Check to see if the name just exists in one of our rosdistro files
+    rosinstall = get_release_rosinstall(name, wet_distro, dry_distro, prefix)
+    if rosinstall:
+        return rosinstall
+
+    # If we didn't find the name, we need to try to find a stack for it
+    doc_yaml = get_manifest_yaml(name, 'fuerte')
+    for metapackage in doc_yaml.get('metapackages', []):
+        meta_yaml = get_manifest_yaml(metapackage, 'fuerte')
+        if meta_yaml['package_type'] == 'stack':
+            rosinstall = get_release_rosinstall(
+                metapackage, wet_distro, dry_distro, prefix)
+            if rosinstall:
+                return rosinstall
+
+    return None
+
+def _get_electric_rosinstall(name, prefix=None):
+    """
+    Please delete me when you don't care at all about electric anymore
+    """
+    dry_distro = rospkg_distro.load_distro(rospkg_distro.distro_uri('electric'))
+
+    if _is_dry(dry_distro, name):
+        return get_dry_rosinstall(dry_distro, name, prefix=prefix)
+
+    # If we didn't find the name, we need to try to find a stack for it
+    doc_yaml = get_manifest_yaml(name, 'electric')
+    for metapackage in doc_yaml.get('metapackages', []):
+        meta_yaml = get_manifest_yaml(metapackage, 'electric')
+        if meta_yaml['package_type'] == 'stack':
+            if _is_dry(dry_distro, metapackage):
+                return get_dry_rosinstall(dry_distro, metapackage, prefix=prefix)
+
+    return None
+
+
+def _get_rosdistro_release(distro):
+    index = rosdistro.get_index(rosdistro.get_index_url())
+    return rosdistro.get_release_file(index, distro)
+
+
+def _find_repo(release_file, name):
+    for r in release_file.repositories:
+        repo = release_file.repositories[r]
+        if name in repo.package_names:
+            return repo
+    return None
+
+
+def _is_wet(release_file, name):
+    return _find_repo(release_file, name) is not None
+
+
+def _is_dry(dry_distro, name):
+    return get_dry_info(dry_distro, name) is not None
+
+
+def get_wet_rosinstall(release_file, name, prefix=None):
+    repo = _find_repo(release_file, name)
+    if repo is None:  # wait, what?
+        return None
+    return build_rosinstall(name, repo.url, 'git', get_release_tag(repo, name), prefix)
+
+
+def get_dry_rosinstall(dry_distro, name, prefix=None):
+    info = get_dry_info(dry_distro, name)
+    if info:
+        name, uri, vcs_type, version = info
+        return build_rosinstall(name, uri, vcs_type, version, prefix)
+    return None
 
 
 def get_release_info(name, distro, prefix=None):
@@ -137,30 +240,31 @@ def get_release_info(name, distro, prefix=None):
     what stack a given package belongs to
     4) Look in the distro files again to see if the stack name is there, if it is, return the repo
     """
-    url = 'https://raw.github.com/ros/rosdistro/master/releases/%s.yaml' % distro
-    try:
-        wet_distro = yaml.load(urllib2.urlopen(url))
-    except:
-        raise IOError("Could not load the %s rosdistro file from github.\n\
-Are you sure you've selected a valid distro?\n\
-I'm looking for the following file %s" % (distro, url))
 
+    # fuerte is different.
+    if distro == 'fuerte':
+        return _get_fuerte_rosinstall(name, prefix=prefix)
+
+    # electric is ancient.
+    if distro == 'electric':
+        return _get_electric_rosinstall(name, prefix=prefix)
+
+    wet_distro = _get_rosdistro_release(distro)
     dry_distro = rospkg_distro.load_distro(rospkg_distro.distro_uri(distro))
 
     # Check to see if the name just exists in one of our rosdistro files
-    rosinstall = get_release_rosinstall(name, wet_distro, dry_distro, prefix)
-    if rosinstall:
-        return rosinstall
+    if _is_wet(wet_distro, name):
+        return get_wet_rosinstall(wet_distro, name, prefix=prefix)
+    if _is_dry(dry_distro, name):
+        return get_dry_rosinstall(dry_distro, name, prefix=prefix)
 
     # If we didn't find the name, we need to try to find a stack for it
     doc_yaml = get_manifest_yaml(name, distro)
     for metapackage in doc_yaml.get('metapackages', []):
         meta_yaml = get_manifest_yaml(metapackage, distro)
         if meta_yaml['package_type'] == 'stack':
-            rosinstall = get_release_rosinstall(
-                metapackage, wet_distro, dry_distro, prefix)
-            if rosinstall:
-                return rosinstall
+            if _is_dry(dry_distro, metapackage):
+                return get_dry_rosinstall(dry_distro, metapackage, prefix=prefix)
 
     return None
 
