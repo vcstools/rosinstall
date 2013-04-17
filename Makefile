@@ -22,7 +22,7 @@ distro: setup clean_dist
 
 push: distro
 	python setup.py sdist register upload
-	scp dist/rosinstall-${VERSION}.tar.gz ipr:/var/www/pr.willowgarage.com/html/downloads/rosinstall
+	#scp dist/rosinstall-${VERSION}.tar.gz ipr:/var/www/pr.willowgarage.com/html/downloads/rosinstall
 
 clean: clean_dist
 
