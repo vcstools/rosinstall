@@ -4,6 +4,11 @@ Changelog
 0.6
 ---
 
+0.6.27
+------
+
+- Upgraded to use the new rosdistro library (REP 137 compliant)
+
 0.6.26
 ------
 
