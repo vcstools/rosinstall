@@ -4,6 +4,11 @@ Changelog
 0.6
 ---
 
+0.6.28
+------
+
+- Rerelease without python 2.7 requirement in debs for lucid
+
 0.6.27
 ------
 
