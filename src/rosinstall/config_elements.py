@@ -457,7 +457,7 @@ class AVCSConfigElement(VCSConfigElement):
         # to make more use of lazy initializer, do not instantiate
         # client for just this this is crucial for bash tab completion
         if self.get_vcs_type_name() == 'git':
-            return os.path.isdir(os.path.join(self.path, '.git'))
+            return os.path.exists(os.path.join(self.path, '.git'))
         elif self.get_vcs_type_name() == 'svn':
             return os.path.isdir(os.path.join(self.path, '.svn'))
         elif self.get_vcs_type_name() == 'hg':
