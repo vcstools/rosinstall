@@ -38,6 +38,10 @@ try:
     from urllib.request import urlopen
 except ImportError:
     from urllib2 import urlopen
+
+from catkin_pkg.package import parse_package_string
+from rosdistro import get_cached_release, get_index, get_index_url, get_source_file
+
 BRANCH_RELEASE = 'release'
 BRANCH_DEVEL = 'devel'
 
@@ -148,7 +152,7 @@ def get_repo(name, data, type_):
     @param data: rosdoc manifest data
     @param type_: resource type ('stack' or 'package')
     """
-    return data.get('repository', '')
+    return data.get('repo_name', '')
 
 
 def get_type(data):
@@ -168,6 +172,79 @@ def get_www(name, data, type_):
     return data.get('url', '')
 
 
+def get_manifest(stackage_name, distro_name=None):
+    """
+    Get the repository and manifest data.
+
+    @param stackage_name: name of package/stack to get manifest information for.
+    get_manifest() gives stacks symbols precedence over package
+    symbols.
+    @type  stackage_name: str
+    @param distro_name: name of ROS distribution
+    @type  distro_name: str
+
+    @return: (manifest data, 'package'|'stack'|'repository').
+    @rtype: ({str: str}, str, str)
+    @raise IOError: if data cannot be loaded
+    """
+    data = None
+    if distro_name is not None:
+        data = get_manifest_from_rosdistro(stackage_name, distro_name)
+    if data is None:
+        sys.stderr.write('Not found via rosdistro - falling back to information provided by rosdoc\n')
+        data = get_rosdoc_manifest(stackage_name, distro_name)
+    return data
+
+
+def get_manifest_from_rosdistro(package_name, distro_name):
+    """
+    Get the rosdistro repository data and package information.
+
+    @param package_name: name of package or repository to get manifest information for.
+    It gives package symbols precedence over repository names.
+    @type  package_name: str
+    @param distro_name: name of ROS distribution
+    @type  distro_name: str
+
+    @return: (manifest data, 'package'|'repository').
+    @rtype: ({str: str}, str, str)
+    @raise IOError: if data cannot be loaded
+    """
+    data = {}
+    type_ = None
+    index = get_index(get_index_url())
+    release_cache = get_cached_release(index, distro_name)
+    if package_name in release_cache.packages:
+        pkg = release_cache.packages[package_name]
+        #print('pkg', pkg.name)
+        pkg_xml = release_cache.get_package_xml(package_name)
+        pkg_manifest = parse_package_string(pkg_xml)
+        data['description'] = pkg_manifest.description
+        website_url = [u.url for u in pkg_manifest.urls if u.type == 'website']
+        if website_url:
+            data['url'] = website_url[0]
+        repo_name = pkg.repository_name
+        type_ = 'package'
+    else:
+        repo_name = package_name
+        type_ = 'repository'
+    data['repo_name'] = repo_name
+    if repo_name in release_cache.repositories:
+        repo = release_cache.repositories[repo_name]
+        data['packages'] = repo.package_names
+
+    source_file = get_source_file(index, distro_name)
+    if repo_name in source_file.repositories:
+        repo = source_file.repositories[repo_name]
+        data['vcs'] = repo.type
+        data['vcs_uri'] = repo.url
+        data['vcs_version'] = repo.version
+    else:
+        return None
+
+    return (data, type_, None)
+
+
 def get_rosdoc_manifest(stackage_name, distro_name=None):
     """
     Get the rosdoc manifest data and type of stackage_name.
@@ -176,6 +253,8 @@ def get_rosdoc_manifest(stackage_name, distro_name=None):
     get_manifest() gives stacks symbols precedence over package
     symbols.
     @type  stackage_name: str
+    @param distro_name: name of ROS distribution
+    @type  distro_name: str
 
     @return: (manifest data, 'package'|'stack').
     @rtype: ({str: str}, str, str)

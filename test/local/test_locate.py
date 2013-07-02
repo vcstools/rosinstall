@@ -144,7 +144,7 @@ class LocateTest(unittest.TestCase):
                 'vcs_version': '0.1',
                 'repository': 'navigation'}
         self.assertEqual('http://ros.org/wiki/rviz', locate.get_www(None, data, None))
-        self.assertEqual('navigation', locate.get_repo(None, data, None))
+        self.assertEqual('visualization', locate.get_repo(None, data, None))
         self.assertEqual(
             '- svn:\n    local-name: foo/myname\n    uri: https://code.ros.org/svn/ros-pkg\n    version: \'0.1\'\n',
             locate.get_rosinstall('myname',
