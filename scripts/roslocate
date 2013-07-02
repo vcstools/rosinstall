@@ -41,6 +41,7 @@ index at ROS.org.
 NAME = 'roslocate'
 
 
+import os
 import sys
 try:
     from os import EX_USAGE
@@ -156,6 +157,8 @@ def roslocate_main():
     if not cmd in _cmds.keys():
         _fullusage()
 
+    distro = os.environ['ROS_DISTRO'] if 'ROS_DISTRO' in os.environ else None
+
     parser = OptionParser(usage="usage: %%prog %s <resource>" % (cmd), prog=NAME)
     if cmd in ['info', 'rosinstall']:
         parser.add_option("--prefix",
@@ -165,8 +168,8 @@ def roslocate_main():
 
     # TODO: distro-specific return values
     parser.add_option("--distro",
-                      dest="distro", default=None,
-                      help="fetch information for specific ROS distribution release")
+                      dest="distro", default=distro,
+                      help="fetch information for specific ROS distribution release (default: environment variable ROS_DISTRO if defined)")
 
     # In this implementation, we're optimizing for the use case where
     # the user wishes to do a source-based install of a released
@@ -192,6 +195,9 @@ def roslocate_main():
     if len(args) != 2:
         parser.error("please provide a resource name (package or stack)")
     name = args[1]
+
+    if not options.distro:
+        parser.error("please provide the distro name with --distro DISTRO_NAME")
 
     try:
         data, type_, _ = get_manifest(name, options.distro)
