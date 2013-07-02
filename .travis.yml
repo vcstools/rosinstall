@@ -27,3 +27,6 @@ script:
   - nosetests test
 notifications:
   email: false
+matrix:
+  allow_failures:
+    - python: "3.2"
