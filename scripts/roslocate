@@ -47,7 +47,7 @@ try:
 except ImportError:
     EX_USAGE = 0, 1, 2
 
-from rosinstall.locate import get_rosdoc_manifest, \
+from rosinstall.locate import get_manifest, \
      get_www, get_repo, get_vcs, get_vcs_uri_for_branch,\
      get_rosinstall, InvalidData, BRANCH_RELEASE, BRANCH_DEVEL
 
@@ -194,7 +194,7 @@ def roslocate_main():
     name = args[1]
 
     try:
-        data, type_, url = get_rosdoc_manifest(name, options.distro)
+        data, type_, _ = get_manifest(name, options.distro)
     except IOError:
         sys.exit('cannot locate information about %s\n' % (name))
 
