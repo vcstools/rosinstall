@@ -22,7 +22,7 @@ distro: setup clean_dist
 
 push: distro
 	python setup.py sdist register upload
-	#scp dist/rosinstall-${VERSION}.tar.gz ipr:/var/www/pr.willowgarage.com/html/downloads/rosinstall
+	scp dist/rosinstall-${VERSION}.tar.gz root@ipr.willowgarage.com:/var/www/pr.willowgarage.com/html/downloads/rosinstall
 
 clean: clean_dist
 
@@ -32,10 +32,9 @@ install: distro
 
 deb_dist:
 	# need to convert unstable to each distro and repeat
-	python setup.py --command-packages=stdeb.command bdist_deb 
+	python setup.py --command-packages=stdeb.command sdist_dsc --workaround-548392=False bdist_deb
 
 upload-packages: deb_dist
-	dput -u -c dput.cf all-shadow ${OUTPUT_DIR}/${NAME}_${VERSION}-1_amd64.changes 
 	dput -u -c dput.cf all-shadow-fixed ${OUTPUT_DIR}/${NAME}_${VERSION}-1_amd64.changes 
 	dput -u -c dput.cf all-ros ${OUTPUT_DIR}/${NAME}_${VERSION}-1_amd64.changes 
 
