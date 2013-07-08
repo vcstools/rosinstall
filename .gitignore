@@ -6,6 +6,7 @@
 *.log
 src/rosinstall.egg-info/*
 build/*
+deb_dist
 dist/*
 .coverage
 *.deb
