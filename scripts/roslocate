@@ -49,6 +49,7 @@ try:
 except ImportError:
     EX_USAGE = 0, 1, 2
 
+from optparse import OptionParser
 from rosinstall.locate import get_manifest, \
      get_www, get_repo, get_vcs, get_vcs_uri_for_branch,\
      get_rosinstall, InvalidData, BRANCH_RELEASE, BRANCH_DEVEL
@@ -120,23 +121,24 @@ def cmd_get_repo(name, data, type_, options=None):
 # Bind library to commandline implementation
 
 
-def _fullusage():
+def _fullusage(parser, error=EX_USAGE):
+    parser.print_help(file=sys.stderr)
     sys.stderr.write("""
-%s
-\tinfo\tGet rosinstall info of resource
-\tvcs\tGet name of source control system
-\ttype\tPackage or stack
-\turi\tGet source control URI of resource
-\twww\tGet web page of resource
-\trepo\tGet repository name of resource
-\tdescribe\tGet description of resource
-""" % (NAME))
-    sys.exit(EX_USAGE)
+Commands:
+  info\t\tGet rosinstall info of resource
+  vcs\t\tGet name of source control system
+  type\t\tPackage or stack
+  uri\t\tGet source control URI of resource
+  www\t\tGet web page of resource
+  repo\t\tGet repository name of resource
+  describe\tGet description of resource
+""")
+    sys.exit(error)
 
 _cmds = {
     # info/rosinstall are now identical
     'info': cmd_get_rosinstall,
-    'rosinstall': cmd_get_rosinstall,
+    'rosinstall': cmd_get_rosinstall, #alias
     'vcs': cmd_get_vcs,
     'type': get_type,
     'uri': cmd_get_vcs_uri,
@@ -148,22 +150,14 @@ _cmds = {
 
 
 def roslocate_main():
-    from optparse import OptionParser
     args = sys.argv
 
-    # parse command
-    if len(args) < 2:
-        _fullusage()
-    cmd = args[1]
-    if not cmd in _cmds.keys():
-        _fullusage()
+    parser = OptionParser(usage="usage: %prog <command> <resource> <options>", prog=NAME)
 
-    parser = OptionParser(usage="usage: %%prog %s <resource>" % (cmd), prog=NAME)
-    if cmd in ['info', 'rosinstall']:
-        parser.add_option("--prefix",
-                          dest="prefix", default=False,
-                          metavar="PATH",
-                          help="path prefix for rosinstall")
+    parser.add_option("--prefix",
+                      dest="prefix", default=False,
+                      metavar="PATH",
+                      help="path prefix for rosinstall")
 
     # TODO: distro-specific return values
     parser.add_option("--distro",
@@ -188,8 +182,23 @@ def roslocate_main():
                       action="store_true",
                       help="fetch release branch information")
 
+    # parse command
+    if '-h' in args or '--help' in args:
+        # printing commands in OptionParser is a mess
+        _fullusage(parser, error=0)
+    if len(args) < 2:
+        _fullusage(parser)
+
     # noop parse for now.  Will matter once we can pass in --distro
     options, args = parser.parse_args()
+
+    cmd = args[0]
+    if not cmd in _cmds.keys():
+        _fullusage(parser)
+
+    if cmd not in ['info', 'rosinstall'] and options.prefix:
+        parser.error('--prefix only allowed with commands info, rosinstall')
+
 
     if len(args) != 2:
         parser.error("please provide a resource name (package or stack)")
