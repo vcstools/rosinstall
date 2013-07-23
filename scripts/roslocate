@@ -38,8 +38,9 @@ Library for locating ROS packages and stacks using the centralized
 index at ROS.org.
 """
 
-NAME = 'roslocate'
+from __future__ import print_function
 
+NAME = 'roslocate'
 
 import os
 import sys
@@ -157,8 +158,6 @@ def roslocate_main():
     if not cmd in _cmds.keys():
         _fullusage()
 
-    distro = os.environ['ROS_DISTRO'] if 'ROS_DISTRO' in os.environ else None
-
     parser = OptionParser(usage="usage: %%prog %s <resource>" % (cmd), prog=NAME)
     if cmd in ['info', 'rosinstall']:
         parser.add_option("--prefix",
@@ -168,7 +167,7 @@ def roslocate_main():
 
     # TODO: distro-specific return values
     parser.add_option("--distro",
-                      dest="distro", default=distro,
+                      dest="distro",
                       help="fetch information for specific ROS distribution release (default: environment variable ROS_DISTRO if defined)")
 
     # In this implementation, we're optimizing for the use case where
@@ -197,7 +196,12 @@ def roslocate_main():
     name = args[1]
 
     if not options.distro:
-        parser.error("please provide the distro name with --distro DISTRO_NAME")
+        distro = os.environ['ROS_DISTRO'] if 'ROS_DISTRO' in os.environ else None
+        if distro:
+            print('Using ROS_DISTRO: %s' % distro, file=sys.stderr)
+            options.distro = distro
+        else:
+            parser.error("please provide the distro name with --distro DISTRO_NAME")
 
     try:
         data, type_, _ = get_manifest(name, options.distro)
@@ -205,7 +209,7 @@ def roslocate_main():
         sys.exit('cannot locate information about %s\n' % (name))
 
     try:
-        print _cmds[cmd](name, data, type_, options)
+        print (_cmds[cmd](name, data, type_, options))
         sys.stdout.flush() # raises correct error when used in a pipe
     except InvalidData as e:
         sys.stderr.write("%s\n" % e)
