@@ -213,7 +213,13 @@ def get_manifest_from_rosdistro(package_name, distro_name):
     data = {}
     type_ = None
     index = get_index(get_index_url())
-    release_cache = get_cached_release(index, distro_name)
+    try:
+        release_cache = get_cached_release(index, distro_name)
+    except RuntimeError as runerr:
+        if (runerr.message.startswith("Unknown release")):
+            return None
+        raise
+
     if package_name in release_cache.packages:
         pkg = release_cache.packages[package_name]
         #print('pkg', pkg.name)
@@ -224,7 +230,11 @@ def get_manifest_from_rosdistro(package_name, distro_name):
         if website_url:
             data['url'] = website_url[0]
         repo_name = pkg.repository_name
-        type_ = 'package'
+        meta_export = [exp for exp in pkg_manifest.exports if exp.tagname == 'metapackage']
+        if meta_export:
+            type_ = 'metapackage'
+        else:
+            type_ = 'package'
     else:
         repo_name = package_name
         type_ = 'repository'
