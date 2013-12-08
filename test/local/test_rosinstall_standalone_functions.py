@@ -35,8 +35,8 @@ import unittest
 import subprocess
 
 import rosinstall.helpers
-from rosinstall.config import Config
-from rosinstall.config_yaml import PathSpec
+from wstool.config import Config
+from wstool.config_yaml import PathSpec
 
 from mock import Mock
 
