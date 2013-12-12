@@ -3,8 +3,8 @@
 import sys
 try:
     from rosinstall.rosinstall_cli import rosinstall_main
-    from rosinstall.helpers import ROSInstallException
-    from rosinstall.common import MultiProjectException
+    from wstool.helpers import ROSInstallException
+    from wstool.common import MultiProjectException
 except ImportError as exc:
     if ('rosinstall' in str(exc) or 'vcstools' in str(exc)):
         sys.exit("ERROR: Cannot find required rosinstall library version, \

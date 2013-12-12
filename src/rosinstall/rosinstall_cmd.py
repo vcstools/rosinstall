@@ -33,9 +33,10 @@
 
 import os
 import subprocess
-from rosinstall.multiproject_cmd import cmd_persist_config as multipersist
+from wstool.multiproject_cmd import cmd_persist_config as multipersist
 from rosinstall import setupfiles
-from rosinstall.helpers import ROSINSTALL_FILENAME, is_path_ros
+from wstool.helpers import ROSINSTALL_FILENAME
+from rosinstall.helpers import is_path_ros
 
 
 def cmd_persist_config(config, config_filename=ROSINSTALL_FILENAME, header=''):

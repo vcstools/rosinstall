@@ -35,12 +35,13 @@ import subprocess
 import tempfile
 
 import rosinstall.setupfiles
-import rosinstall.helpers
-from rosinstall.config import Config
-from rosinstall.config_yaml import PathSpec, generate_config_yaml
-from rosinstall.common import MultiProjectException
-from rosinstall.helpers import ROSInstallException, ROSINSTALL_FILENAME
-from rosinstall.multiproject_cmd import cmd_persist_config
+import wstool.helpers
+from wstool.config import Config
+from wstool.config_yaml import PathSpec, generate_config_yaml
+from wstool.common import MultiProjectException
+from rosinstall.helpers import ROSInstallException
+from wstool.helpers import ROSINSTALL_FILENAME
+from wstool.multiproject_cmd import cmd_persist_config
 from rosinstall.rosinstall_cmd import cmd_generate_ros_files
 
 from test.scm_test_base import AbstractFakeRosBasedTest, AbstractRosinstallBaseDirTest, _add_to_file
@@ -122,13 +123,13 @@ class GenerateTest(AbstractFakeRosBasedTest):
         self.assertTrue('export ROS_WORKSPACE=%s' % test_folder in result)
         with open(testsetupfile, 'w') as fhand:
             fhand.write(result)
-        # check that sourcing setup.sh raises error when .rosinstall is missing
+        # check that sourcing setup.sh raises error when .wstool is missing
         raised = False
         try:
             subprocess.check_call(". %s" % testsetupfile , shell=True, env=self.new_environ)
         except:
             raised = True
-        self.assertTrue(raised, 'sourcing setup.sh with missing .rosinstall should fail')
+        self.assertTrue(raised, 'sourcing setup.sh with missing .wstool should fail')
         # test that our otherscript really unsets ROS_WORKSPACE, else nexttest would be invalid
         # using basename to check var is not set
         raised = False
@@ -252,7 +253,7 @@ class Genfiletest(AbstractRosinstallBaseDirTest):
              PathSpec("baz")],
             self.directory,
             None)
-        rosinstall.config_yaml.generate_config_yaml(config, '.rosinstall', '')
+        wstool.config_yaml.generate_config_yaml(config, '.rosinstall', '')
         filename = os.path.join(self.directory, "test_gen.py")
         _add_to_file(filename, rosinstall.setupfiles.generate_embedded_python())
         sh_filename = os.path.join(self.directory, "bar.sh")
@@ -275,7 +276,7 @@ class Genfiletest(AbstractRosinstallBaseDirTest):
                              PathSpec("baz")],
                             self.directory,
                             None)
-            rosinstall.config_yaml.generate_config_yaml(config, '.rosinstall', '')
+            wstool.config_yaml.generate_config_yaml(config, '.rosinstall', '')
             filename = os.path.join(self.directory, "test_gen.py")
             _add_to_file(filename, rosinstall.setupfiles.generate_embedded_python())
             sh_filename = os.path.join(self.directory, "bar.sh")

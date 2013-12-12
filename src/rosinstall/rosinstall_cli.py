@@ -53,8 +53,9 @@ from optparse import OptionParser
 import yaml
 import shutil
 
-from rosinstall import multiproject_cmd, rosinstall_cmd
-from rosinstall.helpers import ROSINSTALL_FILENAME
+from rosinstall import rosinstall_cmd
+from wstool import multiproject_cmd
+from wstool.helpers import ROSINSTALL_FILENAME
 import rosinstall.__version__
 
 

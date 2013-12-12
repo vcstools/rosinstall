@@ -36,9 +36,8 @@ import subprocess
 import shutil
 import rosinstall.rosws_cli
 from test.scm_test_base import AbstractFakeRosBasedTest, _create_yaml_file, _create_config_elt_dict
-from rosinstall.config_yaml import PathSpec
-import rosinstall.rosws_cli
-import rosinstall.multiproject_cmd
+from wstool.config_yaml import PathSpec
+import wstool.multiproject_cmd
 from rosinstall.rosws_cli import RoswsCLI
 from rosinstall.helpers import ROSInstallException
 
@@ -268,11 +267,11 @@ class RosinstallCommandLineGenerationTest(AbstractFakeRosBasedTest):
         self.assertEqual(0, cli.cmd_init([self.local_path, self.ros_path]))
         self.assertEqual(0, cli.cmd_merge(self.local_path, [self.git_path, "-y"]))
         self.assertEqual(0, cli.cmd_merge(self.local_path, [self.hg_path, "-y"]))
-        config = rosinstall.multiproject_cmd.get_config(basepath=self.local_path,
+        config = wstool.multiproject_cmd.get_config(basepath=self.local_path,
                                                         config_filename='.rosinstall')
         self.assertEqual(len(config.get_config_elements()), 3)
         self.assertEqual(0, cli.cmd_remove(self.local_path, [self.git_path]))
-        config = rosinstall.multiproject_cmd.get_config(basepath=self.local_path,
+        config = wstool.multiproject_cmd.get_config(basepath=self.local_path,
                                                         config_filename='.rosinstall')
         self.assertEqual(len(config.get_config_elements()), 2)
 
