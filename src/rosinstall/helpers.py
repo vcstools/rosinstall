@@ -97,7 +97,7 @@ def get_ros_root_from_setupfile(path):
     if sys.version < '3':
         out_str = codecs.unicode_escape_decode(out)[0]
     else:
-        out_str = out
+        out_str = out.decode('utf-8')
     return out_str.strip()
 
 
