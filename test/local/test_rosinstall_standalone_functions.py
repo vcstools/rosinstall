@@ -33,6 +33,7 @@
 import os
 import unittest
 import subprocess
+import sys
 
 import rosinstall.helpers
 from wstool.config import Config
@@ -54,7 +55,10 @@ class FunctionsTest(unittest.TestCase):
             mock_subprocess = Mock()
             mock_process = Mock(name='mockprocess')
             mock_subprocess.Popen.return_value = mock_process
-            mock_process.communicate.return_value = ('/somewhere/mock_ros_root/foo/..', None)
+            if sys.version < '3':
+                mock_process.communicate.return_value = ('/somewhere/mock_ros_root/foo/..', None)
+            else:
+                mock_process.communicate.return_value = (b'/somewhere/mock_ros_root/foo/..', None)
             mock_os = Mock()
             mock_path = Mock()
             mock_os.path = mock_path

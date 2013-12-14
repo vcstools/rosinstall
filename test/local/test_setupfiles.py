@@ -258,7 +258,7 @@ class Genfiletest(AbstractRosinstallBaseDirTest):
         _add_to_file(filename, rosinstall.setupfiles.generate_embedded_python())
         sh_filename = os.path.join(self.directory, "bar.sh")
         _add_to_file(sh_filename, "#! /usr/bin/env sh")
-        cmd = "python %s" % filename
+        cmd = "python -W ignore %s" % filename
         p = subprocess.Popen(cmd, shell=True, cwd=self.directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, err = p.communicate()
         self.assertEqual(''.encode('UTF-8'), err, err)
@@ -281,7 +281,7 @@ class Genfiletest(AbstractRosinstallBaseDirTest):
             _add_to_file(filename, rosinstall.setupfiles.generate_embedded_python())
             sh_filename = os.path.join(self.directory, "bar.sh")
             _add_to_file(sh_filename, "#! /usr/bin/env sh")
-            cmd = "python3 %s" % filename
+            cmd = "python3 -W ignore %s" % filename
             p = subprocess.Popen(cmd, shell=True, cwd=self.directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             output, err = p.communicate()
             self.assertEqual(''.encode('UTF-8'), err, err)
