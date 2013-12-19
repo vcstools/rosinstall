@@ -53,7 +53,7 @@ import yaml
 from optparse import OptionParser
 
 from rosinstall.simple_checkout import checkout_rosinstall
-from rosinstall.common import MultiProjectException
+from wstool.common import MultiProjectException
 from rosinstall.locate import get_rosdoc_manifest, get_rosinstall, \
      BRANCH_DEVEL, BRANCH_RELEASE, InvalidData
 

@@ -7,8 +7,8 @@ import shutil
 import rosinstall.helpers
 import rosinstall.rosws_stacks_cli
 from rosinstall.helpers import ROSInstallException
-from rosinstall.config import Config
-from rosinstall.config_yaml import PathSpec
+from wstool.config import Config
+from wstool.config_yaml import PathSpec
 
 
 class RosWsStacksTest(unittest.TestCase):

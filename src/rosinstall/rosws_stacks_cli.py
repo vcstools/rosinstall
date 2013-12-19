@@ -41,12 +41,12 @@ from optparse import OptionParser
 import yaml
 
 from rosinstall.helpers import ROSInstallException, ROSINSTALL_FILENAME
-from rosinstall.common import MultiProjectException
-from rosinstall.cli_common import get_workspace
+from wstool.common import MultiProjectException
+from wstool.cli_common import get_workspace
 import rosinstall.rosws_cli
 from rosinstall.rosinstall_cmd import cmd_persist_config
-from rosinstall.multiproject_cmd import get_config, cmd_install_or_update
-import rosinstall.config_yaml
+from wstool.multiproject_cmd import get_config, cmd_install_or_update
+import wstool.config_yaml
 
 
 def get_stack_element_in_config(config, stack):
@@ -185,7 +185,7 @@ def cmd_add_stack(config, stackname, released=False, recurse=False):
             return False
         yaml_dict = roslocate_info(stackname, distro, not released)
         if yaml_dict is not None and len(yaml_dict) > 0:
-            path_spec = rosinstall.config_yaml.get_path_spec_from_yaml(yaml_dict[0])
+            path_spec = wstool.config_yaml.get_path_spec_from_yaml(yaml_dict[0])
 
             if config.add_path_spec(path_spec, merge_strategy="MergeKeep") is False:
                 print("Config did not add element %s" % path_spec)

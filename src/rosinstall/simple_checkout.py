@@ -32,7 +32,7 @@
 
 import sys
 import vcstools
-from rosinstall.config_yaml import get_path_spec_from_yaml
+from wstool.config_yaml import get_path_spec_from_yaml
 
 
 def checkout_rosinstall(rosinstall_data, verbose=False):
