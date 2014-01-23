@@ -197,7 +197,7 @@ def _get_electric_rosinstall(name, prefix=None):
 
 def _get_rosdistro_release(distro):
     index = rosdistro.get_index(rosdistro.get_index_url())
-    return rosdistro.get_release_file(index, distro)
+    return rosdistro.get_distribution_file(index, distro)
 
 
 def _find_repo(release_file, name):
