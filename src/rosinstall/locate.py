@@ -40,7 +40,7 @@ except ImportError:
     from urllib2 import urlopen
 
 from catkin_pkg.package import parse_package_string
-from rosdistro import get_cached_release, get_index, get_index_url, get_source_file
+from rosdistro import get_cached_distribution, get_index, get_index_url
 
 BRANCH_RELEASE = 'release'
 BRANCH_DEVEL = 'devel'
@@ -214,16 +214,16 @@ def get_manifest_from_rosdistro(package_name, distro_name):
     type_ = None
     index = get_index(get_index_url())
     try:
-        release_cache = get_cached_release(index, distro_name)
+        distribution_cache = get_cached_distribution(index, distro_name)
     except RuntimeError as runerr:
         if (runerr.message.startswith("Unknown release")):
             return None
         raise
 
-    if package_name in release_cache.packages:
-        pkg = release_cache.packages[package_name]
+    if package_name in distribution_cache.release_packages:
+        pkg = distribution_cache.release_packages[package_name]
         #print('pkg', pkg.name)
-        pkg_xml = release_cache.get_package_xml(package_name)
+        pkg_xml = distribution_cache.get_release_package_xml(package_name)
         pkg_manifest = parse_package_string(pkg_xml)
         data['description'] = pkg_manifest.description
         website_url = [u.url for u in pkg_manifest.urls if u.type == 'website']
@@ -239,13 +239,15 @@ def get_manifest_from_rosdistro(package_name, distro_name):
         repo_name = package_name
         type_ = 'repository'
     data['repo_name'] = repo_name
-    if repo_name in release_cache.repositories:
-        repo = release_cache.repositories[repo_name]
-        data['packages'] = repo.package_names
+    if repo_name in distribution_cache.repositories:
+        repo = distribution_cache.repositories[repo_name].release_repository
+        if repo:
+            data['packages'] = repo.package_names
 
-    source_file = get_source_file(index, distro_name)
-    if repo_name in source_file.repositories:
-        repo = source_file.repositories[repo_name]
+    if repo_name in distribution_cache.repositories:
+        repo = distribution_cache.repositories[repo_name].source_repository
+        if not repo:
+            return None
         data['vcs'] = repo.type
         data['vcs_uri'] = repo.url
         data['vcs_version'] = repo.version
