@@ -40,33 +40,6 @@ with the same localname.
 A config element defines one main function `install`, which eventually 
 calls an SCM provider to checkout or update code.
 
-:mod:`config` Module
---------------------
-
-.. automodule:: rosinstall.config
-    :members:
-    :special-members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`config_elements` Module
------------------------------
-
-.. automodule:: rosinstall.config_elements
-    :members:
-    :special-members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`config_yaml` Module
--------------------------
-
-.. automodule:: rosinstall.config_yaml
-    :members:
-    :special-members:
-    :undoc-members:
-    :show-inheritance:
-
 
 
 ROS dependent modules
@@ -145,56 +118,4 @@ These modules provide functions on top of the multiproject context with referenc
     :undoc-members:
     :show-inheritance:
 
-
-Multiproject modules
-====================
-
-The following modules should have no dependency to ROS, related functions.
-
-:mod:`multiproject_cli` Module
-------------------------------
-
-.. automodule:: rosinstall.multiproject_cli
-    :members:
-    :special-members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`multiproject_cmd` Module
-------------------------------
-
-.. automodule:: rosinstall.multiproject_cmd
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-
-:mod:`cli_common` Module
-------------------------
-
-.. automodule:: rosinstall.cli_common
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`common` Module
---------------------
-
-.. automodule:: rosinstall.common
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-
-
-:mod:`ui` Module
-----------------
-
-.. automodule:: rosinstall.ui
-    :members:
-    :special-members:
-    :undoc-members:
-    :show-inheritance:
 
