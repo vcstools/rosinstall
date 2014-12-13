@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.7.4
+-----
+
+- Release to update configurations for newer ubuntu platforms.
+
 0.6
 ---
 
