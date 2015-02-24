@@ -32,19 +32,18 @@
 
 import os
 import subprocess
-import tempfile
 
 import rosinstall.setupfiles
 import wstool.helpers
 from wstool.config import Config
 from wstool.config_yaml import PathSpec, generate_config_yaml
-from wstool.common import MultiProjectException
 from rosinstall.helpers import ROSInstallException
 from wstool.helpers import ROSINSTALL_FILENAME
 from wstool.multiproject_cmd import cmd_persist_config
 from rosinstall.rosinstall_cmd import cmd_generate_ros_files
 
-from test.scm_test_base import AbstractFakeRosBasedTest, AbstractRosinstallBaseDirTest, _add_to_file
+from test.scm_test_base import AbstractFakeRosBasedTest
+from test.scm_test_base import AbstractRosinstallBaseDirTest
 
 
 def has_python3():
@@ -58,6 +57,8 @@ def has_python3():
 
 
 HAS_PYTHON3 = has_python3()
+if 'ROSINSTALL_SKIP_PYTHON3' in os.environ:
+    HAS_PYTHON3 = False
 
 
 def _add_to_file(path, content):
@@ -267,7 +268,7 @@ class Genfiletest(AbstractRosinstallBaseDirTest):
         self.assertTrue('ROSINSTALL_PATH_SETUPFILE_SEPARATOR'.encode('UTF-8') in output, output)
         self.assertTrue(output.endswith('/bar.sh\n'.encode('UTF-8')), output)
 
-    if not HAS_PYTHON3:
+    if HAS_PYTHON3:
 
         def test_gen_python_code_python3(self):
             # requires python3 to be installed, obviously
