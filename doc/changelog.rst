@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.7.5
+-----
+
+- Fixed failing tests, likely due to changes in Travis-CI.
+- Add conflicts for python3 and python2 versions of the rosinstall debians.
+
 0.7.4
 -----
 
