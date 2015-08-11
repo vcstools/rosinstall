@@ -1,13 +1,6 @@
 Developer's Guide
 =================
 
-Code API
---------
-
-.. toctree::
-   :maxdepth: 1
-
-   modules
 
 Changelog
 ---------
@@ -20,29 +13,26 @@ Changelog
 Bug reports and feature requests
 --------------------------------
 
-- `Submit a bug report <https://kforge.ros.org/vcstools/trac/newticket?component=rosinstall&type=defect>`_
-- `Submit a feature request <https://kforge.ros.org/vcstools/trac/newticket?component=rosinstall&type=enhancement>`_
-
+- `Submit a bug report <https://github.com/vcstools/rosinstall/issues>`_
 
 Developer Setup
 ---------------
 
 The rosinstall source can be downloaded using Mercurial::
 
-  $ hg clone https://kforge.ros.org/vcstools/rosinstall
+  $ git clone https://github.com/vcstools/rosinstall.git
 
 You will also need vcstools, which you can either install using pip or download using::
 
-  $ hg clone https://kforge.ros.org/vcstools/hg
+  $ git clone https://github.com/vcstools/vcstools.git
 
-If you download it without installing it, you need to export its location to your :envvar:`PYTHONPATH`::
 
   $ cd vcstools
-  $ . setup.sh
+  $ python develop
 
 To work on the bash completion, there is a separate repository::
 
-  $ hg clone https://kforge.ros.org/vcstools/ri_bash_completion
+  $ git clone https://github.com/vcstools/rosinstall_tab_completion.git
 
 That one does not contain python code.
 
@@ -51,17 +41,11 @@ which you will need to download and install in order to run the
 packaging.  We use setuptools instead of distutils in order to be able
 use ``setup()`` keys like ``install_requires``.
 
-Configure your :envvar:`PYTHONPATH`::
+Configure your environment:
 
    $ cd rosinstall
-   $ . setup.sh
+   $ python develop
 
-OR::
-
-   $ cd rosinstall
-   $ python setup.py install
-
-The first will prepend ``rosinstall/src`` to your :envvar:`PYTHONPATH`. The second will install rosinstall into your dist/site-packages.
 
 Testing
 -------

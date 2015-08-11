@@ -26,33 +26,6 @@ The command was introduced with [REP110]_.
    :depth: 3
 
 
-Wishlist
---------
-
-Thanks to its scm like syntax the rosws tool has a lot of room to
-grow. Possible changes that have been discussed are:
-
-- declare fixed positions for entries
-- maintain environment parameters like PATH, PYTHONPATH, LD_LIBRARY_PATH in .rosinstall
-- ability to deactivate entries but still keep their data in the file
-- manage labeled configurations for individual entries (and whole workspace)
-- manage nested or included workspaces
-- maintain workspace meta-information (rosinstall version, workspace relationships)
-- use an improved yaml syntax that also allows for all of the above
-- rosws as shell command to switch workspaces (prototype in contrib/rosws.shell)
-- recognize SCM folders as such when adding them
-- provide tags and branches of distributed SCMs in tab-completion and info
-- show whether updates are available on remote
-- colorize outputs
-- a command to reorder elements
-- an option for ``set`` to change element position
-- split out ROS agnostic tool for multi-vcs shell-project management
-- ability to store personal tool preferences in a .rc file
-- rosgui plugin
-
-At the time of this writing the rosws command is very new, so 
-it was decided to only provide a small set of commands and see 
-how users accept those before adding functionality.
 
 Usage
 -----
@@ -139,6 +112,7 @@ the element, run rosws update afterwards.
     --hg                  make an entry a mercurial entry
     --bzr                 make an entry a bazaar entry
     -y, --confirm         Do not ask for confirmation
+    -u, --update          update repository after set
     -t WORKSPACE, --target-workspace=WORKSPACE
                           which workspace to use
 
