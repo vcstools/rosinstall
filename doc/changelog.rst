@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.7.6
+-----
+
+- Fixup documentation.
+- Put versioned dependencies in for improved output to work.
+
 0.7.5
 -----
 
