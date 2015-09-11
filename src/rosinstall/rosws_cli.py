@@ -51,7 +51,7 @@ from wstool.cli_common import get_info_list, get_info_table, \
     get_info_table_raw_csv, get_workspace, ONLY_OPTION_VALID_ATTRS
 import rosinstall.rosinstall_cmd as rosinstall_cmd
 from wstool.multiproject_cmd import get_config, cmd_install_or_update, \
-    cmd_snapshot, cmd_version, cmd_info
+    cmd_snapshot, cmd_version, cmd_info, cmd_find_unmanaged_repos
 import rosinstall.__version__
 
 from wstool.common import MultiProjectException, select_elements
@@ -233,6 +233,7 @@ The Status (S) column shows
  x  for missing
  L  for uncommited (local) changes
  V  for difference in version and/or remote URI
+ C  for difference in local and remote versions
 
 The 'Version-Spec' column shows what tag, branch or revision was given
 in the .rosinstall file. The 'UID' column shows the unique ID of the
@@ -258,6 +259,10 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
 """ % {'prog': self.progname, 'opts': ONLY_OPTION_VALID_ATTRS},
             epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
         parser.add_option(
+            "--root", dest="show_ws_root", default=False,
+            help="Show workspace root path",
+            action="store_true")
+        parser.add_option(
             "--data-only", dest="data_only", default=False,
             help="Does not provide explanations",
             action="store_true")
@@ -278,6 +283,10 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
             help="Shows only version of single entry. Intended for scripting.",
             action="store_true")
         parser.add_option(
+            "--fetch", dest="fetch", default=False,
+            help="When used, retrieves version information from remote (takes longer).",
+            action="store_true")
+        parser.add_option(
             "-u", "--untracked", dest="untracked",
             default=False,
             help="Also show untracked files as modifications",
@@ -287,6 +296,10 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
             "-t", "--target-workspace", dest="workspace", default=None,
             help="which workspace to use",
             action="store")
+        parser.add_option(
+            "-m", "--managed-only", dest="unmanaged", default=True,
+            help="only show managed elements",
+            action="store_false")
         (options, args) = parser.parse_args(argv)
 
         if config is None:
@@ -297,6 +310,10 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
         elif config.get_base_path() != target_path:
             raise MultiProjectException("Config path does not match %s %s " %
                                         (config.get_base_path(), target_path))
+
+        if options.show_ws_root:
+            print(config.get_base_path())
+            return 0
 
         if args == []:
             args = None
@@ -324,7 +341,9 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
             return 0
 
         # this call takes long, as it invokes scms.
-        outputs = cmd_info(config, localnames=args, untracked=options.untracked)
+        outputs = cmd_info(config, localnames=args,
+                           untracked=options.untracked,
+                           fetch=options.fetch)
         if args and len(args) == 1:
             # if only one element selected, print just one line
             print(get_info_list(config.get_base_path(),
@@ -341,6 +360,16 @@ $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
                                reverse=reverse)
         if table is not None and table != '':
             print("\n%s" % table)
+
+        if options.unmanaged:
+            outputs2 = cmd_find_unmanaged_repos(config)
+            table2 = get_info_table(config.get_base_path(),
+                                   outputs2,
+                                   options.data_only,
+                                   reverse=reverse,
+                                   unmanaged=True)
+            if table2 is not None and table2 != '':
+                print("\nAlso detected these repositories in the workspace, add using '%s set':\n\n%s" % (self.progname, table2))
 
         return 0
 
