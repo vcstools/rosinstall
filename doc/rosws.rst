@@ -209,6 +209,7 @@ The Status (S) column shows
  x  for missing
  L  for uncommited (local) changes
  V  for difference in version and/or remote URI
+ C  for difference in local and remote versions
 
 The 'Version-Spec' column shows what tag, branch or revision was given
 in the .rosinstall file. The 'UID' column shows the unique ID of the
@@ -235,6 +236,7 @@ The ``--only`` option accepts keywords: ['path', 'localname', 'version',
   
   Options:
     -h, --help            show this help message and exit
+    --root                Show workspace root path
     --data-only           Does not provide explanations
     --no-pkg-path         Suppress ROS_PACKAGE_PATH.
     --pkg-path-only       Shows only ROS_PACKAGE_PATH separated by ':'.
@@ -243,6 +245,9 @@ The ``--only`` option accepts keywords: ['path', 'localname', 'version',
                           separated attribute(s).
     --yaml                Shows only version of single entry. Intended for
                           scripting.
+    --fetch               When used, retrieves version information from remote
+                          (takes longer).
+    -u, --untracked       Also show untracked files as modifications
     -t WORKSPACE, --target-workspace=WORKSPACE
                           which workspace to use
 
