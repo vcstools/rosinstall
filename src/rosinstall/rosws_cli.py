@@ -441,6 +441,8 @@ def rosws_main(argv=None, usage=None):
             'regenerate': cli.cmd_regenerate,
             'set': cli.cmd_set,
             'merge': cli.cmd_merge,
+            'foreach': cli.cmd_foreach,
+            'scrape': cli.cmd_scrape,
             'diff': cli.cmd_diff,
             'status': cli.cmd_status,
             'update': cli.cmd_update}
