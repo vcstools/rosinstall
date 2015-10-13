@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.7.7
+-----
+
+- Declared foreach and scrape commands used via wstools as library.
+
 0.7.6
 -----
 
