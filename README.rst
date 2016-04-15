@@ -3,7 +3,7 @@ rosinstall
 
 Command-line tools for maintaining a workspace of projects from multiple version-control systems, tailored for the ROS (Robot operating system) community.
 
-See http://www.ros.org/doc/api/rosinstall/html
+See http://docs.ros.org/independent/api/rosinstall/html
 
 Installing
 ----------
