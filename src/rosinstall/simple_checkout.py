@@ -35,9 +35,11 @@ import vcstools
 from wstool.config_yaml import get_path_spec_from_yaml
 
 
-def checkout_rosinstall(rosinstall_data, verbose=False):
+def checkout_rosinstall(rosinstall_data, verbose=False, shallow=False):
     """
     :param rosinstall_data: yaml dict in rosinstall format
+    :param verbose: verbose output
+    :param shallow: hint to use shallow checkout
     :raises: rosinstall.common.MultiProjectException for incvalid yaml
     """
     for frag in rosinstall_data:
@@ -51,4 +53,5 @@ def checkout_rosinstall(rosinstall_data, verbose=False):
         vcs_client = vcstools.get_vcs_client(path_spec.get_scmtype(),
                                              path_spec.get_path())
         vcs_client.checkout(path_spec.get_uri(),
-                            path_spec.get_version())
+                            path_spec.get_version(),
+                            shallow=shallow)

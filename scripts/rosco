@@ -95,6 +95,7 @@ def rosco_main():
 Checks out out ros packages or stacks into local directory.
 \trosco [options] <package-or-stack>
 \trosco -r <rosinstall-file>
+\trosco --help
 
 rosco also accepts piped rosinstall input:
 
@@ -109,6 +110,10 @@ rosco also accepts piped rosinstall input:
                       dest="dev", default=False,
                       action="store_true",
                       help="fetch development branch information")
+    parser.add_option("--shallow",
+                      dest="shallow", default=False,
+                      action="store_true",
+                      help="True/False, hint to prefer checkout of only latest revision, if possible")
     options, args = parser.parse_args()
 
     # accept piped input
@@ -137,7 +142,7 @@ rosco also accepts piped rosinstall input:
         parser.error("input must be a rosinstall snippet")
 
     try:
-        checkout_rosinstall(rosinstall_data, verbose=True)
+        checkout_rosinstall(rosinstall_data, verbose=True, shallow=options.shallow)
     except MultiProjectException as mpe:
         sys.exit(mpe)
 
