@@ -10,7 +10,7 @@ Installing
 
 Install the latest release on Ubuntu using apt-get::
 
-  $ sudo apt-get install rosinstall
+  $ sudo apt-get install python-rosinstall
 
 On other Systems, use the pypi package::
 
