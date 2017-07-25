@@ -1,31 +1,20 @@
 language: python
 python:
-  - "2.6"
   - "2.7"
-  - "3.2"
-  - "3.3"
   - "3.4"
+  - "3.5"
 # command to install dependencies
 install:
-# develop seems to be required by travis since 02/2013
-  - python setup.py build develop
+  - python setup.py install  # to make pip install dependencies
   - sudo apt-get clean
   - sudo apt-get update && sudo apt-get install -qq zsh
-  - sudo pip install vcstools nose-cov coverage PyYAML
-# Set git config to silence some stuff in the tests
-  - git config --global user.email "foo@example.com"
-  - git config --global user.name "Foo Bar"
-# Set the hg user
-  - echo -e "[ui]\nusername = Your Name <your@mail.com>" >> ~/.hgrc
-# Set the bzr user
-  - bzr whoami "Your Name <name@example.com>"
+  - python -m pip install nose PyYAML
 # command to run tests
 script:
   - python -c 'import sys; print(sys.path)'
 # Local tests work even if ros.org is down
   - export ROSINSTALL_SKIP_PYTHON3=1
-#  - nosetests test/local
-  - nosetests test
+  - python -m nose test/local
 notifications:
   email: false
 matrix:
