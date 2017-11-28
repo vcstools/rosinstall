@@ -247,7 +247,7 @@ class RosWsStacksCLI():
 
     def cmd_add_stack(self, target_path, argv):
         parser = OptionParser(usage="usage: rosws add-stack [PATH] localname",
-                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+                              epilog="See: http://wiki.ros.org/rosinstall for details\n")
         parser.add_option("-N", "--non-recursive", dest="norecurse",
                           default=False,
                           help="don't change configuration for dependent stacks",
@@ -318,7 +318,7 @@ class RosWsStacksCLI():
     def cmd_delete_stack(self, target_path, argv):
         parser = OptionParser(
             usage="usage: rosws delete-stack [PATH] localname",
-            epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+            epilog="See: http://wiki.ros.org/rosinstall for details\n")
         parser.add_option("-N", "--non-recursive", dest="norecurse",
                           default=False,
                           help="don't change configuration for dependent stacks",

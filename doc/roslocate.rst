@@ -176,7 +176,7 @@ repositories of ROS-compatible software.
 
 The process for getting a repository added to this index is described
 `on the "Get Involved" ROS.org page
-<http://www.ros.org/wiki/Get%20Involved#Create_Your_Own_.2A-ros-pkg_Repository>`_.
+<http://wiki.ros.org/Get%20Involved#Create_Your_Own_.2A-ros-pkg_Repository>`_.
 The indexer files themselves are stored in the ``rosdoc_rosorg``
 package, which can be `browsed online`_.
 Of particular interest is the ``repos.list`` file as well as the

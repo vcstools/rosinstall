@@ -42,7 +42,7 @@ Ubuntu
 On Ubuntu the recommended way to install rosinstall is to use apt. If
 the ros sources are added to your apt sources .
 
-To set ROS sources see http://www.ros.org/wiki/fuerte/Installation/Sources
+To set ROS sources see http://wiki.ros.org/fuerte/Installation/Sources
 
 ::
 

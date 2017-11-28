@@ -72,7 +72,7 @@ SHELL_HEADER = """# THIS IS AN AUTO-GENERATED FILE
 # IF YOU WANT TO CHANGE THE ROS ENVIRONMENT VARIABLES
 # USE THE rosinstall OR rosws TOOL INSTEAD.
 # Generator version: %s
-# see: http://www.ros.org/wiki/rosinstall
+# see: http://wiki.ros.org/rosinstall
 """ % rosinstall.__version__.version
 
 

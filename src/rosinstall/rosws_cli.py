@@ -105,7 +105,7 @@ If PATH is not given, uses current dir.
 Examples:
 $ %(prog)s init ~/fuerte /opt/ros/fuerte
 """ % {'cfg_file': self.config_filename, 'prog': self.progname},
-            epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+            epilog="See: http://wiki.ros.org/rosinstall for details\n")
         parser.add_option("-c", "--catkin", dest="catkin", default=False,
                           help="Declare this is a catkin build.",
                           action="store_true")
@@ -171,7 +171,7 @@ $ %(prog)s init ~/fuerte /opt/ros/fuerte
         print("\nrosinstall update complete.")
         if (options.catkin is False
             and options.catkinpp is None):
-            print("\nType 'source %s/setup.bash' to change into this environment. Add that source command to the bottom of your ~/.bashrc to set it up every time you log in.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % os.path.abspath(target_path))
+            print("\nType 'source %s/setup.bash' to change into this environment. Add that source command to the bottom of your ~/.bashrc to set it up every time you log in.\n\nIf you are not using bash please see http://wiki.ros.org/rosinstall/NonBashShells " % os.path.abspath(target_path))
         return 0
 
     def cmd_regenerate(self, target_path, argv, config=None):
@@ -186,7 +186,7 @@ another (which you should never do like this, create a separate new
 workspace instead), or you deleted or modified any of those files
 accidentally.
 """,
-                              epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+                              epilog="See: http://wiki.ros.org/rosinstall for details\n")
         parser.add_option("-c", "--catkin", dest="catkin", default=False,
                           help="Declare this is a catkin build.",
                           action="store_true")
@@ -257,7 +257,7 @@ $ %(prog)s info robot_model
 $ %(prog)s info --yaml
 $ %(prog)s info --only=path,cur_uri,cur_revision robot_model geometry
 """ % {'prog': self.progname, 'opts': ONLY_OPTION_VALID_ATTRS},
-            epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+            epilog="See: http://wiki.ros.org/rosinstall for details\n")
         parser.add_option(
             "--root", dest="show_ws_root", default=False,
             help="Show workspace root path",

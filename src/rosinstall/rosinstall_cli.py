@@ -32,7 +32,7 @@
 
 """
 usage: rosinstall [OPTIONS] INSTALL_PATH [ROSINSTALL FILES OR DIRECTORIES]
-see: http://www.ros.org/wiki/rosinstall
+see: http://wiki.ros.org/rosinstall
 
 Common Option:
 -n or --nobuild (don't perform a 'make core_cools' on the ros stack)
@@ -81,7 +81,7 @@ If running with --catkin mode:\
 URIs can be web urls to remote .rosinstall files, local .rosinstall files,\n\
 git, svn, bzr, hg URIs, or other (local directories)\n\
 Later URIs will shadow packages of earlier URIs.\n",
-                          epilog="See: http://www.ros.org/wiki/rosinstall for details\n")
+                          epilog="See: http://wiki.ros.org/rosinstall for details\n")
     parser.add_option("-c", "--catkin", dest="catkin", default=False,
                       help="Declare this is a catkin build.",
                       action="store_true")
@@ -239,5 +239,5 @@ Later URIs will shadow packages of earlier URIs.\n",
     if (options.catkin is False
         and options.catkinpp is None):
 
-        print("\n\nNow, type 'source %s/setup.bash' to set up your environment.\nAdd that to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells " % os.path.abspath(options.path))
+        print("\n\nNow, type 'source %s/setup.bash' to set up your environment.\nAdd that to the bottom of your ~/.bashrc to set it up every time.\n\nIf you are not using bash please see http://wiki.ros.org/rosinstall/NonBashShells " % os.path.abspath(options.path))
     return True

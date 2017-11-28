@@ -30,7 +30,7 @@ Start by updating / installing ``rosws``, which comes with rosinstall.
 
 *Ubuntu*
 
-On Ubuntu you first need to setup ROS sources: http://www.ros.org/wiki/fuerte/Installation/Sources
+On Ubuntu you first need to setup ROS sources: http://wiki.ros.org/fuerte/Installation/Sources
 
 :: 
 
@@ -85,7 +85,7 @@ delete after the tutorial.
   Type 'source ./setup.bash' to change into this environment. 
   Add that source command to the bottom of your ~/.bashrc to set it up every time you log in.
 
-  If you are not using bash please see http://www.ros.org/wiki/rosinstall/NonBashShells
+  If you are not using bash please see http://wiki.ros.org/rosinstall/NonBashShells
 
 
 To see what this command did, just type:

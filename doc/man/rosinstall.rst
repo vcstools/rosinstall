@@ -58,5 +58,5 @@ rosinstall does the following:
 
 Run "rosinstall -h" to access the built-in tool documentation.
 
-See http://www.ros.org/wiki/rosinstall for more details
+See http://wiki.ros.org/rosinstall for more details
 
