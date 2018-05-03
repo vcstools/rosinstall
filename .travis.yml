@@ -5,6 +5,9 @@ python:
   - "3.5"
 # command to install dependencies
 install:
+  # easy_install fails to install wstool as a dependency
+  # https://github.com/vcstools/rosinstall/pull/116
+  - pip install wstool
   - python setup.py install  # to make pip install dependencies
   - sudo apt-get clean
   - sudo apt-get update && sudo apt-get install -qq zsh
