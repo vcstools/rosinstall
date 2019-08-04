@@ -3,21 +3,26 @@ python:
   - "2.7"
   - "3.4"
   - "3.5"
+  - "3.6"
+
 # command to install dependencies
 install:
   # easy_install fails to install wstool as a dependency
   # https://github.com/vcstools/rosinstall/pull/116
   - pip install wstool
+  - pip install -U setuptools tox tox-travis
   - python setup.py install  # to make pip install dependencies
   - sudo apt-get clean
   - sudo apt-get update && sudo apt-get install -qq zsh
   - python -m pip install nose PyYAML
+  - python -c 'import sys; print(sys.path)'
 # command to run tests
 script:
-  - python -c 'import sys; print(sys.path)'
-# Local tests work even if ros.org is down
   - export ROSINSTALL_SKIP_PYTHON3=1
-  - python -m nose test/local
+  - tox
+  # Install rosinstall from pip and perform a sanity check
+  - pip install --upgrade rosinstall wstool
+  - rosws
 notifications:
   email: false
 matrix:

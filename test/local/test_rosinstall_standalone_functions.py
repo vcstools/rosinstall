@@ -41,14 +41,20 @@ from wstool.config_yaml import PathSpec
 
 from mock import Mock
 
+import tempfile
+import shutil
 
 class FunctionsTest(unittest.TestCase):
 
     def setUp(self):
-        pass
+        self.root_path = tempfile.mkdtemp()
+        self.examples_path = os.path.join(self.root_path, 'test', 'example_dirs')
+        example_files = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'example_dirs')
+        shutil.copytree(example_files, self.examples_path)
+        os.chdir(self.root_path)
 
     def tearDown(self):
-        pass
+        shutil.rmtree(self.root_path)
 
     def test_is_ros_in_setupfile(self):
         try:
