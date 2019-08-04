@@ -154,8 +154,8 @@ class LocateTest(unittest.TestCase):
         self.assertEqual('package', locate.get_type(data))
 
 
-    def test_get_manifest_groovy(self):
-        distro = 'groovy'
+    def test_get_manifest_lunar(self):
+        distro = 'lunar'
         # rviz
         result = locate.get_manifest('rviz', distro)
         self.assertEqual('package', result[1], result)
