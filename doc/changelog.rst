@@ -1,6 +1,23 @@
 Changelog
 =========
 
+0.7.9
+-----
+
+- using pyyaml safe_load to avoid warning messages
+- upgrade vcstools library version to 0.1.41, with new fixes:
+
+  - fix git submodule errors
+  - fix export_upstream for git submodules
+  - fix python3 incompatibility
+  - fix git fast-forward failures
+  - fix get_affected_files  
+
+0.7.8
+-----
+
+- Maintenance release
+
 0.7.7
 -----
 

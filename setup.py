@@ -34,11 +34,11 @@ setup(name='rosinstall',
       packages=['rosinstall'],
       package_dir={'': 'src'},
       install_requires=[
-          'vcstools>=0.1.38',
+          'vcstools>=0.1.42',
           'pyyaml',
           'rosdistro>=0.3.0',
           'catkin_pkg',
-          'wstool>=0.1.14',
+          'wstool>=0.1.18',
           'rospkg'
       ],
       tests_require=test_required,
