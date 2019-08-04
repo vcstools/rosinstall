@@ -286,7 +286,7 @@ def get_rosdoc_manifest(stackage_name, distro_name=None):
     for type_, url in zip(['stack', 'package'], [url_stack, url_pack]):
         try:
             streamdata = urlopen(url)
-            data = yaml.load(streamdata)
+            data = yaml.safe_load(streamdata)
             if not data:
                 raise InvalidData(
                     'No Information available on %s %s at %s' % (type_,

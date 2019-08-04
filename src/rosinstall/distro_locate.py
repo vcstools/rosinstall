@@ -129,7 +129,7 @@ def get_manifest_yaml(name, distro):
     # If we didn't find the name, we need to try to find a stack for it
     url = 'http://ros.org/doc/%s/api/%s/manifest.yaml' % (distro, name)
     try:
-        return yaml.load(urlopen(url))
+        return yaml.safe_load(urlopen(url))
     except:
         raise IOError("Could not load a documentation manifest for %s-%s from ros.org\n\
 Have you selected a valid distro? Did you spell everything correctly? Is your package indexed on ros.org?\n\
@@ -143,7 +143,7 @@ def _get_fuerte_release():
     """
     url = 'https://raw.github.com/ros/rosdistro/master/releases/fuerte.yaml'
     try:
-        fuerte_distro = yaml.load(urlopen(url))
+        fuerte_distro = yaml.safe_load(urlopen(url))
     except:
         raise IOError("Could not load the fuerte rosdistro file from github.\n"
                       "Are you sure you've selected a valid distro?\n"

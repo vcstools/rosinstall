@@ -105,7 +105,7 @@ with open(filename, "r") as fhand:
     sys.exit("Failed to read file: %s %s " % (filename, str(e)))
 
 try:
-  y = yaml.load(v);
+  y = yaml.safe_load(v);
 except Exception as e:
   print('ERROR')
   sys.exit("Invalid yaml in %s: %s " % (filename, str(e)))

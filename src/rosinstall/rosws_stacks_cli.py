@@ -96,7 +96,7 @@ def roslocate_info(stack, distro, dev):
         stdout, stderr = proc.communicate()
         if proc.returncode != 0:
             raise ROSInstallException('roslocate failed: %s' % (stderr))
-    return yaml.load(stdout)
+    return yaml.safe_load(stdout)
 
 
 def get_ros_stack_version():
