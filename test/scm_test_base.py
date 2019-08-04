@@ -131,6 +131,7 @@ class AbstractRosinstallCLITest(unittest.TestCase):
         os.environ['GIT_AUTHOR_EMAIL'] = 'name@example.com'
         os.environ['EMAIL'] = 'Your Name <name@example.com>'
         self.new_environ = copy.copy(os.environ)
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
         self.new_environ["PYTHONPATH"] = os.path.join(os.getcwd(), "src")
         if "ROS_WORKSPACE" in self.new_environ:
             self.new_environ.pop("ROS_WORKSPACE")
