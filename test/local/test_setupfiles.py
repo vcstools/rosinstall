@@ -51,7 +51,7 @@ def has_python3():
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, err = p.communicate()
     p.stdout.close()
-    if not p.returncode == 0:
+    if p.returncode == 0:
         return True
     return False
 
